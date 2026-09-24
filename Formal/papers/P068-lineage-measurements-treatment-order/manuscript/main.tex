@@ -1,0 +1,1618 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,tabularx,array}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,%
+            urlcolor=blue!45!black]{hyperref}
+\usepackage{enumitem}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\TV}{\operatorname{TV}}
+\newcommand{\kl}{\operatorname{kl}}
+\newcommand{\sgn}{\operatorname{sign}}
+\DeclareMathOperator{\Bin}{Bin}
+\newcommand{\cp}{c_{\mathrm p}}
+\setlength{\emergencystretch}{2em}
+
+\title{When single-lineage measurements fail to determine treatment order:\\
+sister dependence, branching extinction, and decision-focused assays}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Measurements sufficient to describe a retained cell lineage need not determine
+which intervention minimises the survival of the whole family. We construct a
+finite-type branching source in which complete retained-branch histories have
+identical laws across a family of sister couplings, while two interventions
+applied for exactly the same durations have opposite preferred orders. An exact
+finite-duration formula identifies the decision boundary and shows that it is
+strictly positive, not at zero covariance. Two new ingredients then control
+recurring descendant division: the extinction probability is monotone in the
+descendant division rate, and a sensitivity reserve replaces the crude
+occupation bound. Together they certify the reversal at $h=\log\frac87$ for
+descendant division rates up to $\eps=1/30$ instead of $1/500$, and they
+certify it for the \emph{entire} range $0\le\eps\le1$ at pulses of length
+$\log\frac{50}{49}$ rather than $10^{-6}$ --- four orders of magnitude of
+pulse length --- so that the phenomenon survives descendants dividing exactly
+as fast as the founder. A sister-agreement measurement repairs the missing
+information: forty independent division records give $95\%$ correct choice on a
+separated constant-treatment class, now throughout $\eps\le1/4$, and exact
+binomial inversion gives full-class rules with an explicit unresolved output.
+We distinguish calibration needed for a shifted decision threshold from
+calibration-free sign information, price correlated read errors as an additive
+covariance reserve, and express residual uncertainty in excess-survival-risk
+units. The source is synthetic: its rate ratios, instantaneous readout and
+independence assumptions are stated explicitly, and the conclusion is a
+statement about an observation protocol, not about a clinically effective
+regimen.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{Synopsis}
+
+A cell's descendants form a family, but a measurement may follow only one
+branch of that family. Two sources can produce exactly the same observed branch
+while coupling the states of sister cells differently. We show that this hidden
+dependence can reverse the preferred order of two specified treatment phases,
+so that no amount of data from the admitted protocol resolves the comparison. A
+paired sister measurement recovers the information the decision actually needs,
+and exact binomial calculations quantify when it supports a declaration. The
+examples are synthetic and demonstrate an information requirement, not a
+clinically effective regimen.
+
+\subsection{Inference about a cell and a decision about a family}
+
+Inferring proliferation and phenotype transitions, and choosing an
+intervention, are related but different tasks. Branching inference from cell
+numbers and fractions can exploit information well beyond mean trajectories
+\citep{GunnarssonFooLeder2023}, and optimal-dosing analysis studies
+interventions under a specified source and response law
+\citep{GunnarssonMagnussonFoo2025}. Here we ask a prior question: does an
+explicitly declared observation experiment determine a particular intervention
+comparison, when the source is not fully known?
+
+The distinction matters at division. A retained daughter can have a completely
+known state distribution while its dependence with the omitted sister is
+unknown. Family extinction, however, uses \emph{products} of daughter
+continuation probabilities, so it is sensitive to exactly that dependence. A
+schedule comparison can therefore turn on information erased by the observation
+protocol. This is not an assertion that all cell counts or all lineage trees are
+uninformative. We prove equality of one specific complete pruned-record law,
+including its timestamps, event labels, death and censoring records, and we say
+precisely which protocols are excluded.
+
+\subsection{What this paper establishes}
+
+The paper assembles a single source-specific package.
+
+\begin{enumerate}[nosep,leftmargin=*]
+\item \textbf{An exact observation equivalence} (Theorem~\ref{thm:branch}).
+      Two bounded-rate finite-type sources with common founder law, life-event
+      rates, observation channels and one-daughter transition marginals, but
+      different sister couplings, produce identical complete retained-branch
+      records on any bounded horizon, under every shared policy measurable from
+      the retained history.
+\item \textbf{An exact finite-duration treatment-order boundary}
+      (Proposition~\ref{prop:boundary}). For the constructed source the
+      difference of extinction probabilities between the chronological
+      schedules $AB$ and $BA$ factors completely; the boundary
+      $\cp(e^{-h})$ is strictly positive and strictly increasing in the pulse
+      length, with $\cp(e^{-h})=7h/8+O(h^2)$, and it leaves the feasible
+      covariance range at a single point.
+\item \textbf{Monotonicity in the descendant division rate}
+      (Lemma~\ref{lem:mono}). Family extinction is nonincreasing in the
+      descendant division rate $\eps$, under a supersolution condition that
+      Lemma~\ref{lem:criteria} verifies for the source at hand and, at every
+      pulse length where the reversal exists, for an arbitrary descendant
+      offspring law. This is new here and it halves every perturbation reserve
+      at once, because the two schedules can only move in the same direction.
+\item \textbf{A sensitivity reserve} (Proposition~\ref{prop:reserve}). A
+      differential-inequality bound replaces the coupling bound ``probability
+      that an extra division occurs'' by a bound that also charges how much
+      such a division can matter. It is between eight and thirty-one times
+      smaller than the occupation reserve it replaces, at no cost in
+      generality: it holds for every $\eps\ge0$.
+\item \textbf{A much larger certified range for the reversal}
+      (Theorem~\ref{thm:pulse}, Theorem~\ref{thm:short},
+      Table~\ref{tab:improve}). At $h=\log\frac87$ the opposite preferences at
+      $c=\mp1/5$ now persist through $\eps=1/30$, and at $c=\mp1/4$ through
+      $\eps=1/16$. At the shorter pulse $h=\log\frac{50}{49}$ the reversal
+      holds for \emph{every} $\eps\in[0,1]$, that is, with descendants dividing
+      exactly as fast as the founder.
+\item \textbf{A uniform decision band} (Corollary~\ref{cor:band}). For every
+      pulse length, every $\eps$ and every $c$, the preferred order is
+      determined outside an explicit band of half-width proportional to $\eps$
+      and, for small $h$, to about $11h$. The previously available statement of
+      this shape had half-width $16000\,h$ and applied only at $\eps\le1$.
+\item \textbf{Finite-sample decision rules for the repaired measurement}
+      (Theorem~\ref{thm:forty}, Proposition~\ref{prop:abstain}), with an
+      unresolved output, exact binomial validity over the whole admitted source
+      class, and calculated resolution probabilities.
+\item \textbf{Calibration and error-model accounting}
+      (\S\ref{sec:calibration}), including a calibration-free sign rule that is
+      now usable at finite pulse length, and an additive reserve
+      (Proposition~\ref{prop:corr}) that prices correlated read errors instead
+      of assuming them away.
+\end{enumerate}
+
+Items 3--6 and 8 are new relative to the earlier treatment of this source;
+items 1, 2 and 7 are retained, with the numerical content recomputed.
+Table~\ref{tab:improve} summarises the quantitative change.
+
+\begin{table}[tb]
+\centering\small
+\caption{What the new certificates change. ``Previous'' refers to the
+occupation-coupling certificate; every entry is for the same source, the same
+schedules and the same exact arithmetic. Factors are rounded down.}
+\label{tab:improve}
+\begin{tabularx}{\linewidth}{@{}Xllr@{}}
+\toprule
+Statement & Previous & This paper & Factor\\\midrule
+Reversal at $c=\mp\tfrac15$, $h=\log\frac87$ & $\eps\le1/500$ & $\eps\le1/30$ & $16.8$\\
+Reversal at $c=\mp\tfrac14$, $h=\log\frac87$ & --- & $\eps\le1/16$ & ---\\
+Reversal throughout $0\le\eps\le1$ & $h\le10^{-6}$ & $h=\log\frac{50}{49}\approx.0202$ & $>2\times10^4$\\
+Half-width of the undecided band in $c$ & $16000\,h$ & $\approx11\,h\,\eps$ & $>10^3$\\
+Separated $40$-division class & $\eps\le.001$ & $\eps\le1/4$ & $250$\\
+Full-class pulse rule at $.95$ resolution & $m=1600$, $\eps\le.001$ & $m=800$, $\eps\le.01$ & $2$ and $10$\\
+Matched direct-endpoint budget & $7\,814\,272$ roots & $5\,377\,920$ roots & $1.45$\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Sign conventions and a map of the decision tasks}
+\label{sec:conventions}
+
+Throughout, $F_a$ is the probability that the family is \emph{extinct} by the
+deadline under schedule $a$, and $R_a=1-F_a$ is the survival risk that the
+decision minimises. We write
+\[
+ D:=F_{AB}-F_{BA}=-(R_{AB}-R_{BA}).
+\]
+\emph{A positive $D$ favours $AB$; a positive $R_{AB}-R_{BA}$ favours $BA$.}
+The same convention is used for constant actions, with $D_C:=F_A-F_B$, so a
+positive $D_C$ favours $A$. All reported ``gaps'' are in units of absolute
+survival risk. The hidden coordinate is the founder sister covariance $c$; for
+binary state indicators with marginal $1/2$ the correlation is $4c$, so
+$c=\pm1/5$ means correlation $\pm0.8$ and $c=\pm1/4$ means correlation $\pm1$.
+These are strong sister associations, not perturbations of independence.
+
+Four decision tasks appear, and they must not borrow one another's parameter
+ranges. Table~\ref{tab:map} is the map.
+
+\begin{table}[tb]
+\centering\small
+\caption{The four decision tasks, their thresholds and their certified
+descendant-division ranges. ``Low $c$'' and ``high $c$'' refer to the hidden
+founder covariance. $h=T=\log\frac87$ unless stated.}
+\label{tab:map}
+\begin{tabularx}{\linewidth}{@{}lXll@{}}
+\toprule
+Task & Threshold on $c$ and which side wins & Certified $\eps$ & Where\\\midrule
+Pulses $AB$ vs $BA$ & $\cp\approx.13706$; low $c\Rightarrow AB$ & $\le1/30$ ($c=\mp\frac15$) & Thm~\ref{thm:pulse}\\
+ & & $\le1/16$ ($c=\mp\frac14$) & Thm~\ref{thm:pulse}\\
+Short pulses, $h=\log\frac{50}{49}$ & $\cp\approx.01813$; low $c\Rightarrow AB$ & $\le1$ ($c=\mp\frac14$) & Thm~\ref{thm:short}\\
+Constant $A$ vs $B$, separated & $c_*\approx.08432$; high $c\Rightarrow A$ & $\le1/4$ & Thm~\ref{thm:forty}\\
+Either, full class with abstention & own threshold & $\le1/100$ & Prop~\ref{prop:abstain}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Related work, and what is not claimed}
+
+Decision-focused experimental design, prediction identifiability, partial
+identification and minimax regret are established subjects
+\citep{Flassig2015,Manski2004,Stoye2012}. Information lower bounds for
+identification from repeated sampling are standard
+\citep{KaufmannCappeGarivier2016,Tsybakov2009}, and we use them as background
+rather than as new inequalities. Multi-type branching processes and their
+backward equations are classical
+\citep{Harris1963,AthreyaNey1972,KimmelAxelrod2015}; the comparison arguments in
+\S\ref{sec:recurring} use the standard theory of quasimonotone differential
+inequalities \citep{Walter1970,Walter1998,Smith1995}.
+
+Our contribution is a source-specific connection: an exact intervention-order
+boundary hidden from retained lineages, sharp control of the perturbation that
+transfers it to recurring division, and a paired measurement with quantitative
+decision guarantees. We make no exhaustive priority claim for the combined
+statement, and we do not claim to have established a clinically effective
+treatment, a generally optimal control policy, a universal failure of lineage
+tracing, or an optimal laboratory sample budget. Section~\ref{sec:scope}
+states the boundaries in detail.
+
+\section{The source, the endpoint and the admitted record}\label{sec:source}
+
+\subsection{The branching source}
+
+There are three labelled types, $P,S,T$, and initially one $P$. The founder
+divides at rate one, without death or switching, and is replaced by an ordered
+pair of daughters with law
+\begin{equation}\label{eq:kernel}
+ K_c=\begin{pmatrix}1/4+c&1/4-c\\1/4-c&1/4+c\end{pmatrix},
+ \qquad -\tfrac14\le c\le\tfrac14 .
+\end{equation}
+The row and column index the two daughter states, not mother types. An $S$ or
+$T$ cell divides at rate $\eps\ge0$, using the same joint law, and dies at the
+action-dependent rates
+\begin{equation}\label{eq:rates}
+ (d_S^A,d_T^A)=(2,4),\qquad (d_S^B,d_T^B)=(3,3).
+\end{equation}
+Different cells have independent event clocks and independent kernel draws
+conditional on their realised genealogy. Their future subtrees are independent
+\emph{conditional on both daughter states}; those states themselves need not be
+independent. Replacing the joint offspring probabilities by products of
+marginals would delete the mechanism under study.
+
+The source \eqref{eq:kernel} has sister dependence but no marginal
+mother-to-daughter phenotype memory: every daughter marginal is $(1/2,1/2)$.
+That separation is deliberate, and \S\ref{sec:refinement} proves that the
+conclusions survive a refinement with genuine marginal persistence. The
+response law \eqref{eq:rates}, the preparation and the remaining source
+assumptions are known; $c$ is the hidden coordinate, and we sometimes allow
+$\eps$ to remain unknown inside a certified interval. This is not
+extrapolation to an unmeasured action whose response is unrestricted.
+
+\subsection{Schedules and the endpoint}
+
+For a deterministic schedule $a$ and horizon $T$ the survival risk is
+\begin{equation}\label{eq:risk}
+ R_a(c,\eps)=\Prob^a_P(N_T>0),\qquad F_a=1-R_a .
+\end{equation}
+The principal comparison is chronological $AB$ against $BA$, each phase of
+length $h$, so $T=2h$. These two schedules use exactly the same interventions
+for exactly the same durations and differ only in order; there is no exposure
+asymmetry to explain the difference away. Constant $A$ against constant $B$ at a
+common horizon supplies a second, easier decision task. Their equal sums of
+death hazards, $2+4=3+3$, are a mathematical actuator normalisation and are not
+an assertion that the two actions have equal dose, toxicity or resource cost.
+
+\subsection{The admitted observation protocol}
+
+One observation protocol follows a fresh founder until it divides or until an
+independent deadline of rate $\lambda>0$. It records the elapsed time, which
+event occurred and, at a division, the state or marker of a uniformly and
+independently chosen daughter. The record then ends. Its densities are
+\begin{equation}\label{eq:record}
+ \lambda e^{-(1+\lambda)t}\ \ \text{(deadline)},\qquad
+ \tfrac12 e^{-(1+\lambda)t}\ \ \text{(division, either retained state)} .
+\end{equation}
+A fixed emission channel acts on the state marginal. All of these densities are
+independent of $c$ and of $\eps$. Independent founders, not repeated
+observations of one lineage, are the independent sample units.
+
+The richer protocol treated in Theorem~\ref{thm:branch} continues along the
+retained branch indefinitely: at every division the observer retains one
+daughter by a fresh uniform choice independent of the states, discards the
+sister and her entire subtree, and continues. Figure~\ref{fig:protocol} shows
+this record and the paired repair studied in \S\ref{sec:measurement}.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/protocol.pdf}
+\caption{The admitted observation and its repair. In the admitted record the
+unretained sister and all of her descendants are absent, even though the
+record is otherwise complete: states, event labels, timestamps, death and
+censoring are all retained, for as long as the horizon allows. A paired read at
+the founder's division supplies one family-level feature --- whether the two
+daughters agree --- and that single bit is what the schedule comparison needs.
+No selection on subsequent survival is permitted in either protocol.}
+\label{fig:protocol}
+\end{figure}
+
+\subsection{Why the backward equation is the source probability}
+\label{sec:backward}
+
+Bounded per-cell division rates give domination by a Yule process of rate
+$\max(1,\eps)$, so the chronological source is nonexplosive: the independent
+Yule holding-time expectations have divergent harmonic sum and summable centred
+variances, hence their sum diverges almost surely. The dominating population
+has finite integrated cell time on every bounded horizon, which also excludes
+accumulation of death events.
+
+Define the offspring polynomial
+\begin{equation}\label{eq:G}
+ G_c(s,t)=(\tfrac14+c)(s^2+t^2)+(\tfrac12-2c)\,st
+ =\tfrac14(s+t)^2+c\,(s-t)^2 .
+\end{equation}
+Conditioning on the first event of a cell yields, for a constant action $a$,
+the field
+\begin{equation}\label{eq:field}
+ \Phi_a^\eps(p,s,t)=\begin{pmatrix}
+ G_c(s,t)-p\\
+ d_S^a(1-s)+\eps\,(G_c(s,t)-s)\\
+ d_T^a(1-t)+\eps\,(G_c(s,t)-t)\end{pmatrix}.
+\end{equation}
+The product structure in $G_c$ is legitimate only after conditioning on both
+daughter states. The first-event integral equation on finite trees, followed by
+bounded convergence under nonexplosion, gives $v'=\Phi_a^\eps(v)$, $v(0)=0$,
+where the independent variable $u$ is \emph{time remaining to the deadline}.
+The field is polynomial, hence locally Lipschitz, and the unit cube is
+invariant because the field points inward on every face; uniqueness therefore
+identifies the solution with the actual extinction probabilities. For
+chronological phases, conditioning at the phase boundaries expresses the
+extinction vector as the flow composition $F^{t_1}_{a_1}\circ\cdots\circ
+F^{t_k}_{a_k}(0)$, in which the phases are evaluated in reverse chronological
+order. No population-size truncation is involved.
+
+We write $A(u)=e^{-R_S(u)}$ and $B(u)=e^{-R_T(u)}$, where $R_i(u)$ is the death
+hazard of a type-$i$ cell integrated over the last $u$ units of the schedule.
+At $\eps=0$ the daughter coordinates decouple and
+\begin{equation}\label{eq:s0t0}
+ s^0(u)=1-A(u),\qquad t^0(u)=1-B(u).
+\end{equation}
+
+\section{Identical retained lineages, different family decisions}
+
+\begin{theorem}[Retained-branch equivalence]\label{thm:branch}
+Consider two bounded-rate finite-type branching sources with the same founder
+law, the same life-event rates, the same observation channels and the same
+one-daughter transition marginals under each action, but possibly different
+sister couplings. At every observed division retain one daughter by a fresh
+uniform choice independent of the states, discard the sister and her subtree,
+and continue only along the retained branch. Record every observed state, life
+event and time, including death and censoring. Then the complete records on a
+bounded horizon have identical laws. The conclusion remains true for shared
+action and stopping policies measurable from the retained history, and for
+shared external randomisation.
+\end{theorem}
+
+\begin{proof}
+Given the retained history, the next event clock and the event type have the
+same conditional law in both sources, because they depend only on the retained
+state and the currently chosen action. At a division the retained state is
+distributed according to the common daughter marginal, and the readout channel
+is common. Induction over events proves equality of the law of every
+finite-event record, including the terminal stopping or death flag. Equal
+histories induce equal actions and equal stopping decisions under a shared
+policy, and common external randomisation can be coupled identically.
+
+Along a single branch the total event intensity is bounded by a constant, since
+the action menu is finite. The number of events by a bounded horizon is
+therefore dominated by a Poisson count, so truncating the record after $n$
+events has a tail probability tending to zero uniformly in both sources.
+Passing to the limit proves equality of the complete history laws.
+\end{proof}
+
+\begin{remark}
+The theorem excludes: records of hidden family outcomes, records of both
+daughter states at any division, survivor-biased sampling, and any rule that
+chooses a daughter using information about the omitted sister. It establishes
+much more than equality of means, and it is stable under post-processing:
+because the two record laws are equal, \emph{no} measurable statistic,
+reconstruction algorithm or learned model applied to those records can
+distinguish the sources. Collecting more time points on the pruned branch, or
+more independent pruned branches, cannot help either.
+\end{remark}
+
+The algebraic reason for the phenomenon is the identity
+\begin{equation}\label{eq:square}
+ G_{c+u}(s,t)-G_c(s,t)=u\,(s-t)^2 ,
+\end{equation}
+immediate from the second form in \eqref{eq:G}. A change of $c$ at fixed
+marginals is invisible to a retained branch, but it changes a family outcome
+whenever the two daughter continuation probabilities differ. The quantity the
+decision depends on is a product of continuation risks, not a marginal state
+frequency. A schedule comparison then asks whether the two interventions weight
+the hidden direction $(s-t)^2$ differently.
+
+\section{An exact finite-duration treatment-order boundary}\label{sec:boundary}
+
+Set $x=e^{-h}$. For a daughter whose death rate is $r$ in the first phase and
+$s$ in the second, put
+\begin{equation}\label{eq:B}
+ B_{r,s}(x)=\frac{x^{s+1}-x^{r+s}}{r-1}+\frac{x^{2}-x^{s+1}}{s-1},
+ \qquad r,s\ne1 .
+\end{equation}
+Indeed a daughter born at time $t<h$ survives to $2h$ with probability
+$e^{-r(h-t)-sh}$, while one born at $h\le t<2h$ survives with probability
+$e^{-s(2h-t)}$; multiplying by the founder division density $e^{-t}$ and
+integrating separately over the two intervals gives \eqref{eq:B}.
+
+At $\eps=0$ the two daughter subtrees are independent given their states, so we
+may expand the joint extinction product conditional on the founder's division
+time. For first-phase rates $(r_1,r_2)$ and second-phase rates $(s_1,s_2)$,
+\begin{align}\label{eq:two-phase}
+ F={}&1-x^2-B_{r_1,s_1}-B_{r_2,s_2}\notag\\
+ &+(\tfrac14+c)\bigl(B_{2r_1,2s_1}+B_{2r_2,2s_2}\bigr)
+ +(\tfrac12-2c)\,B_{r_1+r_2,\,s_1+s_2} ,
+\end{align}
+the founder that never divides surviving and contributing no extinction mass.
+Substituting $(2,4;3,3)$ and $(3,3;2,4)$ and collecting powers of $x$ gives the
+complete factorisation
+\begin{equation}\label{eq:D}
+ D:=F_{AB}-F_{BA}=\frac{x^{2}(x-1)^{3}}{210}\bigl\{4c\,\mathcal A(x)+(x-1)\mathcal Q(x)\bigr\},
+\end{equation}
+where
+\begin{align*}
+ \mathcal A(x)&=(x^4+x^3+x^2+x+1)(3x^5+6x^4+9x^3+12x^2+8x+4),\\
+ \mathcal Q(x)&=3x^8+12x^7+30x^6+60x^5+98x^4+137x^3+170x^2+159x+66 .
+\end{align*}
+Equivalently, writing
+\begin{equation}\label{eq:slope}
+ s_0(x)=\frac{4\mathcal A(x)\,x^2(1-x)^3}{210}>0,
+\end{equation}
+we have the affine form $D=s_0(x)\,(\cp(x)-c)$, with the boundary defined next.
+
+\begin{proposition}[Exact phase boundary]\label{prop:boundary}
+For $0<x<1$ and $\eps=0$, the schedule $AB$ has strictly smaller survival risk
+if and only if $c<\cp(x)$, where
+\begin{equation}\label{eq:cp}
+ \cp(x)=\frac{(1-x)\mathcal Q(x)}{4\mathcal A(x)} .
+\end{equation}
+This threshold is strictly positive on $(0,1)$ and strictly increasing in the
+pulse length $h$. There is exactly one $x_0\in(.80120,.80121)$ with
+$\cp(x_0)=1/4$. For $x<x_0$ the schedule $AB$ is strictly preferred throughout
+the feasible range $-1/4\le c\le1/4$; for $x>x_0$ that range contains both
+preferences. Moreover $\cp(e^{-h})=\tfrac78h+O(h^2)$.
+\end{proposition}
+
+\begin{proof}
+$\mathcal A$ and $\mathcal Q$ have positive coefficients and the prefactor
+$x^2(x-1)^3/210$ in \eqref{eq:D} is negative on $(0,1)$; hence $D>0$, that is
+$R_{AB}<R_{BA}$, exactly when $4c\mathcal A+(x-1)\mathcal Q<0$, i.e.\ below the
+threshold \eqref{eq:cp}. Direct differentiation gives
+$\cp'(x)=-P(x)/\bigl(4\mathcal A(x)^2\bigr)$ with
+\begin{align}\label{eq:P}
+ P(x)={}&735x^{10}+4410x^{9}+11655x^{8}+20580x^{7}+28560x^{6}\notag\\
+ &+31290x^{5}+26740x^{4}+17850x^{3}+9030x^{2}+3080x+420 ,
+\end{align}
+all of whose coefficients are positive; so $\cp$ decreases strictly in $x$ and
+therefore increases strictly in $h$. Its endpoint limits are $33/8$ at $x=0$
+and $0$ at $x=1$, so by continuity and strict monotonicity there is exactly one
+$x_0$ with $\cp(x_0)=1/4$; rational substitution at $.80120$ and $.80121$
+isolates it, and monotonicity --- not a floating-point root count --- proves
+uniqueness. Finally $\mathcal A(1)=210$ and $\mathcal Q(1)=735$, so
+$\cp(e^{-h})=(735/840)h+O(h^2)=\tfrac78h+O(h^2)$.
+\end{proof}
+
+\begin{remark}\label{rem:positive}
+The finite-duration decision threshold is \emph{not} at $c=0$. This is the
+single most consequential correction to the naive picture: the leading-order
+calculation of \S\ref{sec:legacy} sees only the cubic term $-4ch^3$ and
+therefore places the boundary at zero covariance, whereas at $h=\log\frac87$
+the boundary sits at $\cp=8967219299/65423564404\approx.1370640591$, more than
+half way to the feasible ceiling. Consequently a measurement that determines
+only the \emph{sign} of $c$ does not determine the preferred order at finite
+pulse length; see \S\ref{sec:calibration}. Proposition~\ref{prop:boundary} is
+also a positive identification result of independent interest: for $x<x_0$ the
+hidden parameter remains completely unknown and yet its entire feasible range
+gives the same decision. What matters is whether the decision boundary meets
+the observationally equivalent set, not whether every parameter is recovered.
+\end{remark}
+
+At $x=7/8$, that is $h=\log\frac87\approx.133531$, the exact values are
+\begin{equation}\label{eq:witnesses}
+\begin{aligned}
+ \cp&=\tfrac{8967219299}{65423564404}\approx.1370640591, &
+ s_0&=\tfrac{114491237707}{32985348833280}\approx3.47097\times10^{-3},\\
+ D(-\tfrac14)&=\tfrac{5635}{4194304}\approx1.34349\times10^{-3}, &
+ D(\tfrac14)&=-\tfrac{25860351307}{65970697666560}\approx-3.91998\times10^{-4},\\
+ D(-\tfrac15)&=\tfrac{771817626293}{659706976665600}\approx1.16994\times10^{-3}, &
+ D(\tfrac15)&=-\tfrac{48037425121}{219902325555200}\approx-2.18449\times10^{-4}.
+\end{aligned}
+\end{equation}
+The contrast has opposite signs at $c=-1/5$ and $c=+1/5$, and again at
+$c=\mp1/4$: negative covariance favours $AB$ and positive covariance favours
+$BA$. Figure~\ref{fig:boundary} displays the boundary and the contrast.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/boundary.pdf}
+\caption{Left: the exact analytic threshold $\cp(e^{-h})$ and its first-order
+approximation $7h/8$, with the feasible ceiling $c=1/4$ and the unique crossing
+$h_0=-\log x_0$. Below $h_0$ the schedule $AB$ wins for every feasible
+covariance; above it both preferences occur, and the gap between the exact
+curve and $7h/8$ is what a sign-only measurement cannot see. Right: the exact
+reference contrast at $h=\log\frac87$, with the two witnesses marked, enclosed
+by the proved sensitivity band at $\eps\le10^{-2}$ (Proposition~\ref{prop:reserve})
+and, for comparison, by the occupation band at the ten times smaller
+$\eps\le10^{-3}$. Both bands are analytic enclosures, not solver-tolerance
+estimates. Negative contrast favours $BA$.}
+\label{fig:boundary}
+\end{figure}
+
+\section{Recurring descendant division}\label{sec:recurring}
+
+The reference calculation of \S\ref{sec:boundary} is exact only at $\eps=0$.
+This section transfers it to $\eps>0$, and it is where the present treatment
+differs most from what was previously available. We prove two structural facts
+--- a monotonicity and a sensitivity bound --- and only then evaluate constants.
+
+Throughout this section $a$ is a schedule with phases of constant death rates,
+$U$ is its total horizon, and $R_S,R_T$ are the integrated death hazards over
+the last $u$ units, as in \S\ref{sec:backward}.
+
+\subsection{Extinction is monotone in the descendant division rate}
+
+We allow the descendants to use an offspring law $G$ that may differ from the
+founder's $G_c$; this costs nothing and is what makes \S\ref{sec:refinement}
+work. Thus $G$ is any polynomial $w_{SS}s^2+w_{ST}st+w_{TT}t^2$ with
+nonnegative coefficients summing to one, and \eqref{eq:field} is read with
+$G_c$ in the first coordinate and $G$ in the other two. Everything below is
+driven by one inequality on the \emph{reference} trajectory.
+
+\begin{lemma}[Monotonicity]\label{lem:mono}
+Assume $d_S\le d_T$ in every phase, and assume the supersolution condition
+\begin{equation}\label{eq:supersol}
+ G\bigl(s^0(u),t^0(u)\bigr)\ \le\ s^0(u)\qquad\text{for all }u\in[0,U].
+\end{equation}
+Then for every $\eps\ge0$ the extinction vectors satisfy
+$v^{\eps}(u)\le v^{0}(u)$ componentwise on $[0,U]$. In particular
+$F^{\eps}_a\le F^{0}_a$: recurring descendant division can only \emph{reduce}
+family extinction.
+\end{lemma}
+
+\begin{proof}
+Since $d_S\le d_T$ we have $s^0\le t^0$, so \eqref{eq:supersol} says
+$G(s^0,t^0)\le\min(s^0,t^0)$ and both $\eps$-terms of \eqref{eq:field} are
+$\le0$ at $v^0$. Hence $(v^0)'=\Phi^0_a(v^0)\ge\Phi^{\eps}_a(v^0)$: the
+reference trajectory is a supersolution of the $\eps$-system.
+
+On $[0,1]^3$ each component of $\Phi^{\eps}_a$ is nondecreasing in the other
+two coordinates, because $\partial_sG_c=2(\tfrac14+c)s+(\tfrac12-2c)t\ge0$ and
+$\partial_tG_c\ge0$ there (both coefficients $\tfrac14+c$ and $\tfrac12-2c$ are
+nonnegative for $|c|\le\tfrac14$), because the same holds for $G$, and because
+$\eps\ge0$. The system is therefore quasimonotone.
+
+On the first phase $v^{\eps}$ solves $v'=\Phi^{\eps}_a(v)$ with $v(0)=0$ and
+$v^0$ is a supersolution of the same system with the same initial value; both
+remain in the invariant cube $[0,1]^3$. The comparison theorem for
+quasimonotone systems \citep[\S10]{Walter1970} (see also
+\citep[Ch.~3]{Smith1995}, \citep[\S{}III.12]{Walter1998}) gives
+$v^{\eps}\le v^0$ on that phase. At a phase boundary the ordering is inherited
+as initial data, \eqref{eq:supersol} holds on the next phase as well, and the
+argument repeats.
+\end{proof}
+
+Condition \eqref{eq:supersol} says that dividing now is never better for
+extinction than remaining a single cell of the more robust type. Two criteria
+cover every use we make of it, one specific to the founder's kernel and
+uniform in the pulse length, the other valid for an arbitrary descendant
+kernel on a restricted range of pulse lengths.
+
+\begin{lemma}[Criteria for \eqref{eq:supersol}]\label{lem:criteria}
+\hfill
+\begin{enumerate}[nosep,leftmargin=*,label=(\alph*)]
+\item If $G=G_c$ with $|c|\le\tfrac14$ and if $d_S\le d_T\le2d_S$ in every
+      phase, then \eqref{eq:supersol} holds, for every pulse length.
+\item For an \emph{arbitrary} descendant kernel $G$, \eqref{eq:supersol} holds
+      as soon as $\bigl(t^0(u)\bigr)^2\le s^0(u)$ for all $u$. For the two
+      actions \eqref{eq:rates} and each of the schedules $AB$, $BA$, $A$, $B$
+      with common phase length $h$, this in turn holds if and only if
+      \begin{equation}\label{eq:xflat}
+       2x^2-x^6\ \ge\ 1,\qquad\text{that is}\qquad
+       x\ \ge\ x_\flat:=\Bigl(\tfrac{\sqrt5-1}{2}\Bigr)^{1/2}=.7861513\ldots
+      \end{equation}
+\end{enumerate}
+Since $x_\flat<x_0$, criterion (b) is available at \emph{every} pulse length at
+which both preferences occur in the feasible covariance range.
+\end{lemma}
+
+\begin{proof}
+(a) By the second form in \eqref{eq:G} and $|c|\le\tfrac14$,
+$G_c(s,t)=\tfrac14(s+t)^2+c(s-t)^2\le\tfrac12(s^2+t^2)$. The rate hypothesis
+integrates to $R_S\le R_T\le2R_S$, so with $A,B$ as in \eqref{eq:s0t0} we get
+$0<B\le A\le1$ and $A^2=e^{-2R_S}\le e^{-R_T}=B$; hence $A^2+B^2\le B+B=2B$ and
+\[
+ \tfrac12\bigl((1-A)^2+(1-B)^2\bigr)=1-(A+B)+\tfrac12(A^2+B^2)\le1-A=s^0 .
+\]
+
+(b) Every monomial of $G$ is a product of two of $s^0,t^0$, each at most
+$\max(s^0,t^0)=t^0$, and the coefficients sum to one, so
+$G(s^0,t^0)\le (t^0)^2$. The condition $(t^0)^2\le s^0$ reads
+$(1-B)^2\le1-A$, i.e.
+\begin{equation}\label{eq:ab-crit}
+ A\ \le\ B\,(2-B).
+\end{equation}
+We check \eqref{eq:ab-crit} on each phase, writing $x=e^{-h}$.
+For a phase with $d_S=d_T$ one has $A=B$ and \eqref{eq:ab-crit} reads
+$A\le A(2-A)$, i.e.\ $A\le1$, which always holds; this settles the schedule
+$B$, the first backward phase of $AB$ and the second backward phase of $BA$
+except for the accumulated prefactors, treated next.
+For the first backward phase of $BA$, and for the constant schedule $A$, the
+rates are $(2,4)$ from the deadline, so $A=e^{-2u}$ and $B=A^2$ with
+$A\in[x^2,1]$; \eqref{eq:ab-crit} becomes $2A-A^3\ge1$. The cubic
+$A^3-2A+1=(A-1)(A^2+A-1)$ shows $2A-A^3\ge1$ exactly for
+$A\ge\tfrac{\sqrt5-1}{2}$, and the smallest value of $A$ on the phase is
+$x^2$, so the condition is $x^2\ge\tfrac{\sqrt5-1}{2}$, i.e.\ \eqref{eq:xflat}.
+For the second backward phase of $BA$ we have $A=x^2z$, $B=x^4z$ with
+$z=e^{-3(u-h)}\in[x^3,1]$, and \eqref{eq:ab-crit} becomes
+$2x^2-x^6z\ge1$, whose worst case $z=1$ is again \eqref{eq:xflat}.
+For the second backward phase of $AB$ we have $A=x^3w^2$, $B=x^3w^4$ with
+$w=e^{-(u-h)}\in[x,1]$, and \eqref{eq:ab-crit} becomes $f(w):=2w^2-x^3w^6\ge1$;
+since $f'(w)=2w\,(2-3x^3w^4)$ vanishes at most once on $(0,1]$ and $f$ is there
+first increasing, the minimum of $f$ over $[x,1]$ is attained at an endpoint,
+and $f(1)=2-x^3\ge1$ while $f(x)=2x^2-x^9\ge2x^2-x^6\ge1$ by \eqref{eq:xflat}.
+Conversely the case $A=e^{-2u}$ above shows that \eqref{eq:xflat} is necessary.
+Finally $x_\flat^2=\tfrac{\sqrt5-1}{2}<.61804<.64192<x_0^2$, so
+$x_\flat<x_0$.
+\end{proof}
+
+\begin{remark}
+Criterion (a) applies to our source with $(d^A_S,d^A_T)=(2,4)$ saturating
+$d_T\le2d_S$ exactly, and it is uniform in $h$; criterion (b) is sharp in $x$
+but indifferent to the descendant kernel. Both are sufficient conditions for
+\eqref{eq:supersol}, which is what the analysis actually uses.
+\end{remark}
+
+\subsection{A sensitivity reserve}
+
+Lemma~\ref{lem:mono} fixes the sign of the perturbation. The next proposition
+bounds its size, and does so more sharply than the obvious coupling argument.
+
+\begin{definition}[Two reserves]\label{def:reserves}
+For $i\in\{S,T\}$ put
+\begin{equation}\label{eq:sigmaL}
+ L_i(u)=e^{-R_i(u)}\!\int_0^u\! e^{R_i(\tau)}\,d\tau ,
+ \qquad
+ \sigma_i(u)=e^{-R_i(u)}\!\int_0^u\!\bigl(e^{R_i(\tau)}-1\bigr)d\tau ,
+\end{equation}
+and define the \emph{occupation reserve} and the \emph{sensitivity reserve}
+\begin{equation}\label{eq:VW}
+ V_a=\int_0^{U}\! e^{-(U-u)}\bigl[L_S(u)+L_T(u)\bigr]du ,
+ \qquad
+ W_a=\int_0^{U}\! e^{-(U-u)}\,t^0(u)\bigl[\sigma_S(u)+\sigma_T(u)\bigr]du .
+\end{equation}
+\end{definition}
+
+Here $L_i(u)$ is the expected time a type-$i$ daughter present at remaining
+time $u$ stays alive, so $V_a$ is the expected integrated live-daughter time of
+the reference process --- the quantity a naive coupling produces. In
+$\sigma_i$ that live time is weighted by $s_i^0(\tau)=1-e^{-R_i(\tau)}$, the
+probability that the daughter's own subtree would have died anyway, and in
+$W_a$ the result is weighted again by $t^0(u)\le1$. Both weights are at most
+one, so $W_a\le V_a$; the point of the proposition is that the weights are in
+fact small.
+
+\begin{proposition}[Sensitivity reserve]\label{prop:reserve}
+Assume $d_S\le d_T$ in every phase together with the supersolution condition
+\eqref{eq:supersol}. Then for every $c\in[-\tfrac14,\tfrac14]$ and every
+$\eps\ge0$,
+\begin{equation}\label{eq:reserve}
+ 0\ \le\ F^0_a-F^{\eps}_a\ \le\ \eps\,W_a\ \le\ \eps\,V_a .
+\end{equation}
+Consequently, for two schedules $a,b$ and $D^{\eps}=F^{\eps}_a-F^{\eps}_b$,
+\begin{equation}\label{eq:contrast-band}
+ D^{0}-\eps W_a\ \le\ D^{\eps}\ \le\ D^{0}+\eps W_b .
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let $\Delta=v^0-v^{\eps}$, which is nonnegative by Lemma~\ref{lem:mono}.
+Subtracting the two systems componentwise gives the exact identities
+\begin{align}
+ \Delta_s'&=-d_S\Delta_s+\eps\bigl(s^{\eps}-G(s^{\eps},t^{\eps})\bigr),
+ \label{eq:ds}\\
+ \Delta_t'&=-d_T\Delta_t+\eps\bigl(t^{\eps}-G(s^{\eps},t^{\eps})\bigr),
+ \nonumber\\
+ \Delta_p'&=G_c(s^0,t^0)-G_c(s^{\eps},t^{\eps})-\Delta_p .
+ \label{eq:dp}
+\end{align}
+Since $G\ge0$ on the cube and $s^{\eps}\le s^0$, the forcing in \eqref{eq:ds}
+is at most $\eps\,s^0$. Multiplying by the integrating factor $e^{R_S}$ and
+using $\Delta_s(0)=0$,
+\[
+ \Delta_s(u)\ \le\ \eps\int_0^u e^{-(R_S(u)-R_S(\tau))}s^0(\tau)\,d\tau
+ \ =\ \eps\,\sigma_S(u),
+\]
+the last equality because $e^{R_S(\tau)}s^0(\tau)=e^{R_S(\tau)}-1$. Identically
+$\Delta_t(u)\le\eps\,\sigma_T(u)$.
+
+For \eqref{eq:dp}, the segment joining $(s^{\eps},t^{\eps})$ to $(s^0,t^0)$
+lies in $[0,s^0]\times[0,t^0]$, so by the mean value theorem there is a point
+$(\tilde s,\tilde t)$ on it with
+$G_c(s^0,t^0)-G_c(s^{\eps},t^{\eps})
+ =\partial_sG_c(\tilde s,\tilde t)\Delta_s+\partial_tG_c(\tilde s,\tilde t)\Delta_t$.
+Because $\tilde s\le s^0\le t^0$ and $\tilde t\le t^0$, and because
+$2(\tfrac14+c)+(\tfrac12-2c)=1$,
+\[
+ \partial_sG_c(\tilde s,\tilde t)=2(\tfrac14+c)\tilde s+(\tfrac12-2c)\tilde t\le t^0 ,
+\]
+and the same bound holds for $\partial_tG_c$. Hence
+$\Delta_p'\le t^0(\Delta_s+\Delta_t)-\Delta_p$, and with $\Delta_p(0)=0$,
+\[
+ F^0_a-F^{\eps}_a=\Delta_p(U)\le\int_0^{U}e^{-(U-u)}t^0(u)\bigl(\Delta_s+\Delta_t\bigr)(u)\,du
+ \le\eps W_a .
+\]
+The comparison $W_a\le V_a$ follows from $t^0\le1$ and $\sigma_i\le L_i$. For
+\eqref{eq:contrast-band}, subtract the two one-sided bounds and use that both
+deficits are nonnegative: $D^{\eps}=D^0-(F^0_a-F^{\eps}_a)+(F^0_b-F^{\eps}_b)$
+with the first deficit in $[0,\eps W_a]$ and the second in $[0,\eps W_b]$.
+\end{proof}
+
+\begin{remark}\label{rem:twoimprovements}
+Two distinct improvements are combined in \eqref{eq:contrast-band}. First,
+Lemma~\ref{lem:mono} makes the band \emph{one-sided in each direction}: without
+knowing the sign, one would have to write $|D^\eps-D^0|\le\eps(W_a+W_b)$,
+losing a factor close to two because $W_{AB}\approx W_{BA}$. Second,
+$W_a$ itself is far below $V_a$. The two gains multiply, and neither costs any
+generality: \eqref{eq:reserve} is valid for \emph{all} $\eps\ge0$, not only for
+small $\eps$.
+\end{remark}
+
+Both reserves are elementary integrals of exponentials with integer rates, so
+for rational $x=e^{-h}$ each evaluates to an element of
+$\mathbb Q+\mathbb Q\,h$. Appendix~\ref{app:reserve} gives the closed forms;
+Table~\ref{tab:reserves} gives the values at $x=7/8$.
+
+\begin{table}[tb]
+\centering\small
+\caption{The two reserves at $x=7/8$. The occupation values reproduce the
+previously published constants exactly, which validates the evaluation; the
+sensitivity values are the ones used from here on. Here $h=\log\frac87$, and
+the decimal column is an enclosure computed from a rational bracket for $h$ of
+width below $10^{-30}$.}
+\label{tab:reserves}
+\begin{tabularx}{\linewidth}{@{}llXr@{}}
+\toprule
+Schedule & Occupation $V_a$ & Sensitivity $W_a$ & $V_a/W_a$\\\midrule
+$AB$ & $\frac{957367}{18874368}\approx.0507231$
+     & $-\frac{6624078645151}{54975581388800}+\frac{10392084486973}{10995116277760}h\approx.00571652$ & $8.87$\\[2pt]
+$BA$ & $\frac{2552741}{50331648}\approx.0507184$
+     & $-\frac{520588799010593}{3958241859993600}+\frac{6795050968489}{6597069766656}h\approx.00601852$ & $8.43$\\[2pt]
+$A$  & $\approx.0149943$
+     & $-\frac{11540424829}{105696460800}+\frac{206906567}{251658240}h\approx.000601292$ & $24.9$\\[2pt]
+$B$  & $\approx.0149740$
+     & $-\frac{79873}{1228800}+\frac{321391}{655360}h\approx.000483482$ & $31.0$\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The reversal under recurring division}
+
+\begin{theorem}[Exposure-matched decision reversal]\label{thm:pulse}
+Take the source of \S\ref{sec:source} with $h=\log\frac87$ and compare the
+chronological schedules $AB$ and $BA$.
+\begin{enumerate}[nosep,leftmargin=*]
+\item At $c=-1/5$ the schedule $AB$ has strictly smaller survival risk, and at
+      $c=+1/5$ the schedule $BA$ does, uniformly for $0\le\eps\le1/30$. The
+      absolute risk gap is at least $1.78\times10^{-5}$ throughout that range.
+\item At $c=-1/4$ and $c=+1/4$ the same opposite preferences hold uniformly for
+      $0\le\eps\le1/16$, with absolute risk gap at least $1.58\times10^{-5}$.
+\end{enumerate}
+The exact suprema of the admissible ranges are
+\[
+ \eps_\star(\tfrac15)=\min\Bigl(\frac{D(-\tfrac15)}{W_{AB}},\ \frac{-D(\tfrac15)}{W_{BA}}\Bigr)
+ \approx.0362961 ,
+ \qquad
+ \eps_\star(\tfrac14)\approx.0651318 .
+\]
+For each fixed $\eps$ the complete retained-branch laws of the two sources are
+identical, under every shared admissible retained-history policy.
+\end{theorem}
+
+\begin{proof}
+At $\eps=0$ the exact evaluation \eqref{eq:witnesses} of the factored contrast
+\eqref{eq:D} gives $D(-1/5)>0>D(1/5)$ and $D(-1/4)>0>D(1/4)$. Here the
+descendant kernel is the founder's, and $d_S\le d_T\le2d_S$ holds for both
+actions, so Lemma~\ref{lem:criteria}(a) gives \eqref{eq:supersol} and
+Proposition~\ref{prop:reserve} applies with $a=AB$, $b=BA$, yielding
+\eqref{eq:contrast-band}. At $c=-1/5$, positivity of $D^{\eps}$ therefore
+follows from $D(-1/5)>\eps W_{AB}$, and at $c=+1/5$ negativity follows from
+$-D(1/5)>\eps W_{BA}$; the binding constraint is the second. Substituting the
+values of Table~\ref{tab:reserves} and clearing denominators in exact rational
+arithmetic proves both claims at $\eps=1/30$, with the stated gap, and
+similarly at $\eps=1/16$ for $c=\mp1/4$. Theorem~\ref{thm:branch} supplies the
+observation equality.
+\end{proof}
+
+\begin{remark}
+The previously available certificate for the same statement used
+$|D^\eps-D^0|\le\eps(V_{AB}+V_{BA})$, which certifies only $\eps\le1/500$ and
+is exhausted near $\eps\approx.0021534$. Its exhaustion was, correctly, never
+interpreted as evidence of a true sign crossing; the present theorem shows that
+it was indeed an artefact of the bound, by a factor of $16.8$. Direct numerical
+integration of the backward system, which is a diagnostic and not a proof,
+shows no sign change anywhere in $0\le\eps\le1$ at $h=\log\frac87$.
+\end{remark}
+
+The affine form $D^0=s_0(\cp-c)$ converts Proposition~\ref{prop:reserve}
+directly into a decision rule that does not depend on choosing witnesses.
+
+\begin{corollary}[Uniform decision band]\label{cor:band}
+Put $\gamma_-(x)=W_{AB}/s_0(x)$ and $\gamma_+(x)=W_{BA}/s_0(x)$. For every
+pulse length, every $\eps\ge0$ and every $c\in[-\tfrac14,\tfrac14]$,
+\[
+ c<\cp(x)-\eps\,\gamma_-(x)\ \Longrightarrow\ AB\ \text{strictly preferred},
+ \qquad
+ c>\cp(x)+\eps\,\gamma_+(x)\ \Longrightarrow\ BA\ \text{strictly preferred}.
+\]
+At $x=7/8$, $\gamma_-\approx1.64695$ and $\gamma_+\approx1.73396$. As $h$
+decreases, $\gamma_\pm/h$ decreases towards about $10.94$: the computed values
+of $\gamma_+/h$ are $12.99,\ 11.21,\ 11.07,\ 10.95,\ 10.94$ at
+$h=\log\frac87,\ \log\frac{50}{49},\ \log\frac{100}{99},\ \log\frac{1000}{999},\
+\log\frac{10^4}{10^4-1}$.
+\end{corollary}
+
+This should be compared with the legacy cubic estimate of
+\S\ref{sec:legacy}, which yields a band of half-width $16000\,h$, valid only
+for $\eps\le1$ and centred at $c=0$ rather than at $\cp$. The band above is
+centred correctly, shrinks linearly in $\eps$, and has half-width about
+$11h\eps$ --- better by more than three orders of magnitude at $\eps=1$, and by
+correspondingly more for small $\eps$.
+
+\subsection{Short pulses: the whole range of descendant division rates}
+
+The certified range $\eps_\star$ grows without bound as the pulse shortens,
+because the contrast is of order $h^3$ while the reserve is of order $h^4$.
+There is therefore a finite pulse length at which the reversal is certified for
+every descendant division rate up to and including the founder's own rate.
+
+\begin{theorem}[Short pulses]\label{thm:short}
+Take $h=\log\frac{50}{49}\approx.0202027$, so that $\cp\approx.0181305$. Then
+at $c=-1/4$ the schedule $AB$ has strictly smaller survival risk, and at
+$c=+1/4$ the schedule $BA$ does, uniformly for \emph{every} $\eps\in[0,1]$. The
+certified supremum is $\eps_\star\approx1.0238$.
+\end{theorem}
+
+\begin{proof}
+Identical to Theorem~\ref{thm:pulse}, with $x=49/50$. Exact evaluation gives
+$s_0\approx2.81790\times10^{-5}$, $W_{AB}\approx5.90140\times10^{-6}$ and
+$W_{BA}\approx6.38199\times10^{-6}$, whence
+$s_0(\cp+\tfrac14)-W_{AB}>0$ and $s_0(\tfrac14-\cp)-W_{BA}>0$; the smaller of
+the two residual gaps is about $1.519\times10^{-7}$.
+\end{proof}
+
+\begin{remark}
+This is the statement that the previously available small-pulse bound
+(\S\ref{sec:legacy}) was reaching for, and it improves it in pulse length by
+more than four orders of magnitude: the cubic remainder certifies $c=\pm1/5$ at
+$\eps\le1$ only for $h\le1/80000$, whereas $\log\frac{50}{49}\approx2.02\times10^{-2}$.
+Under the illustrative scale of \S\ref{sec:scale} --- a mean founder waiting
+time of $24$ hours --- Theorem~\ref{thm:short} concerns pulses of about $29$
+minutes each, with descendants dividing exactly as fast as the founder. That is
+a qualitatively different regime from a pulse of $86$ milliseconds, and it
+removes the most serious restriction of the earlier treatment.
+\end{remark}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/epsilon.pdf}
+\caption{The certified descendant division rate $\eps_\star$ as a function of
+pulse length, for witnesses at $c=\pm\frac14$ and $c=\pm\frac15$. Solid and
+dashed blue: the certificate of Proposition~\ref{prop:reserve}. Grey: the
+occupation certificate it replaces. Both families terminate on the right where
+$\cp$ leaves the feasible range and the reversal genuinely ceases to exist
+(Proposition~\ref{prop:boundary}); the separation between blue and grey, by
+contrast, is pure slack in the older bound. The horizontal line at $\eps=1$
+marks descendants dividing as fast as the founder; the blue curves cross it at
+pulse lengths near $\log\frac{50}{49}$, which is Theorem~\ref{thm:short}.}
+\label{fig:epsilon}
+\end{figure}
+
+\subsection{The legacy small-pulse remainder}\label{sec:legacy}
+
+For completeness we record the uniform estimate that the above supersedes,
+since it is proved by a different technique --- a semigroup remainder rather
+than a differential inequality --- and its symmetric form is occasionally
+convenient. For $0\le\eps\le1$ the source satisfies
+\begin{equation}\label{eq:tiny}
+ \bigl|F_{AB}-F_{BA}+4ch^3\bigr|\le 64000\,h^4 ,
+\end{equation}
+so $c>16000h$ favours $BA$ and $c<-16000h$ favours $AB$; at $c=\pm1/5$ this
+requires $h\le1/80000$. Appendix~\ref{app:tiny} proves the bound. Its cubic
+term comes from a founder division followed by two daughter deaths; daughter
+divisions first enter at fourth order, which is why the estimate is uniform in
+$\eps$ but so lossy in $h$. The shift of the true boundary away from zero is
+consistent with the fourth-order term $D(0)=\tfrac72h^4+O(h^5)$.
+
+\section{Measuring the hidden coordinate}\label{sec:measurement}
+
+Suppose a founder division yields a paired read of both daughters, with
+independent symmetric marker flips of known probability $\eta$. Coding the
+states as $\pm1$ shows that the agreement indicator has success probability
+\begin{equation}\label{eq:bit}
+ p(c)=\tfrac12+2kc,\qquad k=(1-2\eta)^2 ,
+\end{equation}
+since each conditional marker mean is attenuated by $1-2\eta$ and conditional
+independence multiplies the two factors. Thus $m$ independent accepted founder
+divisions give $X\sim\Bin\bigl(m,p(c)\bigr)$. At $\eta=1/10$ this is
+$p(c)=\tfrac12+1.28\,c$. We do not treat correlated read errors as independent
+calibration noise; see Proposition~\ref{prop:corr}.
+
+This single bit is exactly the family-level feature that
+Theorem~\ref{thm:branch} removes. It does not reconstruct the hidden subtree;
+it measures the one functional of the joint daughter law that the decision
+depends on.
+
+\subsection{Constant actions: a forty-division classification theorem}
+
+At $T=\log\frac87$ and $\eps=0$, first-event integration under constant actions
+gives
+\begin{equation}\label{eq:constant}
+ F_A=a+sc,\quad F_B=b,\qquad
+ a=\tfrac{1684141}{335544320},\quad
+ s=\tfrac{428807}{251658240},\quad
+ b=\tfrac{6767}{1310720},
+\end{equation}
+obtained by integrating $G_c\bigl(1-e^{-2(T-t)},1-e^{-4(T-t)}\bigr)e^{-t}$ over
+$0<t<T$, each exponential term contributing $(x-x^r)/(r-1)$ with $x=7/8$ and
+constant term $1-x$. The contrast is $D_C=F_A-F_B=s\,(c-c_*)$ with
+\begin{equation}\label{eq:cstar}
+ c_*=\frac{b-a}{s}=\frac{144633}{1715228}\approx.0843229 ,
+\end{equation}
+so for constant actions \emph{high} $c$ favours $A$ --- the opposite
+orientation to the pulse comparison, and a reason to keep the two thresholds
+strictly separate.
+
+\begin{theorem}[Specified separated decision task]\label{thm:forty}
+Assume $\eta=1/10$, $0\le\eps\le1/4$ and $|c-c_*|\ge1/10$. From $40$
+independent founder-division agreement bits, choose $A$ if $X\ge25$ and $B$
+otherwise. Then the probability of choosing the better constant treatment
+exceeds $.95$ throughout this class.
+\end{theorem}
+
+\begin{proof}
+By Proposition~\ref{prop:reserve} applied to the two one-phase schedules
+(Lemma~\ref{lem:criteria}(a) again supplies \eqref{eq:supersol}, since
+$2\le4\le2\cdot2$ and $3\le3\le2\cdot3$),
+$D_C^0-\eps W_A\le D_C^{\eps}\le D_C^0+\eps W_B$. On the separated class
+$|D_C^0|\ge s/10=428807/2516582400\approx1.70382\times10^{-4}$, while
+$\tfrac14\max(W_A,W_B)=\tfrac14W_A\approx1.50323\times10^{-4}<s/10$. Hence the
+sign of $D_C^{\eps}$ agrees with the sign of $c-c_*$ throughout the class, and
+classifying $c$ relative to $c_*$ determines the true recurring-source ranking.
+
+For the classification itself, the extreme Bernoulli probabilities nearest the
+decision boundary are
+$p_L=\tfrac12+2k(c_*-\tfrac1{10})=\tfrac{51449691}{107201750}$ and
+$p_U=\tfrac12+2k(c_*+\tfrac1{10})=\tfrac{78893339}{107201750}$. Coupling
+Bernoulli trials through common uniform variables shows that binomial upper
+tails increase with $p$ and lower tails decrease, so it suffices to check
+\[
+ \sum_{j=25}^{40}\binom{40}{j}p_L^{\,j}(1-p_L)^{40-j}<\tfrac1{20},
+ \qquad
+ \sum_{j=0}^{24}\binom{40}{j}p_U^{\,j}(1-p_U)^{40-j}<\tfrac1{20}.
+\]
+Exact rational summation proves both; the two error probabilities are
+approximately $.0464141$ and $.0422845$.
+\end{proof}
+
+\begin{remark}
+The admissible range $\eps\le1/4$ is $250$ times the range previously available
+for this theorem, and the exact supremum is $s/(10W_A)\approx.2834$. The
+decision rule and its two error probabilities are unchanged; only the
+robustness statement improves, because the reserve shrank. This theorem
+\emph{assumes} separation: it does not certify that assumption from the data,
+does not provide a confidence interval, does not permit abstention, does not
+apply near the tie, and does not use the pulse threshold.
+\end{remark}
+
+\subsection{Full-class guarantees with an unresolved output}
+
+Without a separation assumption, the honest output has three values. An exact
+equal-tailed binomial confidence interval \citep{ClopperPearson1934} for $p$
+inverts through \eqref{eq:bit} to a set of admissible $c$; mapping that set
+through the affine reference contrast and adding the coupling reserves to the
+two ends gives an interval for the true contrast, and a declaration is made
+only when that interval has one sign. Shared nuisance parameters must remain
+shared when the contrast is formed.
+
+Equivalently, and this is the implementation we certify: for a threshold $t$, a
+reference slope magnitude $s_0>0$ and reserves $\rho_-,\rho_+\ge0$, define
+\begin{equation}\label{eq:pends}
+ p_-=\tfrac12+2k\bigl(t-\rho_-/s_0\bigr),
+ \qquad
+ p_+=\tfrac12+2k\bigl(t+\rho_+/s_0\bigr).
+\end{equation}
+When both lie in $[0,1]$, declare the low-$c$ action if
+$\Prob_{p_-}\bigl(\Bin(m,p_-)\le X\bigr)\le\alpha/2$; declare the high-$c$
+action if $\Prob_{p_+}\bigl(\Bin(m,p_+)\ge X\bigr)\le\alpha/2$; otherwise
+return \emph{unresolved}. If an endpoint falls outside the parameter range the
+corresponding decision is vacuous or forced and can be read off the whole
+contrast range directly; in every example below both endpoints lie strictly
+inside $[0,1]$.
+
+\begin{proposition}\label{prop:abstain}
+The above test makes an incorrect declaration with probability at most $\alpha$
+throughout the admitted source class, without any separation assumption. For
+known $\eta=1/10$, $\alpha=.05$ and $0\le\eps\le1/100$:
+\begin{enumerate}[nosep,leftmargin=*]
+\item \emph{Constant actions}, $t=c_*$, $s_0=s$, $\rho_-=\eps W_B$,
+      $\rho_+=\eps W_A$, $m=200$: declare $B$ at $X\le106$ and $A$ at
+      $X\ge137$. The resolution probability at $c=.2$ is $\approx.9909068$.
+\item \emph{Pulses} at $h=\log\frac87$, $t=\cp$, $s_0$ as in \eqref{eq:slope},
+      $\rho_-=\eps W_{AB}$, $\rho_+=\eps W_{BA}$, $m=1600$: declare $AB$ at
+      $X\le1009$ and $BA$ at $X\ge1153$. The resolution probability at $c=.2$ is
+      $\approx.9994762$.
+\item With the same pulse rule and $m=800$: declare $AB$ at $X\le496$ and $BA$
+      at $X\ge584$, with resolution $\approx.9590464$ at $c=.2$.
+\end{enumerate}
+All three resolution probabilities exceed $.95$ by exact rational comparison,
+and at $c=-.2$ each exceeds $.999999$.
+\end{proposition}
+
+\begin{proof}
+A low-$c$ declaration can be wrong only if the low-$c$ action is not in fact
+better, which by \eqref{eq:contrast-band} requires the true $c$ to be at least
+$t-\rho_-/s_0$ and hence $p\ge p_-$; the probability of the low-$c$ acceptance
+region is then at most its value at $p_-$, which is at most $\alpha/2$ by
+monotonicity of the binomial lower tail. Symmetrically for a wrong high-$c$
+declaration, and the union bound gives $\alpha$. The acceptance regions are
+integer tails, so their probability at any specified rational $p$ is an exact
+finite sum of rationals; the cutoffs and resolution probabilities above are
+computed that way, with the displayed decimals descriptive and the comparisons
+against $.95$ exact integer inequalities.
+\end{proof}
+
+\begin{remark}
+Three separate things improved at once here, and they should not be conflated.
+The reserve shrank, which narrows the unresolved band; the admissible $\eps$
+grew tenfold; and the resulting budget fell. Concretely, the previously
+published rule at $\eps\le.001$ and $m=1600$ declared $AB$ at $X\le982$ and
+$BA$ at $X\ge1177$, with resolution $.9721808$ at $c=.2$. The new rule at ten
+times the $\eps$ range resolves more often with the same $m$, and item~3 shows
+that half the sample now suffices to clear the same $.95$ resolution target.
+\end{remark}
+
+\begin{remark}
+False-declaration probability is controlled \emph{unconditionally}. This is not
+a claim that the conditional probability of error given a declaration is at
+most $.05$. ``Resolution'' means producing either declaration; correct
+resolution is a different event, although wrong declarations are bounded. Near
+a robust tie an unresolved output is expected and appropriate.
+\end{remark}
+
+\subsection{Effort, and a matched direct-endpoint benchmark}
+
+A founder divides before its exponential deadline with probability
+$y=1/(1+\lambda)$, so collecting until $m$ divisions yields i.i.d.\ marks and a
+negative-binomial expected root count $m/y$. The expected observed founder time
+per root is $1/(1+\lambda)$, so the expected total founder time is $m$; these
+are expectations, not fixed-budget guarantees. Imposing a cap $C$, with its
+flag retained, changes the yield to $y_C=\bigl(1-e^{-(1+\lambda)C}\bigr)/(1+\lambda)$
+while leaving the conditional bit law unchanged, because time and daughter draw
+are independent. With no timeout every immortal founder eventually divides, so
+exactly $m$ roots suffice and the expected total founder time is still $m$: a
+timeout limits the length of an individual record but is not root-optimal in
+this idealised source. Calibration reads and the paired-read itself are
+additional costs, charged separately.
+
+Direct endpoint randomisation needs no sister assay at all, and a fair
+comparison must therefore fix the same task. We use the separated class of
+Theorem~\ref{thm:forty}, the same $.05$ error, known nuisance bounds and no
+abstention. Let $W$ be the difference of extinction indicators under $A$ and
+under $B$ from two independent experimental roots. By Lemma~\ref{lem:mono},
+$F_A^{\eps}\le F_A^0$ and $F_B^{\eps}\le F_B^0$, so throughout the class
+$F_A,F_B\le\max(a+s/4,\,b)<3/500$ with no reserve needed at all; hence
+$\Var(W)\le.012$ and $|W-\E W|\le2$. With $n$ independent pairs Bernstein's
+inequality \citep[\S2.8]{BoucheronLugosiMassart2013} gives
+\begin{equation}\label{eq:bernstein}
+ \Prob(\text{wrong empirical sign})
+ \le\exp\Bigl\{-\frac{ng^2}{2\bigl(.012+2g/3\bigr)}\Bigr\},
+ \qquad g=\tfrac{s}{10}-\eps W_A .
+\end{equation}
+At $\eps\le1/100$ this is $g\approx1.6438\times10^{-4}$ and the right-hand side
+falls below $.05$ at $n=2\,688\,960$ per arm, certified using $\log20<3$; that
+is $5\,377\,920$ roots in total, against $7\,814\,272$ under the previous
+reserve. It remains a sufficient, not a necessary, cost: no optimal
+sample-complexity separation is proved, and Table~\ref{tab:cost} does not
+assert an optimal experimental advantage. Direct outcomes retain the important
+advantage of not requiring the mechanistic and marker assumptions that the
+paired protocol needs.
+
+\begin{table}[tb]
+\centering\small
+\caption{Different guarantees and their costs. Pair-record rows use known
+$\eta=.1$; expected root counts use $\lambda=1$ without a cap. All observations
+are independent roots or independently accepted founder divisions. The $\eps$
+column is the certified descendant-division range for that row.}
+\label{tab:cost}
+\begin{tabularx}{\linewidth}{@{}lXllr@{}}
+\toprule
+Task & Guarantee and assumption & $\eps$ & Divisions & Roots\\\midrule
+Constant classification & $.95$ correct; assumes $|c-c_*|\ge.1$ & $\le1/4$ & $40$ & $80$ exp.\\
+Constant abstention & full-class error $\le.05$; resolution $.9909$ at $c=.2$ & $\le1/100$ & $200$ & $400$ exp.\\
+Pulse abstention & own threshold; error $\le.05$; resolution $.9995$ at $c=.2$ & $\le1/100$ & $1600$ & $3200$ exp.\\
+Pulse abstention, lean & as above; resolution $.9590$ at $c=.2$ & $\le1/100$ & $800$ & $1600$ exp.\\
+Direct constant endpoint & same separated task; Bernstein sufficient bound & $\le1/100$ & --- & $5\,377\,920$\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Calibration, correlated errors and residual ambiguity}
+\label{sec:calibration}
+
+\subsection{What a sign needs, and what a threshold needs}
+
+Unknown but symmetric marker error does not always prevent a decision. If
+$k>0$ then \eqref{eq:bit} gives
+\begin{equation}\label{eq:signread}
+ \sgn\bigl(p-\tfrac12\bigr)=\sgn(c),\qquad |c|\ge\tfrac12\bigl|p-\tfrac12\bigr| ,
+\end{equation}
+both statements free of any knowledge of $\eta$. Combining
+\eqref{eq:signread} with Corollary~\ref{cor:band} gives a genuinely
+calibration-free rule at \emph{finite} pulse length, in two asymmetric halves.
+
+\begin{proposition}[Calibration-free declarations]\label{prop:calfree}
+Fix $x$ and $\eps$ with $\cp(x)-\eps\gamma_-(x)>0$, and let $I$ be a
+$(1-\alpha)$ confidence interval for $p$ built without knowledge of $\eta$.
+\begin{enumerate}[nosep,leftmargin=*]
+\item If $I\subset[0,\tfrac12)$ then $AB$ is strictly preferred, with error
+      probability at most $\alpha$.
+\item If $I\subset\bigl(\tfrac12+2\bigl(\cp(x)+\eps\gamma_+(x)\bigr),1\bigr]$
+      then $BA$ is strictly preferred, with error probability at most $\alpha$.
+\end{enumerate}
+At $x=7/8$ and $\eps\le1/100$ the hypothesis of the proposition holds, since
+$\cp-\eps\gamma_-\approx.12059>0$, and the second threshold is
+$\approx.80879$.
+\end{proposition}
+
+\begin{proof}
+On the coverage event, in case~1 we get $p<\tfrac12$, hence $c<0$ by
+\eqref{eq:signread}, hence $c<\cp-\eps\gamma_-$ by hypothesis, and
+Corollary~\ref{cor:band} applies. In case~2 we get
+$p-\tfrac12>2(\cp+\eps\gamma_+)$, hence
+$|c|\ge\tfrac12|p-\tfrac12|>\cp+\eps\gamma_+$ with $c>0$, and
+Corollary~\ref{cor:band} applies again.
+\end{proof}
+
+The asymmetry is intrinsic and worth stating plainly. Certifying $AB$ needs
+only the sign of $c$, because the threshold is on the other side of zero;
+certifying $BA$ needs $|c|$ to exceed a positive threshold, and a
+calibration-free lower bound on $|c|$ loses a factor of two, so it demands a
+strong channel. At $\eta=.1$ one has $p(1/4)=.82>.80879$, so case~2 is
+feasible, but only for nearly extremal covariance. There is no uniform sample
+bound as $k\to0$: at pure noise no signal remains.
+
+The previously available calibration-free rule required
+$I\subset(\tfrac12+32000h,1]$, which at $h=\log\frac87$ demands $p>4273$ and is
+vacuous; it was usable only in the regime $h\le10^{-6}$. The rule above is
+usable at the pulse lengths the rest of the paper works with.
+
+Calibration is genuinely needed to locate $c$ against a \emph{shifted}
+threshold. For example $(c,\eta)=(.05,0)$ and $(.2,.25)$ both give $p=.6$, yet
+lie on opposite sides of $c_*$; no amount of agreement data resolves that pair.
+A calibration interval must then be projected jointly with the bit confidence
+set, and the union-bound coverage event for the two measurements is sufficient.
+Estimating the channel does not turn it into a known constant.
+
+\subsection{Asymmetric and correlated read channels}
+
+For a common asymmetric binary channel with $\E[Y_i\mid Z_i]=a+bZ_i$,
+$\Prob(Z_i=1)=\tfrac12$, $\Cov(Z_1,Z_2)=c$ and conditionally independent read
+errors,
+\begin{equation}\label{eq:asym}
+ \Cov(Y_1,Y_2)=a^2+ab+b^2(\tfrac14+c)-(a+\tfrac b2)^2=b^2c .
+\end{equation}
+The centred observed covariance therefore preserves the sign of $c$ whenever
+$b\ne0$. This requires the marginal read frequencies as well as the paired
+reads: an agreement bit alone does not identify the unknown centre.
+
+Correlated read errors are a more serious threat, and the right response is to
+price them rather than to assume them away.
+
+\begin{proposition}[Additive reserve for correlated read errors]\label{prop:corr}
+Suppose $\E[Y_i\mid Z_1,Z_2]=a+bZ_i$, so that the conditional mean of one read
+does not itself acquire a dependence on the sister state, and suppose the two
+read errors have conditional covariance $q(Z_1,Z_2)$. Then
+\begin{equation}\label{eq:corr}
+ \Cov(Y_1,Y_2)=b^2c+\E\bigl[q(Z_1,Z_2)\bigr].
+\end{equation}
+Consequently, if $\bigl|\E q\bigr|\le\delta_{\mathrm{err}}$ is known, then a
+confidence interval for the observed covariance lying entirely above
+$\delta_{\mathrm{err}}$ certifies $c>0$, and one lying entirely below
+$-\delta_{\mathrm{err}}$ certifies $c<0$.
+\end{proposition}
+
+\begin{proof}
+By the law of total covariance,
+$\Cov(Y_1,Y_2)=\Cov\bigl(\E[Y_1\mid Z],\E[Y_2\mid Z]\bigr)
++\E\bigl[\Cov(Y_1,Y_2\mid Z)\bigr]$. The first term is
+$\Cov(a+bZ_1,a+bZ_2)=b^2c$ and the second is $\E[q]$.
+\end{proof}
+
+The value of \eqref{eq:corr} is not that it rescues the assay --- it does not
+--- but that it shows precisely what must be measured: a bound on the
+\emph{average} error covariance, not a claim that errors are independent. Note
+that a certified sign of $c$ combines with Proposition~\ref{prop:calfree}
+case~1 to certify $AB$; certifying $BA$ still needs a magnitude.
+
+\subsection{Irreducible ambiguity, and decisions under it}
+
+On the two sources of Theorem~\ref{thm:pulse} the retained-record laws are
+identical, so any possibly randomised binary selector has worst-case error at
+least $1/2$, for any number of independent records: if $E$ denotes the event of
+choosing one of the actions, the two error probabilities sum to
+$1-P_1(E)+P_2(E)=1$. With unequal data laws the same two-point argument gives
+$\max\Prob(\text{error})\ge\bigl(1-\TV(P_1,P_2)\bigr)/2$, and multiplying by a
+common gap lower bound converts this into an excess-risk lower bound. For the
+paired assay the one-root information is $y\,\kl(p_1\Vert p_2)$ and
+independent-root Kullback--Leibler divergences add. These are standard testing
+tools \citep{Tsybakov2009,KaufmannCappeGarivier2016} specialised to this record
+law, not new information inequalities.
+
+When the remaining gap makes a ranking costly, report the uncertainty in risk
+units. If an estimated contrast has absolute error at most $e$, then a wrong
+sign costs at most $e$ in excess risk; $2e$ is the correct bound when the two
+risks were estimated separately each with error $e$, and the two conventions
+must be kept distinct. On a contrast interval $[L,U]$, choosing the first
+action has worst regret $\max(U,0)$ and the second $\max(-L,0)$; for $L<0<U$,
+randomising with probability $-L/(U-L)$ on the first action balances the two
+endpoint losses and minimises the worst regret at
+\begin{equation}\label{eq:regret}
+ \Gamma=\frac{(-L)\,U}{U-L}
+\end{equation}
+\citep{Stoye2012,Manski2004}. A declared tolerance $\delta$ can therefore
+justify an action even when the ranking is unresolved, and coverage failure
+adds at most $\alpha$ to the unconditional expected regret.
+
+\section{A controlled refinement, and what the numbers mean}
+\label{sec:refinement}
+
+\subsection{Mother-dependent phenotype marginals}
+
+The source \eqref{eq:kernel} deliberately separates sister coupling from
+marginal phenotype persistence, so that the theorem cannot be explained away as
+an artefact of inheritance. To include genuine persistence, keep the founder
+law \eqref{eq:kernel} but give a type-$i$ descendant the pair law
+\begin{equation}\label{eq:persistent}
+ K_i=\begin{pmatrix}
+ p_i^2+\kappa_i & p_i(1-p_i)-\kappa_i\\
+ p_i(1-p_i)-\kappa_i & (1-p_i)^2+\kappa_i\end{pmatrix},
+ \qquad p_S=.6,\ p_T=.4,\ \kappa_i\in\{-.1,.1\},
+\end{equation}
+whose entries are all nonnegative (they are, in the four cases,
+$\tfrac{13}{50},\tfrac{17}{50},\tfrac{17}{50},\tfrac3{50}$ and permutations).
+Now a daughter matches her mother's type with probability $.6$. The founder
+covariance $c$ and the descendant covariances $\kappa_i$ are separate
+parameters and must be named separately.
+
+\begin{corollary}\label{cor:memory}
+Theorems~\ref{thm:pulse} and \ref{thm:short}, with the same $\eps$ ranges and
+the same gaps, remain valid when descendants use \eqref{eq:persistent}. More
+generally they remain valid when descendants use \emph{any} type-dependent
+offspring law on $\{S,T\}$ whatsoever. Sources sharing the founder's daughter
+marginals and the event rates, but differing in their founder or descendant
+sister covariances, remain observationally equivalent under the retained-branch
+protocol.
+\end{corollary}
+
+\begin{proof}
+The descendant offspring law enters the backward system \eqref{eq:field} only
+through the terms $\eps\,(G-\cdot)$ in the two daughter coordinates, and
+Lemma~\ref{lem:mono} and Proposition~\ref{prop:reserve} were stated for an
+arbitrary such $G$. The only hypothesis that refers to $G$ is
+\eqref{eq:supersol}, and Lemma~\ref{lem:criteria}(b) supplies it for every
+kernel once $x\ge x_\flat$. Both theorems use $x=7/8$ and $x=49/50$, which
+exceed $x_\flat$, and indeed every pulse length at which the reversal exists
+does. The reference contrast at $\eps=0$ and the reserves $W_a$ are computed
+from the $\eps=0$ trajectory alone and are therefore untouched, so the
+certificates transfer verbatim. The source remains nonexplosive. Finally
+Theorem~\ref{thm:branch} uses only the common daughter marginals, which
+\eqref{eq:persistent} shares across $\kappa_i$, giving the observation claim.
+\end{proof}
+
+This is a robustness theorem, not a calibration of real inherited phenotypes.
+Its content is that sister dependence and mother-to-daughter memory are
+distinct model features and that only the former is at stake here: the
+descendant mechanism may be arbitrary, and the reversal is unaffected.
+
+\subsection{Physical scale}\label{sec:scale}
+
+Let the physical founder division hazard be $\beta$. Model time is
+$\beta t_{\mathrm{phys}}$; the descendant division hazard is $\eps\beta$, the
+death hazards are the model values times $\beta$, and a pulse lasts $h/\beta$.
+Rescaling time changes all dimensional rates together and therefore cannot
+repair their ratios. Note also that an exponential mean division waiting time
+is not a population doubling time, and that the reciprocal descendant hazard is
+a latent division-clock scale, not the realised waiting time of a cell that can
+die first.
+
+\begin{table}[tb]
+\centering\small
+\caption{Model quantities under the illustrative mean founder waiting time
+$1/\beta=24$ hours. The last four rows are the point of \S\ref{sec:recurring}:
+the certified regime has moved from a latent descendant division clock of a
+thousand days to one of a few weeks, and --- at a half-hour pulse --- to no
+restriction at all.}
+\label{tab:scale}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+Quantity & Physical reading & Status\\\midrule
+$h=\log\frac87$ & $3.20$ h per pulse, $6.41$ h in total & worked example\\
+$h=\log\frac{50}{49}$ & $29.1$ min per pulse, $58.2$ min in total & Theorem~\ref{thm:short}\\
+$h=10^{-6}$ & $86.4$ ms per pulse & legacy bound \eqref{eq:tiny}\\
+$\eps=.001$ & descendant division clock $24\,000$ h $=1000$ d & previously certified\\
+$\eps=1/30$ & descendant division clock $720$ h $=30$ d & Theorem~\ref{thm:pulse}\\
+$\eps=1/16$ & descendant division clock $384$ h $=16$ d & Theorem~\ref{thm:pulse}\\
+$\eps=1$ & descendants divide as fast as the founder & Theorem~\ref{thm:short}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The earlier restriction to $\eps\le.001$ was a genuine weakness: a population
+whose founders and daughters have comparable division rates was simply outside
+the certified regime. Theorem~\ref{thm:short} removes that restriction
+entirely, at the cost of a shorter pulse, and Theorem~\ref{thm:pulse} relaxes
+it by more than an order of magnitude at the original pulse length. What
+remains restrictive is the specification of the response law \eqref{eq:rates}
+and the instantaneous nonperturbing readout, not the demographic ratio.
+
+\subsection{Effect sizes and multiple founders}
+
+At $c=.2$ and $\eps=0$,
+\[
+ F_{AB}=\tfrac{40043373837487}{1319413953331200}\approx.030349364,
+ \qquad
+ F_{BA}\approx.030567813 .
+\]
+The absolute survival-risk improvement is $\approx2.18449\times10^{-4}$, that
+is $.0218$ percentage points, while the relative increase in one-founder
+extinction is about $.72\%$. These are different effect-size descriptions and
+should not be interchanged. Both schedules leave survival near $97\%$, so the
+example establishes a ranking mechanism, not effective eradication.
+
+For $n$ independent $P$ founders, extinction is $F_a^n$ and
+\begin{equation}\label{eq:founders}
+ \bigl|F_{AB}^n-F_{BA}^n\bigr|
+ \le n\max(F_{AB},F_{BA})^{n-1}\bigl|F_{AB}-F_{BA}\bigr| .
+\end{equation}
+The ranking is preserved for every $n$, but the magnitude collapses: at $n=2$
+the extinction difference is $\approx1.331\times10^{-5}$ and at $n=10$ it is
+$\approx4.930\times10^{-17}$, the individual extinction probabilities there
+being $\approx6.630\times10^{-16}$ and $\approx7.123\times10^{-16}$. Random
+preparations require averaging the full extinction product rather than
+substituting a mean count, and a shared environment requires conditional
+analysis before any family factorisation.
+
+\section{Scope and interpretation}\label{sec:scope}
+
+\subsection{What the obstruction is specific to}
+
+The obstruction is specific to a pruned observation and a family-level
+endpoint. Exact full-state molecular conservation removes it: if a mother
+contains $(a,r)$ molecules and the observed daughter contains $(i,j)$, the
+sister must contain $(a-i,r-j)$ under pure partitioning, so the joint law is
+determined by the one-daughter law. Our phenotype covariance family must not be
+treated as a free molecular covariance under those stronger constraints.
+
+Founder immortality before division, exponential clocks, known intervention
+responses, instantaneous nonperturbing reads, conditionally independent marker
+errors and independent families are all substantive assumptions. Persistent
+marginals are covered by Corollary~\ref{cor:memory}; arbitrary reporter delay,
+unobserved age structure, unknown responses and shared environments are not.
+Correlated reads are covered only to the extent that
+Proposition~\ref{prop:corr} is supplied with a defensible $\delta_{\mathrm{err}}$.
+
+The endpoint \eqref{eq:risk} uses zero terminal extinction data. Eventual
+extinction after withdrawal is governed by the extinction vector of the
+withdrawal source and may erase these finite-time differences entirely.
+Clinical cure, relapse, detection and resistance establishment are different
+events. Nor does comparing this finite menu identify a globally optimal feedback
+policy.
+
+\subsection{Before invoking Theorem~\ref{thm:branch} for a real protocol}
+
+Theorem~\ref{thm:branch} is a statement about one precisely specified
+observation rule. A platform may resemble it superficially and fail its
+hypotheses. Table~\ref{tab:platform} lists the checks we consider mandatory.
+None of the entries is an assertion that a named platform does or does not
+satisfy them; establishing that is a separate, empirical task that this paper
+does not perform.
+
+\begin{table}[tb]
+\centering\small
+\caption{Protocol correspondence checks. A nonuniform but state-independent
+retention rule would admit an analogous theorem provided the induced daughter
+marginals still agree; a physically selected branch requires its own proof.}
+\label{tab:platform}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Candidate data situation & Required check\\\midrule
+Microfluidic devices that follow one branch \citep{Wang2010}
+ & Is retention independent of state, or do pole age, position or survival
+   select the branch? Include the relevant state variables and derive the
+   actual kernel.\\
+Destructive single-cell sampling
+ & This is generally a snapshot protocol, not a complete retained history.
+   Establish its own observation law; do not apply Theorem~\ref{thm:branch}
+   verbatim.\\
+Subsampled retrospective lineage reconstruction
+ & Does the record retain shared ancestry, sister pairs or family sizes that
+   reveal dependence? Derive the sampling law.\\
+Full time-lapse lineage trees \citep{Sandler2015,Spencer2009}
+ & Both sisters may be observed, so the exact pruning obstruction can vanish.
+   Investigate the actual resolution and error model --- this is the regime in
+   which the repair of \S\ref{sec:measurement} is natural.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The narrow conclusion}
+
+The mathematical conclusion is narrow and we state it without ornament: a
+specified missing family-level measurement can reverse a specified schedule
+comparison, this remains true when descendants divide at any rate up to the
+founder's own, and the uncertainty relevant to that comparison can be bounded
+without recovering every parameter. Observing how an individual cell behaves and
+choosing an intervention for its family are different inference problems, and
+the right measurement is dictated by the continuation products that appear in
+the decision. A small paired observation can resolve a comparison that complete
+retained-branch histories cannot resolve at all.
+
+\appendix
+
+\section{Exact certificates}\label{app:cert}
+
+\paragraph{The boundary.} The polynomial appearing in the derivative proof of
+Proposition~\ref{prop:boundary} is \eqref{eq:P}; all eleven coefficients are
+positive. Expanding at $x=1$ gives $\mathcal A(1)=210$ and $\mathcal Q(1)=735$.
+The equation $\cp=1/4$ is, after clearing denominators,
+\[
+ -6x^9-18x^8-36x^7-60x^6-76x^5-78x^4-66x^3-13x^2+81x+62=0 ,
+\]
+and rational substitution at $x=.80120$ and $x=.80121$ brackets its unique root
+in $(0,1)$; monotonicity of $\cp$, not a floating-point root count, proves the
+uniqueness.
+
+\paragraph{Reserves and margins.} At $h=\log\frac87$ the pulse threshold is
+$8967219299/65423564404$ and the affine slope magnitude is
+$114491237707/32985348833280$. The reserve polynomials of
+Table~\ref{tab:reserves} are evaluated using a rational bracket for
+$\log\frac87$ of width below $10^{-30}$, obtained from the alternating series
+for $\log(1+y)$ at $y=1/7$; for the coarser statements the bound
+$\log\frac87<134657/1008420$ suffices. The residual gaps quoted in
+Theorem~\ref{thm:pulse} are
+\[
+ \min\Bigl(D(-\tfrac15)-\tfrac1{30}W_{AB},\ -D(\tfrac15)-\tfrac1{30}W_{BA}\Bigr)
+ \approx1.78315\times10^{-5},
+\]
+and the corresponding quantity at $\eps=1/16$, $c=\mp1/4$ is
+$\approx1.58398\times10^{-5}$. For the record, the previously published
+occupation certificate at $\eps=1/500$ left the gap
+$154033465997/9895604649984000>1.55\times10^{-5}$, and at $\eps=.001$ the gap
+$1157858798221/9895604649984000\approx1.17007\times10^{-4}$.
+
+\paragraph{Binomial arithmetic.} The exact binomial implementation represents
+$p=a/d$ and the $j$th term by the integer $\binom mj a^j(d-a)^{m-j}$ over the
+common denominator $d^m$; prefix and suffix sums then give every tail
+comparison without floating-point rounding, and the same routine evaluates the
+resolution probabilities of Proposition~\ref{prop:abstain}. The displayed
+decimals are descriptive; the comparisons against $.95$ and $\alpha/2$ are
+exact integer inequalities.
+
+\section{The sensitivity reserve in closed form}\label{app:reserve}
+
+The quantities of Definition~\ref{def:reserves} are elementary. On a phase with
+constant death rate $r$ over $[0,u]$ measured from the deadline,
+\[
+ L(u)=\frac{1-e^{-ru}}{r},\qquad
+ \sigma(u)=\frac{e^{ru}-1-ru}{r}\,e^{-ru}=\frac{1-e^{-ru}-rue^{-ru}}{r} .
+\]
+For a two-phase schedule one splits the inner integral in \eqref{eq:sigmaL} at
+the phase boundary, so that $\sigma_i$ is again a combination of $1$, $u$ and
+exponentials $e^{-ku}$ with integer $k$; the outer integral in \eqref{eq:VW}
+then has an integrand of the form $\sum_k(\alpha_k+\beta_ku)e^{-ku}$, and each
+term integrates in closed form. With $x=e^{-h}$ rational the result lies in
+$\mathbb Q+\mathbb Q\,h$, the linear term in $h$ arising exactly from the
+constant ($k=0$) contributions. The occupation reserve $V_a$ has no $h$ term,
+since its integrand contains no polynomial factor; this is why $V_a$ is a plain
+rational in Table~\ref{tab:reserves}.
+
+Writing out the two-phase occupation reserve for one daughter type with phase
+hazards $(r,s)$ gives the compact expression
+\[
+ V(r,s)=\frac{(1-x)-(1-x^r)/r}{r-1}
+ +\frac{x-x^r}{r-1}\cdot\frac{1-x^s}{s}
+ +x\,\frac{(1-x)-(1-x^s)/s}{s-1},
+\]
+whose three terms integrate the occupation before the switch, the survivors
+present at the switch, and the daughters born after it; summing over the two
+daughter types reproduces the $V_a$ column of Table~\ref{tab:reserves}. The
+corresponding expression for $W_a$ is longer but is produced by the same
+mechanical procedure, and the accompanying script emits it as an exact element
+of $\mathbb Q+\mathbb Q\,h$.
+
+Two sanity checks are worth recording. First, the $V_a$ column reproduces
+exactly the constants obtained previously by a completely different route --- a
+first-added-event coupling with the bound ``probability that an extra division
+occurs'' --- which confirms that $V_a$ is the reserve that argument produces
+and that $W_a$ is a strict refinement of it rather than a different quantity.
+Second, direct high-accuracy numerical integration of the backward system at
+$x=7/8$ gives $\lim_{\eps\downarrow0}(F^0_a-F^{\eps}_a)/\eps\approx.0035$ for
+both schedules, against $W_a\approx.0057$ and $V_a\approx.0507$: the sensitivity
+reserve is within a factor of $1.7$ of the true linear response, while the
+occupation reserve is off by a factor of $14$.
+
+\section{The legacy small-pulse remainder}\label{app:tiny}
+
+We prove \eqref{eq:tiny}. Write $K(u,v)=\sum_{jk}K_c(j,k)u_jv_k$. Daughter
+extinction starts as $d_at+O(t^2)$. Reverse propagation for chronological $AB$
+begins with $B$; integrating the founder's offspring term over the next
+backward phase gives the cubic coefficient
+$K(d_A,d_A)/3+4K(d_B,d_B)/3+K(d_A,d_B)$. Interchanging $A$ and $B$ leaves the
+difference $K(d_B,d_B)-K(d_A,d_A)=-4c$, and the remaining terms first contribute
+at order four.
+
+To bound the remainder, use the coefficient $\ell^1$ norm on polynomials in
+$(p,s,t)$. For $\eps\le1$ every component of \eqref{eq:field} has norm at most
+$10$, so if $L_af=\nabla f\cdot\Phi_a^\eps$ and $\deg f\le d$ then
+$\|L_af\|_1\le10d\|f\|_1$. The first word $L_ap=G_c-p$ has norm $2$, so every
+four-letter word has norm at most $2\cdot20\cdot30\cdot40=48000$. Let
+$T_a(t)f=f\circ F_a^t$; invariance of the cube makes this a sup-norm
+contraction, and $T_a(t)f=f+\int_0^tT_a(u)L_af\,du$. Expanding
+$T_B(h)T_A(h)p$ to total degree three leaves five remainder terms with
+coefficients $h^4/\bigl(i!\,(4-i)!\bigr)$, $i=0,\dots,4$, multiplying words of
+length four evaluated on the cube; their coefficient sum is $2^4h^4/4!$. Each
+schedule remainder is therefore at most $32000h^4$, and subtracting the two
+gives \eqref{eq:tiny}.
+
+This bound proves a genuinely uniform statement in $\eps$, which is why it was
+worth having, but it is extremely lossy in $h$ and it is centred at $c=0$
+rather than at the true boundary $\cp$. Both defects are removed by
+Corollary~\ref{cor:band} and Theorem~\ref{thm:short}, which are uniform in
+$\eps$ as well.
+
+\section{Reproducibility and formal scope}\label{app:repro}
+
+\paragraph{What is proved how.} The source construction, the identification of
+the backward system with the extinction probabilities, the retained-history
+equality of Theorem~\ref{thm:branch}, the analytic integration of
+\S\ref{sec:boundary}, the comparison and differential-inequality arguments of
+\S\ref{sec:recurring}, the semigroup remainder of Appendix~\ref{app:tiny} and
+the concentration and testing arguments of \S\ref{sec:measurement} and
+\S\ref{sec:calibration} are conventional mathematical proofs, given in full in
+this paper. Every numerical constant that enters a proof step --- the factored
+contrast \eqref{eq:D}, the positivity of the coefficients of $P$, the bracket
+for $x_0$, the four reserve polynomials, the residual gaps, the binomial tails
+and resolution probabilities, the Bernstein budget, and the feasibility of
+\eqref{eq:persistent} --- is recomputed in exact rational or symbolic
+arithmetic by the accompanying script, which performs $82$ assertions and
+reports them individually. Where an irrational quantity is unavoidable, namely
+$h=\log\frac87$ and $\log\frac{50}{49}$, it is enclosed in a rational interval
+of certified width and the enclosure is propagated. No floating-point value
+supports any claim in this paper; floating-point numbers appear only as
+descriptive decimals.
+
+\paragraph{What is not claimed.} We make no claim of machine-checked
+verification of the stochastic content. Any formalisation accompanying earlier
+versions of this material covered finite algebraic identities and rational
+margins only; a description such as ``formally verified stochastic treatment
+theorem'' would overstate it, and we do not use one. The numerical ODE
+integrations reported in Appendix~\ref{app:reserve} are diagnostics that
+motivated and cross-check the analytic bounds; no proof depends on them.
+
+\paragraph{Reproduction.} The submission contains \texttt{main.tex},
+\texttt{refs.bib}, the three vector figures, and \texttt{scripts/} holding the
+exact-arithmetic engine, the certificate script and the figure generator. The
+certificate script prints a labelled dump of every constant quoted above,
+followed by its assertion log. It has no dependency beyond a standard Python
+distribution with \texttt{sympy}; the figure script additionally uses
+\texttt{numpy} and \texttt{matplotlib}, and the numerical cross-check in
+Appendix~\ref{app:reserve} uses \texttt{scipy}.
+
+\paragraph{Provenance.} A shorter and unpublished working note covering part of
+this material, together with an accompanying supplement, circulated privately in
+September 2026; the present paper supersedes both, and no argument here depends
+on either. The exact witnesses at $c=\pm1/5$ and $h=\log\frac87$, the factored
+contrast \eqref{eq:D}, the retained-branch equivalence and the forty-division
+rule originate in that note; the monotonicity lemma, the sensitivity reserve,
+the enlarged $\eps$ ranges, the uniform decision band, the short-pulse theorem,
+the calibration-free rule at finite pulse length and the correlated-error
+reserve are new here. No clinical parameters were estimated and no new data were
+collected.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

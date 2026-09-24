@@ -1,0 +1,165 @@
+import proofs.SmallCusp.Classification.SourceCoverageBatch00
+import proofs.SmallCusp.Classification.SourceCoverageBatch01
+import proofs.SmallCusp.Classification.SourceCoverageBatch02
+import proofs.SmallCusp.Classification.SourceCoverageBatch03
+import proofs.SmallCusp.Classification.SourceCoverageBatch04
+import proofs.SmallCusp.Classification.SourceCoverageBatch05
+import proofs.SmallCusp.Classification.SourceCoverageBatch06
+import proofs.SmallCusp.Classification.SourceCoverageBatch07
+import proofs.SmallCusp.Classification.SourceCoverageBatch08
+import proofs.SmallCusp.Classification.SourceCoverageBatch09
+import proofs.SmallCusp.Classification.SourceCoverageBatch10
+import proofs.SmallCusp.Classification.SourceCoverageBatch11
+import proofs.SmallCusp.Classification.SourceCoverageBatch12
+import proofs.SmallCusp.Classification.SourceCoverageBatch13
+import proofs.SmallCusp.Classification.SourceCoverageBatch14
+import proofs.SmallCusp.Classification.SourceCoverageBatch15
+import proofs.SmallCusp.Classification.SourceCoverageBatch16
+import proofs.SmallCusp.Classification.SourceCoverageBatch17
+import proofs.SmallCusp.Classification.SourceCoverageBatch18
+import proofs.SmallCusp.Classification.SourceCoverageBatch19
+import proofs.SmallCusp.Classification.SourceCoverageBatch20
+import proofs.SmallCusp.Classification.SourceCoverageBatch21
+import proofs.SmallCusp.Classification.SourceCoverageBatch22
+import proofs.SmallCusp.Classification.SourceCoverageBatch23
+import proofs.SmallCusp.Classification.SourceCoverageBatch24
+import proofs.SmallCusp.Classification.SourceCoverageBatch25
+import proofs.SmallCusp.Classification.SourceCoverageBatch26
+import proofs.SmallCusp.Classification.SourceCoverageBatch27
+import proofs.SmallCusp.Classification.SourceCoverageBatch28
+import proofs.SmallCusp.Classification.SourceCoverageBatch29
+import proofs.SmallCusp.Classification.SourceCoverageBatch30
+import proofs.SmallCusp.Classification.SourceCoverageBatch31
+import proofs.SmallCusp.Classification.SourceCoverageBatch32
+import proofs.SmallCusp.Classification.SourceCoverageBatch33
+import proofs.SmallCusp.Classification.SourceCoverageBatch34
+import proofs.SmallCusp.Classification.SourceCoverageBatch35
+import proofs.SmallCusp.Classification.SourceCoverageBatch36
+import proofs.SmallCusp.Classification.SourceCoverageBatch37
+import proofs.SmallCusp.Classification.SourceCoverageBatch38
+import proofs.SmallCusp.Classification.SourceCoverageBatch39
+import proofs.SmallCusp.Classification.SourceCoverageBatch40
+import proofs.SmallCusp.Classification.SourceCoverageBatch41
+import proofs.SmallCusp.Classification.SourceCoverageBatch42
+import proofs.SmallCusp.Classification.SourceCoverageBatch43
+import proofs.SmallCusp.Classification.SourceCoverageBatch44
+import proofs.SmallCusp.Classification.SourceCoverageBatch45
+import proofs.SmallCusp.Classification.SourceCoverageBatch46
+import proofs.SmallCusp.Classification.SourceCoverageBatch47
+import proofs.SmallCusp.Classification.SourceCoverageBatch48
+import proofs.SmallCusp.Classification.SourceCoverageBatch49
+import proofs.SmallCusp.Classification.SourceCoverageBatch50
+import proofs.SmallCusp.Classification.SourceCoverageBatch51
+import proofs.SmallCusp.Classification.SourceCoverageBatch52
+import proofs.SmallCusp.Classification.SourceCoverageBatch53
+import proofs.SmallCusp.Classification.SourceCoverageBatch54
+import proofs.SmallCusp.Classification.SourceCoverageBatch55
+import proofs.SmallCusp.Classification.SourceCoverageBatch56
+import proofs.SmallCusp.Classification.SourceCoverageBatch57
+import proofs.SmallCusp.Classification.SourceCoverageBatch58
+import proofs.SmallCusp.Classification.SourceCoverageBatch59
+import proofs.SmallCusp.Classification.SourceCoverageBatch60
+
+namespace SmallCusp
+
+def sourceCoverageValidation00Records : List SourceCoverageRecord :=
+  sourceCoverageBatch00 ++
+  sourceCoverageBatch01 ++
+  sourceCoverageBatch02 ++
+  sourceCoverageBatch03 ++
+  sourceCoverageBatch04 ++
+  sourceCoverageBatch05 ++
+  sourceCoverageBatch06 ++
+  sourceCoverageBatch07 ++
+  sourceCoverageBatch08 ++
+  sourceCoverageBatch09 ++
+  sourceCoverageBatch10 ++
+  sourceCoverageBatch11 ++
+  sourceCoverageBatch12 ++
+  sourceCoverageBatch13 ++
+  sourceCoverageBatch14 ++
+  sourceCoverageBatch15 ++
+  sourceCoverageBatch16 ++
+  sourceCoverageBatch17 ++
+  sourceCoverageBatch18 ++
+  sourceCoverageBatch19 ++
+  sourceCoverageBatch20 ++
+  sourceCoverageBatch21 ++
+  sourceCoverageBatch22 ++
+  sourceCoverageBatch23 ++
+  sourceCoverageBatch24 ++
+  sourceCoverageBatch25 ++
+  sourceCoverageBatch26 ++
+  sourceCoverageBatch27 ++
+  sourceCoverageBatch28 ++
+  sourceCoverageBatch29 ++
+  sourceCoverageBatch30 ++
+  sourceCoverageBatch31 ++
+  sourceCoverageBatch32 ++
+  sourceCoverageBatch33 ++
+  sourceCoverageBatch34 ++
+  sourceCoverageBatch35 ++
+  sourceCoverageBatch36 ++
+  sourceCoverageBatch37 ++
+  sourceCoverageBatch38 ++
+  sourceCoverageBatch39 ++
+  sourceCoverageBatch40 ++
+  sourceCoverageBatch41 ++
+  sourceCoverageBatch42 ++
+  sourceCoverageBatch43 ++
+  sourceCoverageBatch44 ++
+  sourceCoverageBatch45 ++
+  sourceCoverageBatch46 ++
+  sourceCoverageBatch47 ++
+  sourceCoverageBatch48 ++
+  sourceCoverageBatch49 ++
+  sourceCoverageBatch50 ++
+  sourceCoverageBatch51 ++
+  sourceCoverageBatch52 ++
+  sourceCoverageBatch53 ++
+  sourceCoverageBatch54 ++
+  sourceCoverageBatch55 ++
+  sourceCoverageBatch56 ++
+  sourceCoverageBatch57 ++
+  sourceCoverageBatch58 ++
+  sourceCoverageBatch59 ++
+  sourceCoverageBatch60
+
+theorem sourceCoverageValidation00_valid :
+    sourceCoverageValidation00Records.all
+      (fun R => decide R.Docked) = true := by
+  simp only [sourceCoverageValidation00Records, List.all_append,
+    sourceCoverageBatch00_valid, sourceCoverageBatch01_valid,
+    sourceCoverageBatch02_valid, sourceCoverageBatch03_valid,
+    sourceCoverageBatch04_valid, sourceCoverageBatch05_valid,
+    sourceCoverageBatch06_valid, sourceCoverageBatch07_valid,
+    sourceCoverageBatch08_valid, sourceCoverageBatch09_valid,
+    sourceCoverageBatch10_valid, sourceCoverageBatch11_valid,
+    sourceCoverageBatch12_valid, sourceCoverageBatch13_valid,
+    sourceCoverageBatch14_valid, sourceCoverageBatch15_valid,
+    sourceCoverageBatch16_valid, sourceCoverageBatch17_valid,
+    sourceCoverageBatch18_valid, sourceCoverageBatch19_valid,
+    sourceCoverageBatch20_valid, sourceCoverageBatch21_valid,
+    sourceCoverageBatch22_valid, sourceCoverageBatch23_valid,
+    sourceCoverageBatch24_valid, sourceCoverageBatch25_valid,
+    sourceCoverageBatch26_valid, sourceCoverageBatch27_valid,
+    sourceCoverageBatch28_valid, sourceCoverageBatch29_valid,
+    sourceCoverageBatch30_valid, sourceCoverageBatch31_valid,
+    sourceCoverageBatch32_valid, sourceCoverageBatch33_valid,
+    sourceCoverageBatch34_valid, sourceCoverageBatch35_valid,
+    sourceCoverageBatch36_valid, sourceCoverageBatch37_valid,
+    sourceCoverageBatch38_valid, sourceCoverageBatch39_valid,
+    sourceCoverageBatch40_valid, sourceCoverageBatch41_valid,
+    sourceCoverageBatch42_valid, sourceCoverageBatch43_valid,
+    sourceCoverageBatch44_valid, sourceCoverageBatch45_valid,
+    sourceCoverageBatch46_valid, sourceCoverageBatch47_valid,
+    sourceCoverageBatch48_valid, sourceCoverageBatch49_valid,
+    sourceCoverageBatch50_valid, sourceCoverageBatch51_valid,
+    sourceCoverageBatch52_valid, sourceCoverageBatch53_valid,
+    sourceCoverageBatch54_valid, sourceCoverageBatch55_valid,
+    sourceCoverageBatch56_valid, sourceCoverageBatch57_valid,
+    sourceCoverageBatch58_valid, sourceCoverageBatch59_valid,
+    sourceCoverageBatch60_valid]
+  simp
+
+end SmallCusp

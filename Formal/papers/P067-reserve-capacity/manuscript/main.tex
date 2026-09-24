@@ -1,0 +1,89 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,array,tabularx}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{remark}\newtheorem{remark}[theorem]{Remark}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\E}{\mathbb E}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\R}{\mathbb R}
+\newcommand{\N}{\mathbb N}
+\newcommand{\reff}{r_{\mathrm{eff}}}
+\newcommand{\Iact}{\mathcal I}
+\setlength{\emergencystretch}{2em}
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{1em}
+\renewcommand{\topfraction}{.9}
+\renewcommand{\textfraction}{.08}
+\renewcommand{\floatpagefraction}{.8}
+
+\title{Reserve capacity and reliable eradication\protect\\in inherited-state populations}
+\author{}
+\date{21 September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study finite-time eradication of a branching population with inherited cellular states under a shared intervention that also damages a finite regenerative reserve. The mission requires separate bounds on target survival and on reserve loss at \emph{every} time during treatment, not merely at the deadline. Our main probabilistic tool is an excursion bound anchored at a freely chosen return level below capacity. It yields an explicit finite-product reserve certificate, it accommodates incomplete initial filling, and we show it is asymptotically exact at high renewal. Composing it with source-specific weighted drift inequalities for a six-state inheritance model and a bounded administration course with uncertain clearance, we prove that a single course, uniform over independent one-percent relative errors in the target rates, gives target-survival probability below $0.00856$ and reserve-loss probability below $7\times10^{-6}$ from a $400$-unit reserve that need only be filled to $278$. The same course still meets both one-percent mission tolerances from any initial filling of $209$ units, nine above the failure threshold, and a $232$-unit reserve suffices at the same proportions. A capacity law with an explicit integer-rounding correction quantifies how additional reserve replaces fast renewal, while a complementary fluid-limit statement shows that capacity cannot compensate for an inadequate equilibrium reserve. We also prove the exact high-renewal limit $\reff^{\,d}\,\Prob_K(\tau_H\le T)\to(Km)^{d+1}T/d!$ for buffer $d$, and we state the limitations imposed by baseline loss and delayed replenishment. The probability arguments are conventional proofs; the decisive finite source and numerical inequalities are checked in Lean. The results are sufficient guarantees for an explicit synthetic source, not an optimal control frontier or a clinically calibrated regimen.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+An intervention can eliminate a target population and still fail its intended mission by depleting a healthy population before elimination is complete. This distinction matters especially for finite populations with inherited protective states: first moments need not determine extinction probabilities, and an adequate final healthy count does not imply that a functional reserve was maintained throughout treatment. We therefore ask for a single delivered intervention satisfying two probability constraints,
+\begin{equation}\label{eq:mission}
+ \Prob(|Z_T|>0)\le\delta,\qquad
+ \Prob(\tau_H\le T)\le\alpha,\qquad
+ \tau_H=\inf\{t\ge0:H_t<h_{\min}\}.
+\end{equation}
+Here $Z$ records target counts by inherited state and $H$ is a finite functional reserve. Their outcomes may be dependent. The two inequalities imply joint success at least $1-\delta-\alpha$ by the union bound,
+\[
+ \Prob(Z_T=0,\ \tau_H>T)\ge1-\Prob(|Z_T|>0)-\Prob(\tau_H\le T),
+\]
+so no independence assumption is needed in the final assembly. The second constraint is a genuine path requirement: recovery after a crossing does not erase the failure, and a small terminal shortfall probability does not imply it.
+
+\paragraph{Contributions.}
+The main probabilistic tool is elementary but useful: a healthy excursion need not start at the hard ceiling. Choosing its return level near the operating reserve substantially improves a finite-time bound and permits incomplete initial filling. Around this observation the paper establishes five things.
+\begin{enumerate}\itemsep2pt
+\item An anchored return-level certificate for reserve loss (Theorem~\ref{thm:anchor}) and its incomplete-preparation form (Corollary~\ref{cor:initial}), valid for all adapted rates dominating a logistic comparison chain.
+\item A capacity-sizing law with an explicit integer-rounding correction (Theorem~\ref{thm:capacity}), together with a fluid-limit statement (Proposition~\ref{prop:regime}) showing that its regime hypothesis cannot be dropped: when the equilibrium reserve fraction falls below the threshold fraction, failure probability tends to one no matter how large the capacity.
+\item An exact high-renewal asymptotic (Proposition~\ref{prop:highrenewal}): with buffer $d=K-h_{\min}\ge1$ and a full initial reserve, $\reff^{\,d}\,\Prob_K(\tau_H\le T)\to(Km)^{d+1}T/d!$. The top-anchor product of Theorem~\ref{thm:anchor} equals that constant divided by $\reff^{\,d}$ \emph{exactly}, for every $\reff$, so the certificate is asymptotically sharp and the renewal-sizing rule~\eqref{eq:renewalsizing} is order-optimal.
+\item A delivered finite-mission theorem (Theorem~\ref{thm:main}) for a literal six-state inheritance source under a one-course administration with uncertain clearance, uniform over an explicit one-percent relative uncertainty box on the target rates.
+\item Two consequences that quantify how little reserve the same course actually needs: the mission tolerances survive an initial filling of $209$ out of $400$ units (Corollary~\ref{cor:filling}), and a $232$-unit reserve at the same proportions suffices (Corollary~\ref{cor:smaller}).
+\end{enumerate}
+
+\paragraph{Relation to existing work.}
+Treatment optimization under phenotypic plasticity is established work. Gunnarsson and collaborators analyze switching, resistance and dosing, including asymptotically optimal dosing for specified plasticity laws \citep{gunnarsson2020,gunnarsson2025}. Healthy/cancer control with healthy-population constraints is also established \citep{pouchol}. Reversible, chromatin-associated drug-tolerant states and rare-cell reprogramming motivate treating protective cell states as inherited rather than as instantaneous phenotypes \citep{sharma2010,shaffer2017}. Our question differs from all of these in its finite-population extinction event, its all-time stochastic reserve constraint, its inherited allocation source, and its one-course guarantee over an explicit uncertainty box. We do not claim to introduce toxicity-constrained control or to determine globally optimal treatment.
+
+The probabilistic ingredients are classical. Scale functions and two-boundary ruin identities for birth--death chains are standard \citep{karlin1975}; logistic-process extinction and its asymptotic regimes have a substantial literature \citep{foxall}; density-dependent fluid limits are due to Kurtz \citep{kurtz1970,ethierkurtz}; branching first-moment operators are textbook material \citep{athreyaney}. The contribution here is not a new general claim about metastability but the explicit choice of a \emph{return level}, the resulting finite-threshold certificate, and its composition with a delivered inherited-population course into a single uniform guarantee. Formulating the mission as a pair of marginal probability constraints places it near reach-avoid verification for controlled stochastic systems \citep{abate2008,summers2010}, though we prove a sufficient certificate for one fixed input rather than synthesize an optimal policy.
+
+\paragraph{Benchmark lineage.}
+A $20$-unit reserve provides a compact benchmark that we carry through the paper for comparison; it requires effective renewal at least $12$ under a narrow uncertainty box. The larger-reserve constructions below demonstrate how capacity, initial filling and selectivity alter the sufficient renewal requirement, reducing it to $1$. Table~\ref{tab:examples} collects these preparations. They are different physical preparations, not the same reserve relabelled or rescaled in time.
+
+We first state the source and the finite-mission theorem, then prove the reserve bound, its capacity and asymptotic consequences, and the source-to-event implication. Design consequences and limitations follow. Only ingredients used for these conclusions are included; exploratory control searches are not premises of the paper.
+
+\input{sections/model}
+\input{sections/main_statement}
+\input{sections/reserve}
+\input{sections/asymptotics}
+\input{sections/mission_proof}
+\input{sections/design_limits}
+\input{sections/evidence}
+
+\appendix
+\input{sections/appendix}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}

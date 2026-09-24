@@ -1,0 +1,108 @@
+\section{A nominal published chemistry under a split--refill--recovery protocol}\label{sec:semenov}
+
+The third result applies the operational definition of Section~\ref{sec:events} to a reaction mechanism that has been realized experimentally: the thiol--thioester network of \citet{semenov2016}, which is bistable in a continuously stirred tank reactor (CSTR). We analyse the nominal kinetic model reconstructed from that paper, at its reported rate constants and feed, and prove that a prescribed protocol of splitting, refilling and recovering copies the two stable states with joint daughter return probability at least $0.992$. Three features distinguish this from Section~\ref{sec:constructed}: the volume is macroscopic (about $40\,\micro$L), so the count space is enormous and the proof uses moving quadratic metrics rather than an enumerated certificate; the protocol allows repair after splitting, so the success event is return after a fixed recovery time; and the model, not the laboratory system, is what the theorem is about.
+
+\subsection{The nominal model}\label{sec:semmodel}
+The tracked species, in the order $(S,C,P,E,D,U,V,I)$, are the thioester AlaSEt, cysteamine, the thiol-bearing ligation product, ethanethiol, cystamine, the two mixed disulfides and the inhibitor maleimide. The reconstructed reactions are
+\begin{equation}\label{eq:semreactions}
+\begin{aligned}
+ D+E&\rightleftharpoons C+U,&D+P&\rightleftharpoons C+V,&V+E&\rightleftharpoons P+U,\\
+ S+C&\longrightarrow P+E,&S&\longrightarrow E+\text{(inactive)},
+\end{aligned}
+\end{equation}
+together with the inhibition of $C$, $P$ and $E$ by $I$ to inactive products. The six directional disulfide-exchange coefficients are $0.65\,\Molar^{-1}\mathrm s^{-1}$, ligation is $0.41\,\Molar^{-1}\mathrm s^{-1}$, hydrolysis is $9.26\times10^{-6}\,\mathrm s^{-1}$ and inhibition is $150\,\Molar^{-1}\mathrm s^{-1}$. The CSTR dilution rate is $s_v=0.002\,\mathrm s^{-1}$ and the feed is
+\[
+ c_f=(0.05,\,0,\,0,\,0,\,0.1,\,0,\,0,\,0.00231)\ \Molar .
+\]
+Autocatalysis arises because the thiols $C$, $P$, $E$ liberate further thiol from cystamine and from the thioester, while maleimide in the feed removes thiol at low concentration; the readout is total free thiol $C+P+E$. The reported conditions are pH~7.5, $25^\circ$C and $0.5\,\Molar$ phosphate; they are provenance, not a certified uncertainty interval. The reconstructed deterministic field reproduces the published bistability at three flow rates; at $s_v=0.002$ the model's high thiol state is near $35$\,mM whereas the experimental comparison in the source is near $23$\,mM, a discrepancy we return to in Section~\ref{sec:sensitivity}.
+
+The stochastic model at volume $V$ has $\Omega=N_AV$ molecules per molar. Distinct-reactant propensities are $kn_in_j/\Omega$, unimolecular propensities $kn_i$, feed propensities $\Omega s_v(c_f)_i$ and outflow propensities $s_vn_i$; all $11$ chemical, $8$ feed and $8$ outflow channels are retained, and the deterministic invariant planes are not imposed on the fluctuations. Inactive products, water and buffer lie outside the eight-species count.
+
+\subsection{Protocol and return regions}\label{sec:semprotocol}
+Set $\Omega=24\times10^{18}$, so $V=\Omega/N_A=39.85294\,\micro$L. One cycle is:
+\begin{enumerate}
+\item start from a parent in the return region of its label at volume $V$;
+\item split fairly into two half-volume daughters by one complementary allocation vector;
+\item refill each daughter to $V$ with fresh feed: the added count of species $i$ is Poisson with mean $\Omega(c_f)_i/2$, independently across species and daughters;
+\item run each daughter for $500$\,s under the nominal CSTR law at volume $V$, with a per-daughter feed quota of $K=12\times10^{18}$ active molecules and a coordinate cap of $B=20\times10^{18}$; exceeding either is absorbing failure;
+\item inspect both terminal states; daughter A continues, and the feed quota is renewed.
+\end{enumerate}
+This is a prescribed external protocol that permits repair after splitting. It is not immediate newborn return, and the necessity bounds of Section~\ref{sec:immediate} do not transfer to it.
+
+The two return regions are rational ellipsoids
+\begin{equation}\label{eq:ellipsoid}
+ B_\ell=\bigl\{n:\ (n/\Omega-z_\ell)^TP_\ell(n/\Omega-z_\ell)\le\eta_\ell\bigr\},\qquad \eta_0=6\times10^{-12},\ \eta_1=9\times10^{-14},
+\end{equation}
+within the finite count domain. The centres $z_\ell$ and positive matrices $P_\ell$ are exact rationals extracted from the terminal pieces of the checked polynomial certificates; they are distributed with the sources as \path{terminal_regions.json}, and Appendix~\ref{app:semenov} lists their approximate values. The thiol values at the centres are about $1.4488\,\micro\Molar$ (low) and $34.5098$\,mM (high), and the certified coordinate radii are below $4.703\,\micro\Molar$ and $1.626\,\micro\Molar$ respectively. Exact endpoint checks show that the fixed decoder $n_C+n_P+n_E>1.2\times10^{17}$, that is $C+P+E>5$\,mM at $V$, separates the entire regions; so does the volume-free ratio rule $100(n_C+n_P+n_E)>\sum_in_i$, since thiol is below $0.001$ of the active total throughout the low region and above $0.17$ throughout the high region. The regions therefore admit a relative-composition readout, unlike the boxes of Section~\ref{sec:constructed}; this is a consequence of their geometry and does not extend the theorem to other volumes or preparations. The explicit preparations $\lfloor\Omega z_\ell\rfloor$ lie in the regions by exact membership checks.
+
+\begin{theorem}[Nominal split--refill--recovery copying]\label{thm:semenov}
+For each label and every parent in \eqref{eq:ellipsoid}, the nominal stochastic protocol returns both daughters to the same region with probability at least $124/125=0.992$. Ten inspected cycles succeed with probability at least $0.992^{10}>0.922$.
+\end{theorem}
+
+\subsection{Proof by moving rational metrics}\label{sec:semproof}
+Write $u=n/\Omega$ for the concentration vector. The count space at $\Omega=2.4\times10^{19}$ cannot be enumerated, so the certificate is a time-dependent quadratic energy along the deterministic recovery.
+
+\paragraph{Reference curves and metrics.}
+Numerically proposed centre curves $z(t)$ and positive matrices $P(t)$ are represented by degree-$16$ rational polynomials on $16$ (low) and $22$ (high) time pieces covering exactly $[0,500]$, with centres and metrics joining exactly at the piece boundaries. They need not solve the differential equations: the residual $P(f(z)-\dot z)$ of the field $f$ and the matrix residual of $\dot P+J^TP+PJ+I$, with $J$ the Jacobian at $z$, are explicitly bounded on each piece by rational coefficient inequalities. Rational congruence and Gershgorin bounds certify positive definiteness. On each piece define
+\[
+ D(t,n)=\frac{(u-z(t))^TP(t)(u-z(t))}{\eta}.
+\]
+The matrix inequality, the residual bounds, the exact quadratic remainder of the field, and the literal finite-count jump increments of all $27$ channels yield a generator bound for the sixth power: $(\partial_t+\cL)D^6\le10^{-9}$ throughout $D\le1$, for both labels. The sixth power, rather than $D$ itself, is what balances the initial disturbance from splitting against the drift cost of $500$ seconds. Table~\ref{tab:metric} lists the sufficient constants.
+
+\begin{table}[t]
+\centering
+\caption{Sufficient scalar bounds in the nominal recovery certificate. $L_0$ bounds the initial metric's absolute row sums; $v_s$ bounds the allocation-plus-refill variance coefficient; $r$ bounds the inherited parent energy after half dilution. These are certificate constants, not measured kinetic uncertainties.}\label{tab:metric}
+\begin{tabular}{@{}lrr@{}}\toprule
+Quantity & Low & High\\\midrule
+$\eta$ & $6\times10^{-12}$ & $9\times10^{-14}$\\
+$L_0$ & $1601$ & $3818$\\
+$v_s$ & $0.115$ & $0.114$\\
+$r$ & $0.09$ & $0.26$\\
+Sixth-power drift bound & $10^{-9}$ & $10^{-9}$\\
+Polynomial time pieces & $16$ & $22$\\\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Finite feed inventory.}
+Let $C_t$ be the cumulative feed input of a daughter, with initial refill mean $m_0=\Omega\sum_i(c_f)_i/2=1.82772\times10^{18}$ and inflow rate $\lambda=\Omega s_v\sum_i(c_f)_i$. The centred inventory energy
+\[
+ E(t,n,C)=D(t,n)^6+\frac{4(C-m_0-\lambda t)^2}{K^2}
+\]
+has exact inventory drift $4\lambda/K^2$: predictable consumption cancels and only fluctuations around it are charged. The mean input through $500$\,s is $5.48316\times10^{18}<K/2$, so exhaustion forces $E\ge1$. The coordinate cap cannot intervene inside the controlled domain, because every admitted parent has total active concentration at most $0.2\,\Molar$ and the parent plus the entire quota is below $B$.
+
+\paragraph{Global comparison through a concave cap.}
+Let $\phi(e)=2e-e^2$ for $0\le e\le1$ and $\phi(e)=1$ for $e\ge1$, which is $C^1$, concave, bounded by $1$, and equal to $1$ wherever the certificate has failed. The tangent inequality $\phi(b)\le\phi(a)+\phi'(a)(b-a)$ and $0\le\phi'\le2$ turn the local drift estimate on $E\le1$ into a global bound $(\partial_t+\cL)\phi(E)\le2\cdot(10^{-9}+4\lambda/K^2)$ on the whole finite model, including the absorbing failed state, without any estimate outside the tube. The indicator of terminal failure (outside the region, quota exhausted, or cap exceeded) is bounded by $\phi(E)$ at time $500$. Applying the actual finite-time law on each polynomial piece and composing the joins, a daughter that starts with energy $E_0$ fails with probability at most $\EE\phi(E_0)+1000(10^{-9}+4\lambda/K^2)$.
+
+\paragraph{Allocation and refill.}
+For species $i$ let $\xi_i=D_i-n_i/2+Q_i-\EE Q_i$ with $D_i\sim\Bin(n_i,1/2)$ the allocation and $Q_i\sim\Pois(\Omega(c_f)_i/2)$ the refill. Its exact centred second moment is $v_i=n_i/4+\EE Q_i$ and its fourth moment is $3v_i^2+\EE Q_i-n_i/8$. The exact endpoint comparison $P(0)/4\preceq rP(500)$ bounds the deterministic displacement of a parent anywhere in the region after halving and refilling by $r$ in normalized energy. With $m_1=L_0v_s/(\Omega\eta)$ and $m_2=L_0^2\eta^{-2}(24v_s^2/\Omega^2+8v_s/\Omega^3)$, Taylor's inequality for $g(D)=\phi(D^6)$, whose derivative bounds are $4$ and $12$ on the relevant range, gives $\EE g(D_{\rm newborn})\le\phi(r^6)+(4+48r)m_1+12m_2$; the moment bounds use only marginal moments and Cauchy's inequality, so no cross-species independence beyond the allocation law itself is required. Altogether each daughter fails with probability at most
+\begin{equation}\label{eq:semenovbudget}
+ \phi(r^6)+(4+48r)m_1+12m_2+\frac{64m_0}{K^2}+1000\Bigl(10^{-9}+\frac{4\lambda}{K^2}\Bigr)\ \le\ \frac1{250},
+\end{equation}
+where $64m_0/K^2$ charges the initial refill variance of the inventory term. All comparisons are exact rationals. The exact prospective values of twice the per-daughter bound are about $2.5\times10^{-5}$ (low) and $7.9\times10^{-3}$ (high); the theorem states the simpler uniform bound.
+
+\paragraph{Both daughters.}
+Daughter B's allocation is $n-D$, and the reflection $d\mapsto n-d$ shows that its marginal law equals daughter A's, so \eqref{eq:semenovbudget} applies to each. The union bound gives joint failure at most $2/250$, retaining the dependence between siblings. Integrating the actual recovery transitions of daughter A against the joint allocation-and-refill law, weighted by the success of daughter B, gives the offspring kernel, whose row sum is exactly the joint return probability; Lemma~\ref{lem:iteration} proves Theorem~\ref{thm:semenov}.
+
+\subsection{Preparation tolerance and rate sensitivity}\label{sec:sensitivity}
+Passing the thiol decoder is much weaker than lying in the return ellipsoid, and the ellipsoids are narrow. For a preparation error $e$ in concentration units, a sufficient simultaneous tolerance is
+\begin{equation}\label{eq:cube}
+ \norm e\le b,\qquad b^2\sum_{i,j}|(P_\ell)_{ij}|\le\eta_\ell,
+\end{equation}
+since $e^TP_\ell e\le\sum_{i,j}|(P_\ell)_{ij}||e_i||e_j|$. Exact evaluation of the stored matrices gives $b=16.366$\,nM (low) and $b=1.788$\,nM (high). These are sufficient cube tolerances about the exact centres; other directions permit larger deviations, and no claim is made that they are experimentally achievable.
+
+To quantify parameter sensitivity without a new certification campaign, we integrated the same deterministic field for the $500$-second recovery from the nominal centre after mean split and refill, changing one kinetic group at a time by $\pm0.1\%$ and $\pm1\%$ and keeping the accepted terminal ellipsoid fixed. Table~\ref{tab:sensitivity} reports the larger terminal energy $D$ of the two signs at $0.1\%$; return requires $D\le1$. The integration used a BDF method with relative tolerance $2\times10^{-10}$ and absolute tolerance $2\times10^{-14}\,\Molar$, and a tighter nominal replay moved the endpoints by at most $6.4\times10^{-13}\,\Molar$ (low) and $1.2\times10^{-11}\,\Molar$ (high).
+
+\begin{table}[t]
+\centering
+\caption{Deterministic sensitivity diagnostics at $\pm0.1\%$ changes of one rate group, from the nominal centre after mean split and refill. These are floating-point diagnostics, not stochastic bounds and not empirical uncertainty intervals. Every run retains the correct thiol decoder.}\label{tab:sensitivity}
+\begin{tabular}{@{}lrr@{}}\toprule
+Changed group & Low terminal $D$ & High terminal $D$\\\midrule
+Disulfide exchange & $0.145$ & $2.17\times10^{4}$\\
+Ligation & $7.0\times10^{-4}$ & $1.43\times10^{6}$\\
+Hydrolysis & $7.44$ & $20.8$\\
+Inhibition & $0.152$ & $0.028$\\
+Dilution rate & $3.08$ & $1.09\times10^{6}$\\\bottomrule
+\end{tabular}
+\end{table}
+
+Several $0.1\%$ changes move the high-state endpoint far outside the nominal ellipsoid while the decoder still reads correctly. A deterministic endpoint outside the old region does not prove loss of bistability, loss of decoder memory, or stochastic failure of a suitably recentred protocol: the regions are centred on the nominal trajectory, and a perturbed model has its own recovery trajectory around which a new certificate could be built. What the table shows is that Theorem~\ref{thm:semenov} certifies the nominal model and cannot be read as robustness to unspecified kinetic uncertainty. Two source-motivated variations make the same point: replacing the nominal $50/100$\,mM feeds by the reported experimental $47/92$\,mM moves the high-state thiol to about $32.1$\,mM, and replacing the flow-fitted hydrolysis by the batch value $7\times10^{-6}\,\mathrm s^{-1}$ also leaves both nominal regions. Together with the $35$-versus-$23$\,mM discrepancy already present in the source, this is the concrete reason to present Theorem~\ref{thm:semenov} as a nominal-model prediction and not as an experimental fidelity claim. An experimentally supported statement would require measured rates and feeds at the stated conditions, a resolution of the high-state discrepancy, and certificates regenerated at those parameters.

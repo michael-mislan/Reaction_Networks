@@ -1,0 +1,157 @@
+\section{The remaining-exposure theorem}
+\label{sec:exposure}
+
+\begin{lemma}[Supersolution segment]\label{lem:segment}
+Suppose $q\in(0,1]^m$, $\PhiB(q)\le0$, and let $h=1-q$. For $0\le a\le1$,
+$q_a=1-ah$ satisfies $\PhiB(q_a)\le0$. In the binary case, exactly
+\begin{equation}\label{eq:segment}
+ \PhiB(1-ah)=a\PhiB(q)-a(1-a)\,b\odot D(h,h).
+\end{equation}
+If $Rq\le ch$ for $c\ge0$, then $Rq_a\le c(1-q_a)$.
+\end{lemma}
+
+\begin{proof}
+Conservation of $Q$ and normalization $F(1)=1$ give $\PhiB(1)=0$. For binary
+offspring, expand $D(1-ah,1-ah)$ and subtract $a\PhiB(1-h)$; the linear chemical
+and death terms cancel as in \eqref{eq:segment}, and $D(h,h)\ge0$ because
+$h\ge0$ and the daughter law has nonnegative coefficients. For general bounded
+offspring, each monomial of $F_i(1-ah)$ is a product
+$\prod_{\ell=1}^k(1-ah_{j_\ell})$, whose second derivative in the scalar $a$ is
+a sum of terms each containing two nonnegative factors $h_{j}$ and otherwise
+nonnegative factors; hence each monomial, and so $F_i(1-ah)$, is convex
+\emph{as a function of the scalar} $a$ on $[0,1]$. Its graph lies below the
+chord, so $F_i(1-ah)\le(1-a)F_i(1)+aF_i(q)$. The remaining terms are affine in
+$a$, whence $\PhiB(1-ah)\le a\PhiB(q)\le0$. Finally $R(1-ah)=aRq$ because
+$R\one=0$.
+\end{proof}
+
+\begin{remark}
+The convexity used here is directional: it is convexity along the prescribed
+segment $1-a(1-q)$, not joint convexity of the generating function on the cube.
+Joint convexity is false in general --- the monomial $x_1x_2$ has an indefinite
+Hessian --- and nonnegative mixed partial derivatives do not supply it. The
+homotopy is affine in $a$; its later dependence on remaining exposure is
+exponential.
+\end{remark}
+
+\begin{theorem}[Exposure floor under feedback]\label{thm:main}
+Assume the model of Section~\ref{sec:model}. Let $q\in(0,1]^m$ and $c\ge0$
+satisfy
+\begin{equation}\label{eq:cert}
+ \PhiB(q)\le0,\qquad Rq\le c(1-q).
+\end{equation}
+Suppose the declared continuation has extinction vector $q^{\mathrm{off}}\le q$.
+Then for every admitted predictable policy and every initial configuration $z$,
+\begin{equation}\label{eq:main}
+ \Prob_z(|Z_T|>0)\ \ge\ r_\pi(T)\ \ge\
+ 1-\prod_i\left[1-e^{-cB}(1-q_i)\right]^{z_i}.
+\end{equation}
+The same conclusion holds at an almost surely finite adaptive withdrawal time
+if the pathwise budget holds until that time and the same continuation
+condition holds conditional on its history.
+\end{theorem}
+
+\begin{proof}
+For remaining exposure $\beta\ge0$ set
+\[
+ a=e^{-c\beta},\qquad q_\beta=1-a(1-q),\qquad L(\beta,z)=1-V_{q_\beta}(z).
+\]
+All coordinates of $q_\beta$ are positive, even at $\beta=0$.
+Lemma~\ref{lem:segment} gives $\Phi_v(q_\beta)\le cv(1-q_\beta)$ for every
+admitted $v\ge0$, and $\partial_\beta q_\beta=c(1-q_\beta)$. Differentiating the
+finite product in \eqref{eq:generator} yields
+\begin{equation}\label{eq:barrier}
+ (\mathcal G_v-v\partial_\beta)L(\beta,z)
+ =V_{q_\beta}(z)\sum_i\frac{z_i}{q_{\beta,i}}
+      \bigl[cv(1-q_{\beta,i})-\Phi_v(q_\beta)_i\bigr]\ \ge\ 0 .
+\end{equation}
+This also holds at $z=0$, where the sum is empty.
+
+Let $\beta_t=B-C_t$, which is nonincreasing and nonnegative by
+\eqref{eq:budget}. Stop at bounded population and proposal count and at time
+$T$. The finite jump compensation identity and the finite-variation chain rule
+make $L(\beta_t,Z_t)$ a submartingale after stopping. Non-explosion removes the
+stopping sequence, and $0\le L\le1$ supplies dominated convergence; therefore
+$\E L(\beta_T,Z_T)\ge L(B,z)$.
+
+The function $L$ is nonincreasing in $\beta$. Conditional on the history at $T$,
+the continuation survival probability is
+$1-\prod_i(q_i^{\mathrm{off}})^{Z_i(T)}$, so pointwise
+\[
+ L(\beta_T,Z_T)\le L(0,Z_T)\le1-\prod_i(q_i^{\mathrm{off}})^{Z_i(T)}
+ \le\one_{\{|Z_T|>0\}}.
+\]
+Taking expectations proves \eqref{eq:main}. Independence is used only for the
+declared uncontrolled continuation, conditional on its starting population. For
+an almost surely finite withdrawal time $\tau$, first stop at $\tau\wedge k$;
+boundedness and eventual equality to the stopped process at $\tau$ allow
+$k\to\infty$, after which the same terminal comparison applies. A rule that
+waits for extinction is not admissible under this extension unless it is almost
+surely finite.
+\end{proof}
+
+\begin{remark}
+The hypothesis $\PhiB(q)\le0$ makes $q$ an upper bound for the \emph{minimal}
+extinction fixed point: $V_q(Z_t)$ is a bounded supermartingale for the
+uncontrolled source, extinction by time $t$ forces $V_q=1$, and letting
+$t\to\infty$ gives $q^{\mathrm{off}}\le q$ whenever the continuation also
+satisfies $\Phi_{\mathrm{off}}(q)\le0$. An arbitrary numerical root of
+$\Phi=0$ cannot be substituted without identifying it as that minimal solution.
+\end{remark}
+
+\begin{corollary}[Preparations, actuators and uncertainty]\label{cor:extensions}
+For a random initial configuration, average the right side of \eqref{eq:main}
+over its actual law; for a preparation known only to lie in a set, minimize that
+right side over the set. Suppose instead that
+\[
+ \Phi_u(x)=\PhiB(x)+\sum_ku_k\Psi_k(x),\qquad
+ \Psi_k(x)=R_kx+\kappa_k\odot(1-x),\quad R_k\one=0,
+\]
+all admitted rates are valid, $u_k\ge0$, and $\Psi_k(q)\le c_k(1-q)$ with
+$c_k\ge0$. Then replace $cB$ in \eqref{eq:main} by $\sum_kc_kB_k$ for pathwise
+budgets $\int u_k\le B_k$. For a single cost budget $\int\sum_ka_ku_k\le B$ with
+$c_k\le c_*a_k$, use $c_*B$. The statements are uniform over a fixed source
+parameter set if the same certificates and continuation inequalities hold
+throughout that set.
+\end{corollary}
+
+\begin{proof}
+Condition on the preparation and apply Theorem~\ref{thm:main}. Linearity gives
+$\Psi_k(q_a)=a\Psi_k(q)$, so the segment bound of Lemma~\ref{lem:segment} holds
+with $\sum_kc_ku_k$ in place of $cv$. Use the remaining weighted exposure
+$\beta=\sum_kc_kB_k-\int\sum_kc_ku_k$ and $a=e^{-\beta}$ in
+\eqref{eq:barrier}. The cost-budget version uses
+$\sum_kc_ku_k\le c_*\sum_ka_ku_k$. The proof holds for each fixed source
+separately, giving uniformity without exchanging the policy and source
+quantifiers.
+\end{proof}
+
+A zero $c_k$ is a property of this certificate; it does not prove that the
+actuator is biologically useless. A mixture of initial populations must not be
+replaced by its mean composition, since the right side of \eqref{eq:main} is not
+affine in $z$. For application of a data-selected \emph{upper} risk certificate,
+a joint confidence set with coverage $1-\alpha$ and a policy bounded by $\delta$
+throughout that set gives unconditional deployment risk at most $\delta+\alpha$,
+by conditioning on coverage and using independent deployment; independent
+marginal intervals do not automatically provide the required joint coverage.
+
+\begin{proposition}[Sharpness over the general class]\label{prop:sharp}
+The functional form of \eqref{eq:main} is attained in a limiting admissible
+comparison source. This does not by itself establish sharpness of the constants
+in any particular molecular source.
+\end{proposition}
+
+\begin{proof}
+Take one immortal baseline type, no reproduction, and controlled death intensity
+$cv$. Every constant $q\in(0,1)$ has $\PhiB(q)=0$ and $\Psi(q)=c(1-q)$; after
+withdrawal the source is immortal and $q^{\mathrm{off}}=0$. Under a
+deterministic schedule using exposure $B$, independent survival of the $n$ cells
+gives exactly $1-(1-e^{-cB})^n$. Letting $q\downarrow0$ in
+Theorem~\ref{thm:main} recovers equality. No zero denominator is used.
+\end{proof}
+
+Proposition~\ref{prop:sharp} leaves open whether the form is attained inside a
+source with genuine inheritance. Section~\ref{sec:combo} shows that it is, in
+the following sense: in the molecular source with the added-death actuator the
+ratio of certified sufficient to necessary exposure is bounded by $1.45$ as
+$n/\delta\to\infty$, uniformly in the number of memory sites.

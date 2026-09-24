@@ -1,0 +1,1258 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,array,microtype}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,%
+            urlcolor=blue!50!black]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\one}{\mathbf 1}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\TV}{\operatorname{TV}}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert_\infty}
+\newcommand{\R}{\mathbb R}
+\newcommand{\kl}{\operatorname{kl}}
+\setlength{\emergencystretch}{2em}
+
+\title{Randomized stopped lineage experiments separate\\
+phenotypic switching, selection and correlated inheritance}
+\author{}
+\date{20 September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The same resistant outgrowth can reflect pre-existing state, selective survival,
+within-cell switching or altered daughter production. We ask which observations
+separate these mechanisms in a finite-state continuous-time branching model with
+correlated sister states. An independently randomized exponential deadline,
+competing with the founder's first division or death, turns the observation law
+into a resolvent: calibrated initial and endpoint markers together with joint
+daughter records recover the switching generator, the demographic rates and the
+daughter kernel at every finite rate and for any finite number of states,
+without matrix logarithms and without a diagonalizability assumption. A
+monitored delayed daughter readout preserves identification through an explicit
+channel with interruption flags. For two states we give a rational formula for
+the switching rate that cancels every marker determinant before it is evaluated,
+and we replace Hoeffding radii by Chernoff--Kullback--Leibler feature sets, of
+which the Hoeffding radii are exactly the Pinsker relaxation. On a synthetic
+two-arm dataset with uncertain calibration these two changes narrow the
+conservative $95\%$ induction interval from $[0.362,1.498]$ to $[0.578,1.092]$
+per hour, around a true contrast of $0.8$ per hour, using the same observations
+and the same coverage event; and they lower the certified budget of a
+separated-class prospective decision from $2\times10^{6}$ to $3\times10^{5}$
+founders. Known calibration mixtures replace pure-state calibration exactly, and
+a six-category coarsening suffices when only within-cell switching is targeted.
+Finally, increasing sister concordance at fixed daughter marginals increases
+finite-time extinction weakly, and strictly in a stated case, while leaving
+every mean trajectory unchanged. These are model-conditional observation and
+prediction theorems, not a calibrated assay. The probabilistic arguments are
+conventional proofs; a declared finite-algebra subset is verified in Lean.
+\end{abstract}
+
+\section{The question and its observation model}
+
+Phenotypic inheritance, selection and induced plasticity are compatible
+mechanisms. A lineage experiment should estimate their quantitative
+contributions, rather than choose one of three mutually exclusive explanations.
+Induction identification is already established in controlled ODE settings
+\citep{greene2019}; branching inference distinguishes the information in counts
+and fractions \citep{gunnarsson2023}, and division-associated plasticity is
+explicitly modelled in drug-screen inference \citep{wu2025}. Lineage-tree
+inference motivates tracking before treatment and after withdrawal, but a
+lineage relationship is not itself a calibrated phenotype measurement
+\citep{mohammadi2022}.
+
+We give an observation-design result for a declared source. The distinguishing
+step is to stop following a founder at its first demographic event, with an
+independent random deadline. This exposes both a killed within-cell chain and
+its joint daughter exit kernel. The resolvent method is classical in generator
+estimation \citep{metzner2007}; stopped-process potential kernels are likewise
+standard \citep{fitzsimmons1999}. Our claim is the explicit connection of those
+tools to this lineage protocol, its delayed observation channel, its finite-data
+target and its offspring-dependence consequence. We do not assert priority for
+resolvent inversion or generating-function comparison in isolation.
+
+Three questions are kept apart throughout. \emph{Structural identifiability}
+asks whether a record law determines the source at all; it is answered by
+algebra. \emph{Finite-sample inference} asks what a fixed number of independent
+founders certifies; it is answered by concentration inequalities and exact
+interval arithmetic. \emph{Biological calibration} asks whether a real reporter
+measures the stipulated latent states; nothing in this paper answers it. Every
+numerical value below is synthetic.
+
+\subsection{Source, emissions and mechanisms}
+The state space is $\{1,\ldots,m\}$. At a fixed exposure $u$, a cell of type $i$
+switches to $j\ne i$ at rate $q_{ij}(u)$, dies at rate $d_i(u)$, and divides at
+rate $b_i(u)$. Division replaces the mother by an ordered pair $(j,k)$ with
+joint law $K_i^u(j,k)$. The kernel is stochastic; exchange symmetry is imposed
+when the daughter order is arbitrary. Conditional on both realized daughter
+states, their future subtrees have independent clocks. Daughter states need not
+be independent conditional on the mother.
+
+All per-cell rates are finite. The founder has probability column vector $\pi$,
+with $\pi_i>0$. Experimental units are independent founder preparations in
+controlled environments; treatment is randomized independently of founder state.
+Known marker matrix $E\in\R^{p\times m}$ is column stochastic and has full
+column rank. Its errors are independent conditional on the complete latent
+history, and it does not perturb the source. Columns refer to the same
+externally anchored states across arms. Distinct calibrated matrices at the
+initial and subsequent reads are allowed; a common $E$ simplifies notation.
+Rates and channels stay constant during founder and daughter follow-up.
+
+Write $Q_{ii}=-\sum_{j\ne i}q_{ij}$, and define
+\begin{equation}\label{eq:HB}
+ H=Q-\diag(b+d),\qquad B=[\,d\mid (b_iK_i(j,k))_{i,(j,k)}\,].
+\end{equation}
+Thus $H\one+B\one=0$. Matrices act on row-state distributions. For two labelled
+states $S,T$, the principal contrasts include
+\begin{align}\label{eq:estimand}
+ &\pi_T,\quad q_{ST}(1)-q_{ST}(0),\quad q_{TS}(0),\quad
+ (b_T-d_T)-(b_S-d_S),\notag\\
+ &L_T(T)-L_S(T),\quad c_i=K_i(T,T)-L_i(T)^2,\quad
+ \zeta_i(u)=2b_i(u)L_i^u(T),
+\end{align}
+where $L_i(j)=\sum_kK_i(j,k)$ by exchange symmetry. The last contrast measures
+the rate of tolerant daughter production at division; its treatment change is
+distinct from within-cell induction. It is an expected output intensity, not a
+probability of switching per division. The demographic contrast alone does not
+describe composition dynamics when division changes phenotype.
+
+Here ``predisposition'' means a pretreatment state predictive of a specified
+later response. It does not mean an additional unobserved primed state. If
+$b_i=0$, only $b_iK_i=0$ is identifiable: the unused kernel is immaterial. An
+unanchored global label permutation is harmless; separate permutations in
+different treatment arms are not.
+
+\subsection{Existence and the branching law}
+Independent competing exponential clocks, followed by kernel sampling at
+division, construct the chronological source. If $b_i\le b_{\max}$, its
+population is dominated by a Yule process of rate $b_{\max}$ per cell. The Yule
+holding-time sum diverges almost surely: its centered independent terms have
+summable variances, while their expectations form a divergent harmonic sum. On
+every finite horizon the dominating population has finite integrated cell time,
+so bounded switching and death intensities cannot accumulate infinitely many
+additional events. The source is nonexplosive.
+
+For $z\in[0,1]$ let $F_i(t,z)=\E_i z^{N(t)}$. First-event conditioning gives
+\begin{equation}\label{eq:pgf}
+ \partial_tF_i=d_i(1-F_i)+\sum_{j\ne i}q_{ij}(F_j-F_i)
+       +b_i\left(\sum_{jk}K_i(j,k)F_jF_k-F_i\right),\quad F_i(0,z)=z.
+\end{equation}
+The product follows after conditioning on both daughter states. The bounded
+first-event integral equation and uniqueness of the polynomial ODE in the unit
+cube identify this with the actual source PGF. Extinction by time $t$ has
+probability $F_i(t,0)$; extinct founders remain in the observed denominator.
+
+\subsection{A precise limited-design obstruction}
+\begin{proposition}\label{prop:alias}
+Fix one treatment schedule and a time $t>0$, and retain only
+$Y=\mathbf1\{N(t)>0\}$. Write $r_i=1-F_i(t,0)$ and $p=\pi_T$. At a two-state
+source with $r_T\ne r_S$ and $0<p<1$, nearby changes in the rate/kernel
+parameter $\theta$ can be compensated by
+\begin{equation}\label{eq:alias}
+ p'=\frac{(1-p)r_S+pr_T-r'_S}{r'_T-r'_S}.
+\end{equation}
+This is a local family on an observational equivalence level set. The full
+binary observation law is unchanged, although within-cell induction, selection
+or daughter inheritance may change.
+\end{proposition}
+\begin{proof}
+The law is Bernoulli with parameter $(1-p)r_S+pr_T$. Continuous dependence in
+\eqref{eq:pgf} keeps the denominator nonzero and $p'$ interior locally.
+Substitution proves equality of the entire law. A nondegenerate class exists:
+choose all rates positive and $d_S>d_T$. At zero, $(r_T-r_S)'=d_S-d_T>0$, so the
+response contrast is positive for sufficiently small positive $t$. One may then
+vary $q_{ST}(1)$ while holding the untreated rates fixed. Any test of two such
+aliased sources has type-I plus type-II error one, since both product
+observation laws are identical.
+\end{proof}
+The result concerns this binary threshold and an unknown preparation. It is not
+an impossibility theorem for full fluctuation counts, all trees or multiple
+randomized schedules.
+
+\section{Randomized stopping and an algebraic source inverse}
+\subsection{The retained record}
+Read one founder marker $Y_0$ and draw an independent deadline
+$T\sim\operatorname{Exp}(\lambda)$ with known $\lambda>0$. Follow the founder
+until $\sigma=\min(T,\tau_{\rm dem})$, where $\tau_{\rm dem}$ is its first death
+or division; unobserved switches do not stop follow-up. At a deadline, read an
+endpoint marker. At death, retain a death flag. At division, read the joint
+daughter marks. Neither the realized deadline nor the event timestamp enters the
+retained record. All founders are retained. For binary markers this
+immediate-read design has $2(2+1+4)=14$ outcomes. Figure~\ref{fig:assay}
+summarises the protocol.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/assay.pdf}
+\caption{The observation protocol. The deadline clock is independent of the
+source. Switching is hidden throughout. A delayed daughter read retains an
+interruption flag for any intervening division or death; records are never
+conditioned on both daughters surviving. The delayed binary-marker experiment
+has 24 joint outcomes, versus 14 with immediate daughter readout.}
+\label{fig:assay}
+\end{figure}
+
+\begin{theorem}[Finite-state randomized-deadline identification]\label{thm:resolvent}
+Under the source and measurement assumptions above, put
+$R_\lambda=(\lambda I-H)^{-1}$. The latent deadline and demographic-exit kernels
+are
+\begin{equation}\label{eq:reslaw}
+ A_\lambda=\lambda R_\lambda,\qquad D_\lambda=R_\lambda B.
+\end{equation}
+The observed law determines $\pi,A_\lambda,D_\lambda$ and hence
+\begin{equation}\label{eq:inverse}
+ H=\lambda(I-A_\lambda^{-1}),\qquad B=\lambda A_\lambda^{-1}D_\lambda.
+\end{equation}
+It identifies $Q,b,d$ and each $K_i$ for which $b_i>0$, at arbitrary finite
+rates and for any finite number of states. Reducibility, zero switching and
+singular $H$ are allowed. No diagonalizability assumption is required.
+\end{theorem}
+\begin{proof}
+Before demographic exit the founder is a killed chain: its row distribution
+satisfies $v'=vH$, so its substochastic semigroup is $S_t=e^{tH}$. Given state
+$i$ at time $t$, exit mark $a$ has intensity $B_{ia}$. Competition with the
+independent deadline gives
+\[
+ A_\lambda=\int_0^\infty\lambda e^{-\lambda t}e^{tH}\,dt,
+ \qquad D_\lambda=\int_0^\infty e^{-\lambda t}e^{tH}B\,dt.
+\]
+Since $\norm{e^{tH}}\le1$, these integrals converge. If $R$ denotes the integral
+without $\lambda$ or $B$, integrate the derivative of $e^{t(H-\lambda I)}$ from
+zero to infinity. Its limit is zero, and its derivative commutes with
+$H-\lambda I$, giving both $(\lambda I-H)R=I$ and $R(\lambda I-H)=I$. This
+proves the inverse and \eqref{eq:reslaw}, even if $H$ is singular. Moreover
+\[
+ A_\lambda\one+D_\lambda\one=R_\lambda(\lambda I-H)\one=\one,
+\]
+so death and division account for all probability missing from deadline records.
+
+Let $C=\diag(1,E\otimes E)$ be the exit emission channel, with rectangular
+blocks when necessary. For an arbitrary left inverse $LE=I$, a left inverse of
+$C$ is $L_C=\diag(1,L\otimes L)$. The observed deadline and exit blocks are
+\begin{equation}\label{eq:observed}
+ J=E\diag(\pi)A_\lambda E^\top,\qquad V=E\diag(\pi)D_\lambda C^\top.
+\end{equation}
+These follow by summing over the initial, current and daughter birth states;
+only measurement noise and daughter futures are factored, not the birth-state
+kernel $K$. The marginal $m_0$ of the initial marker sums over every outcome, so
+$\pi=Lm_0$. Thus
+\[
+ A_\lambda=\diag(\pi)^{-1}LJL^\top,\qquad
+ D_\lambda=\diag(\pi)^{-1}LVL_C^\top.
+\]
+Positive founder masses permit row division. Equation~\eqref{eq:inverse} now
+follows algebraically. Offdiagonal entries of $H$ give $q_{ij}$; the death column
+of $B$ gives $d$, its daughter row sums give $b$, and division by positive $b_i$
+gives $K_i$. The diagonal of $H$ checks the recovered total demographic killing.
+Two randomized, label-aligned exposure arms identify both within-cell induction
+and treatment changes in daughter production.
+\end{proof}
+
+\subsection{Finite horizons, stability and a model check}
+The expected founder observation time is
+\begin{equation}\label{eq:time}
+ \E\sigma=\pi^\top R_\lambda\one\le\lambda^{-1}.
+\end{equation}
+For a physical cap $L_0$, use $\min(T,L_0)$ and label a cap endpoint as a
+deadline endpoint. Coupling to the uncapped source shows
+\begin{equation}\label{eq:cap}
+ \TV(P_{\rm capped},P_{\rm uncapped})
+ \le e^{-\lambda L_0}\pi^\top e^{L_0H}\one\le e^{-\lambda L_0}.
+\end{equation}
+Only paths with $T>L_0$ and no demographic event by $L_0$ can differ. A cap flag
+could instead be retained for an exact capped likelihood. The capped kernel
+itself is not a resolvent. Choosing $L_0=\log(1/\varepsilon)/\lambda$ yields a
+feature-bias reserve $\varepsilon$.
+
+If $\norm{H},\norm{H'}\le R_0$, then $\norm{A_\lambda^{-1}}\le1+R_0/\lambda$.
+The inverse difference identity yields
+\begin{equation}\label{eq:stability}
+ \norm{H-H'}\le\lambda(1+R_0/\lambda)^2\norm{A_\lambda-A'_\lambda}.
+\end{equation}
+For binary markers, if every observed category differs by at most $e$ and
+$\pi_i\ge\rho$, marker inversion and row normalization give
+\[
+ \norm{A_\lambda-A'_\lambda}
+ \le \frac{2\norm{L}\norm{L^\top}+7\norm{L}}{\rho}\,e.
+\]
+Indeed the four-entry deadline block has maximum row-sum error $2e$; the initial
+marginal has entrywise error at most $7e$; and $A'$ has row sums at most one.
+Larger record spaces use their actual category count. The prefactor in
+\eqref{eq:stability} is $\lambda+2R_0+R_0^2/\lambda$, minimized at
+$\lambda=R_0$ when $R_0>0$. This is a conditioning guide, not an optimal design
+theorem: event yield, feature variance and costs also depend on $\lambda$.
+
+Two independently assigned deadline rates for the same source must obey
+\begin{equation}\label{eq:identity}
+ R_\lambda-R_\mu=(\mu-\lambda)R_\lambda R_\mu.
+\end{equation}
+This is the inverse difference identity, since both inverse matrices differ by
+$(\mu-\lambda)I$. Recovered $H,B,\pi$ must agree across groups. Construct
+simultaneous source confidence sets for each group and reject compatibility when
+their intersection is empty. A union bound controls rejection of a true common
+source. Passing finitely many checks does not establish a Markov model or
+uniquely diagnose an incompatible biological assumption.
+
+\subsection{Fixed deadlines as an alternative}
+\begin{proposition}\label{prop:fixed}
+For a deterministic deadline $h>0$, replace the kernels in \eqref{eq:reslaw} by
+$A_h=e^{hH}$ and $D_h=W_hB$, $W_h=\int_0^h e^{tH}dt$. For two states the same
+observations identify the source at every $h>0$. For general $m$, it suffices
+that $h\norm{H}<\log2$ throughout the admitted class.
+\end{proposition}
+\begin{proof}
+The killed-chain occupation derivation is unchanged. In two states write
+$H=\left[\begin{smallmatrix}-\alpha&a\\r&-\beta\end{smallmatrix}\right]$. Its
+eigenvalues are $[-(\alpha+\beta)\pm\sqrt{(\alpha-\beta)^2+4ar}]/2$, real and
+nonpositive. If distinct, $A_h$ has distinct positive eigenvalues with the same
+projectors; their unique real logarithms recover $H$. Any competing two-state
+killed generator has real spectrum and commutes with $A_h$, so uses the same
+projectors. In the repeated case $H=\xi I+N$, $N^2=0$, and $A_h=e^{h\xi}(I+hN)$
+determines both $\xi$ and $N$, including $N=0$. The eigenvalues of $W_h$ are
+$\int_0^h e^{t\xi}dt>0$; hence $B=W_h^{-1}D_h$. For general $m$ under the bound,
+the convergent logarithm series on $\norm{A_h-I}<1$ gives $\log(e^{tH})=tH$ by
+differentiating along $0\le t\le h$. Also $\norm{W_h/h-I}<1$, so a Neumann
+series inverts $W_h$. Marker cancellation completes both cases. Randomized
+stopping avoids these spectral and small-step restrictions.
+\end{proof}
+
+\subsection{Implementing a random deadline}\label{sec:implement}
+Randomized stopping does not require physically interrupting a culture. For a
+nonperturbing live reporter with sufficiently resolved complete traces, draw
+$T_i\sim\operatorname{Exp}(\lambda)$ independently for each founder and retain
+the record only up to $\min(T_i,\tau_{\mathrm{dem},i})$. The deadline may be
+drawn before imaging, or afterwards provided it is drawn independently of the
+recorded paths. It must not be chosen using the observed fate, and founders must
+not be included only because their follow-up happened to be long enough.
+
+Two finite-resource effects must be represented in the observation model rather
+than assumed away. A finite movie horizon is the cap of \eqref{eq:cap}, or an
+exact censored likelihood with a retained cap flag. A fixed camera frame
+interval gives a discretized reading rule, not an exact continuously timed
+marker read; the rounded-time channel must be derived or its discrepancy
+bounded. Repeated randomized truncations of one founder trace remain dependent
+observations and cannot be counted as additional independent roots.
+
+Raw times and images should be retained when feasible, even though
+Theorem~\ref{thm:resolvent} shows they need not enter the minimal statistical
+record. Compression proves sufficiency for structural identification on this
+model; it does not imply that timestamps carry no additional finite-sample
+information. Randomization creates no information that was absent from the
+original trace.
+
+\section{Delayed daughter observations with interruption flags}
+After a founder division, follow each daughter for a known duration $\tau$. If
+she divides or dies during that interval, retain an interruption flag and stop
+following her. Otherwise read her marker at $\tau$. Switching during the
+interval remains hidden. The two daughter records are retained jointly,
+including all interrupted cases. No inference conditions on joint survival.
+
+\begin{theorem}\label{thm:delay}
+For every finite $\tau\ge0$, the daughter observation channel is
+\begin{equation}\label{eq:delay}
+ F_\tau=\begin{bmatrix}E e^{\tau H^\top}\\
+                  (\one-e^{\tau H}\one)^\top\end{bmatrix}.
+\end{equation}
+Its columns sum to one and it has full column rank. The monitored delayed
+protocol identifies the same source as Theorem~\ref{thm:resolvent}, or
+Proposition~\ref{prop:fixed} within its scope.
+\end{theorem}
+\begin{proof}
+The unnormalized live-state distribution of a daughter born in state $j$ is row
+$j$ of $e^{\tau H}$. Applying $E$ gives the top block of \eqref{eq:delay}; its
+missing mass is the interruption probability. Since $e^{\tau H}$ is invertible
+and $E$ has full column rank, the upper block has full column rank. An explicit
+left inverse is $e^{-\tau H^\top}L[\,I_p\mid0\,]$.
+
+The founder deadline block, unaffected by daughter readout, first recovers
+$\pi,H$. Summing delayed pair categories recovers founder division totals; the
+two demographic columns are $R_\lambda[d\mid b]$, so recover $d,b$. Now $H$
+determines $F_\tau$. Conditional on the two daughter birth states, the two
+delayed records are independent; hence their joint channel is
+$F_\tau\otimes F_\tau$. If $L_\tau F_\tau=I$, its left inverse is
+$L_\tau\otimes L_\tau$, as follows by multiplying and factoring the two finite
+sums. Substitute this channel in \eqref{eq:observed} to recover $b_iK_i(j,k)$,
+and then $K_i$ wherever $b_i>0$. This ordering avoids circular inference of $H$
+from an unknown daughter channel.
+\end{proof}
+The binary-marker record has $2(2+1+9)=24$ categories. A full-law Hoeffding
+region over two arms therefore has radius $\sqrt{\log(96/\delta)/(2n)}$, rather
+than the immediate-record constant. The direct switching interval of
+Section~\ref{sec:inference} uses only its ten stated features and does not
+require all 48 categories to be estimated separately.
+
+Invertibility is not good conditioning: in spectral norm,
+$\sigma_{\min}(F_\tau\otimes F_\tau)=\sigma_{\min}(F_\tau)^2$. If the founder
+division probability is $y_\lambda=\pi^\top R_\lambda b$, additional daughter
+observation is at most $2\tau y_\lambda$ cell-hours per founder. Equal root
+counts and equal observation-time budgets are different comparisons
+(Figure~\ref{fig:delay}). Monitoring still must detect the first founder
+division and daughter interruptions. Unknown reporter maturation, inherited
+fluorescence, unknown delay or missed events are not covered by
+\eqref{eq:delay}.
+
+Discarding the second daughter loses genuine information: the perturbation
+$K_i\mapsto K_i+\varepsilon(1,-1,-1,1)$ preserves each daughter marginal but
+changes $c_i$ by $\varepsilon$. For interior kernels small nonzero $\varepsilon$
+is feasible. The whole one-daughter stopped law remains equal, whereas the
+invertible pair channel separates the joint kernels. Thus the requirement of
+joint daughter records is substantive.
+
+\section{Induction intervals with unknown nuisance rates}\label{sec:inference}
+The exact inverse need not be applied to every parameter in order to estimate a
+particular mechanism. For two states let $M=\diag(\pi)A_\lambda=LJL^\top$.
+Direct inversion of a two-by-two matrix gives
+\begin{equation}\label{eq:target}
+ q_{ST}=\lambda\frac{(A_\lambda)_{ST}}{\det A_\lambda}
+       =\lambda\frac{\pi_T M_{ST}}{\det M},\qquad
+ q_{TS}=\lambda\frac{\pi_S M_{TS}}{\det M}.
+\end{equation}
+The factors $\pi_T$ and $\pi_S$ follow from the row-state convention. The
+determinant is positive: $\lambda I-H$ has positive diagonal entries and
+determinant $(\lambda+a+b_S+d_S)(\lambda+r+b_T+d_T)-ar>0$. Consequently
+$\det A_\lambda>0$ and $\det M>0$ for positive founder masses.
+
+Only five features per arm are needed: the four joint initial/deadline marker
+probabilities and $\Prob(Y_0=1)$ over \emph{all} founders. Demographic rates and
+$K$ influence these probabilities but need not be estimated or assumed known.
+The same formula works with delayed daughter records, since none of these five
+features uses daughter outcomes. We therefore say the construction proceeds
+\emph{without estimating demographic nuisance rates}; calibration, founder
+prevalence and the source model still matter, and $q_{ST}$ is a switching rate
+whereas induction is the between-arm contrast.
+
+\subsection{Cancelling the marker determinant}\label{sec:cancel}
+Evaluating \eqref{eq:target} by first widening each entry of $M$ and then taking
+a difference of products repeats the same uncertain calibration factors several
+times. They can be cancelled exactly beforehand.
+
+\begin{proposition}[Cancelled-determinant target]\label{prop:cancel}
+Write $e_S=\Prob(Y=1\mid S)$, $e_T=\Prob(Y=1\mid T)$, $\delta_E=e_T-e_S>0$,
+$\mu=\Prob(Y_0=1)$ and $J=(j_{ab})_{a,b\in\{0,1\}}$. Put
+\begin{equation}\label{eq:N}
+ N=-e_Te_Sj_{00}+e_T(1-e_S)j_{01}+(1-e_T)e_Sj_{10}-(1-e_T)(1-e_S)j_{11}.
+\end{equation}
+Then $M_{ST}=N/\delta_E^2$, $\det M=\det J/\delta_E^{2}$ and
+$\pi_T=(\mu-e_S)/\delta_E$, so that
+\begin{equation}\label{eq:S1}
+ \boxed{\;q_{ST}
+  =\lambda\,\frac{(\mu-e_S)\,N}{\delta_E\,(j_{00}j_{11}-j_{01}j_{10})}.\;}
+\end{equation}
+\end{proposition}
+\begin{proof}
+With
+\begin{equation}\label{eq:L}
+ L=\frac1{\delta_E}\begin{bmatrix}e_T&-(1-e_T)\\-e_S&1-e_S\end{bmatrix},
+ \qquad \pi_T=\frac{\mu-e_S}{\delta_E},
+\end{equation}
+one has $\det L=\bigl(e_T(1-e_S)-(1-e_T)e_S\bigr)/\delta_E^2=1/\delta_E$. Hence
+$\det M=\det(LJL^\top)=(\det L)^2\det J=\det J/\delta_E^2$. Expanding
+$M_{ST}=(LJL^\top)_{01}$ gives exactly $N/\delta_E^2$. Substituting both into
+\eqref{eq:target} cancels $\delta_E^{-2}$ and leaves \eqref{eq:S1}.
+\end{proof}
+
+Identity \eqref{eq:S1} is exact, so it changes no modelling assumption. Its
+value is that in interval arithmetic every factor appears as few times as
+possible: the calibration contrast $\delta_E$ occurs once instead of four times,
+and the four observed probabilities enter one bilinear numerator and one
+determinant instead of four separately widened entries of $M$. We do not claim a
+universal width inequality between the two evaluations; we report the measured
+reduction on the dataset of Section~\ref{sec:worked} and across the matched
+diagnostics of Figure~\ref{fig:inference}.
+
+\subsection{Chernoff feature sets}\label{sec:chernoff}
+Let $\kl(a\Vert p)=a\log\frac ap+(1-a)\log\frac{1-a}{1-p}$ be the binary
+relative entropy, with the usual conventions at $a\in\{0,1\}$.
+
+\begin{lemma}[Chernoff set and its Pinsker relaxation]\label{lem:chernoff}
+Let $\hat p$ be the mean of $n$ independent Bernoulli$(p)$ variables and $L>0$.
+Put $C_L(\hat p)=\{q\in(0,1):n\,\kl(\hat p\Vert q)\le L\}$. Then
+$\Prob\bigl(p\notin C_L(\hat p)\bigr)\le2e^{-L}$, and
+\begin{equation}\label{eq:pinsker}
+  C_L(\hat p)\subseteq\Bigl[\hat p-\sqrt{L/(2n)},\;\hat p+\sqrt{L/(2n)}\Bigr].
+\end{equation}
+\end{lemma}
+\begin{proof}
+The map $a\mapsto\kl(a\Vert p)$ is convex with minimum $0$ at $a=p$, so
+$\{p\notin C_L(\hat p)\}=\{\hat p\ge a_+\}\cup\{\hat p\le a_-\}$, where
+$\kl(a_\pm\Vert p)=L/n$ and $a_-\le p\le a_+$ (an empty event if the
+corresponding root does not exist in $[0,1]$). The Chernoff bound for binomial
+tails \citep{hoeffding1963,boucheron2013} gives
+$\Prob(\hat p\ge a)\le e^{-n\kl(a\Vert p)}$ for $a\ge p$ and
+$\Prob(\hat p\le a)\le e^{-n\kl(a\Vert p)}$ for $a\le p$; each term is at most
+$e^{-L}$. Pinsker's inequality in the binary case is
+$\kl(a\Vert q)\ge2(a-q)^2$, so $q\in C_L(\hat p)$ forces
+$2(\hat p-q)^2\le L/n$, which is \eqref{eq:pinsker}.
+\end{proof}
+
+Taking $L=\tfrac{25}4$ recovers exactly the radius $r_n=\sqrt{25/(8n)}$, and
+$L=6$ recovers exactly $s_c=\sqrt{3/n_c}$. In other words, the explicit
+Hoeffding radii are the Pinsker relaxation of the Chernoff sets: the sets have
+the same error allocation and are never wider, strictly narrower whenever the
+proportion is away from one half. Such $\kl$-based intervals are standard in the
+concentration literature \citep{garivier2011}. Because rational interval
+arithmetic is inclusion preserving, we obtain the following free improvement.
+
+\begin{corollary}\label{cor:never-worse}
+Fix any evaluation of \eqref{eq:target} or \eqref{eq:S1} by inclusion-preserving
+interval arithmetic. Replacing each Hoeffding feature interval by the
+corresponding Chernoff set $C_L$ yields an output interval contained in the
+original output interval, with an unchanged coverage guarantee.
+\end{corollary}
+
+\subsection{The finite-sample interval}
+\begin{theorem}[Direct finite-sample interval]\label{thm:CI}
+Take $n$ independent founders per arm and $n_c$ independent labelled calibration
+readouts per state, independent of the experimental units. Replace each of the
+ten empirical feature proportions by the Chernoff set $C_{25/4}$ of
+Lemma~\ref{lem:chernoff}, and each of the two calibration proportions by
+$C_{6}$. Evaluate \eqref{eq:L} and \eqref{eq:S1} using inclusion-preserving
+interval arithmetic. If the marker-contrast lower bound or the lower bound on
+$\det J$ is nonpositive, return $[0,\infty)$ for that arm; otherwise intersect
+the result with $[0,\infty)$, an empty result being a model-conflict flag.
+Subtract the arm intervals to obtain an induction interval. Its coverage is at
+least $0.95$, uniformly over the admitted source, without knowing division,
+death or reverse-switching rates, $K$ or $\pi$.
+\end{theorem}
+\begin{proof}
+By Lemma~\ref{lem:chernoff} each founder feature is missed with probability at
+most $2e^{-25/4}$ and each calibration proportion with probability at most
+$2e^{-6}$. The ten features may overlap within a unit; the union bound does not
+require their independence. Hence all twelve true values lie in their sets
+except with probability at most $20e^{-25/4}+4e^{-6}<0.04+0.01=0.05$. On that
+joint coverage event, rational interval addition, multiplication and division by
+a sign-separated interval contain the true intermediate values, by their
+endpoint definitions. The true $\delta_E$ and $\det J$ are positive, the
+latter because $\det J=\delta_E^2\det M$ and $\det M>0$; when the enclosures
+certify those two signs the evaluation proceeds, and otherwise the unbounded
+fallback is returned. Thus
+\eqref{eq:S1}, which by Proposition~\ref{prop:cancel} equals $q_{ST}$ exactly,
+is contained whenever it is evaluated, and the fallback contains it
+otherwise. The nonnegative intersection cannot remove the true switching rate.
+Subtracting the intervals retains the true contrast. No asymptotic likelihood
+argument and no uncertified global optimization is used.
+\end{proof}
+
+The implementation encloses each Chernoff set by certified rational endpoints:
+candidate endpoints are located in floating point and then \emph{verified} to lie
+outside the set by an exact rational lower bound on $\kl$, built from an
+argument-reduced arctangent-hyperbolic series with an explicit geometric tail
+(Appendix~\ref{app:numerics}). The inequalities $e^6>400$ and $e^{25/4}>500$
+follow from finite positive Taylor sums. Arithmetic guarantees containment;
+concentration together with the independence and model assumptions supplies the
+probability guarantee. Both are needed.
+
+The exact binomial (Clopper--Pearson) set is narrower still, and it is the
+natural next candidate. We do not use it, for an implementation reason that is
+specific to an exact-arithmetic pipeline: certifying a Clopper--Pearson endpoint
+$p$ requires bounding a partial binomial tail $\sum_{k\le x}\binom nk
+p^k(1-p)^{n-k}$, and at $n=5\times10^4$ a rational $p$ with a $10^{-12}$ grid
+makes $p^k$ carry a denominator of order $10^{12k}$, so the exact sum is not
+computable. The Chernoff set is the tightest object we know how to certify in
+exact rational arithmetic, because its defining inequality involves only two
+logarithms, each of which has a short rational enclosure. A floating-point
+Clopper--Pearson interval would reintroduce exactly the uncertified numerics
+that the rest of this construction avoids.
+
+For a cap or other justified per-feature bias $\eta$, widen each feature
+interval by $\eta$. Channel calibration uncertainty is already carried as a
+region for $(e_S,e_T)$ and is not silently replaced by a point estimate. With
+known $E$, omit the calibration error allocation. If reporter errors depend on
+unobserved histories rather than the stipulated current state, a separate
+observation model or quantified error bound is necessary.
+
+\subsection{A worked unknown-nuisance dataset}\label{sec:worked}
+All quantities in this example are synthetic. The generating source uses
+\begin{gather}
+ \pi_T=.35,\quad b=(.22,.16),\quad d=(.12,.04),\quad q_{TS}=.07,\notag\\
+ K_S=(.62,.12,.12,.14),\quad K_T=(.10,.10,.10,.70),\notag\\
+ E=\begin{bmatrix}.9&.15\\.1&.85\end{bmatrix},\quad
+ q_{ST}(0)=.05,\quad q_{ST}(1)=.85,\quad\lambda=1.\label{eq:example}
+\end{gather}
+Rates are per hour. The inference routine receives only category counts,
+calibration counts and $\lambda$, not these source parameters. For $n=50{,}000$
+per arm and $n_c=100{,}000$ per state, seed 20260922 gives calibration successes
+$(10{,}211,85{,}049)$ and the counts of Table~\ref{tab:counts}.
+
+\begin{table}[tb]
+\caption{The retained two-arm dataset. $J$ columns refer to the endpoint marker
+only when the deadline precedes demographic exit; the fifth column also includes
+death and division records. The last two columns are the demographic-exit totals
+of the six-category coarsening of Section~\ref{sec:six}.}
+\label{tab:counts}\centering\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+& \multicolumn{4}{c}{deadline first} & & \multicolumn{2}{c}{demographic exit}\\
+\cmidrule(lr){2-5}\cmidrule(lr){7-8}
+Arm & $J_{00}$ & $J_{01}$ & $J_{10}$ & $J_{11}$ & all initial $Y_0=1$
+    & $Y_0=0$ & $Y_0=1$\\
+\midrule
+Untreated & 19497 & 4654 & 4270 & 10288 & 18023 & 7826 & 3465\\
+Treated   & 13937 & 10895 & 3754 & 11178 & 18242 & 6926 & 3310\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:routes} evaluates the same data and the same coverage event by
+four routes. The original construction --- Hoeffding radii and entrywise
+inversion of $M$ --- returns the induction interval $[0.362,1.498]$. Cancelling
+the marker determinant removes $39.47\%$ of the width; replacing the radii by
+Chernoff sets removes $30.58\%$; together they remove $54.79\%$. The
+outward-rounded publication interval is
+\begin{equation}\label{eq:workedCI}
+                 [0.578,\,1.092]\ \mathrm{hour}^{-1},
+\end{equation}
+around a true contrast of $0.8$ per hour. It excludes zero. The improvement uses
+the same observations, the same error allocation and the same confidence event
+as the original construction; it introduces no new statistical assumption, extra
+data, asymptotic approximation or additional error allocation, and it does not
+by itself establish a universal sample-size requirement.
+
+\begin{table}[tb]
+\caption{Four evaluations of the same data under the same $95\%$ coverage event.
+Endpoints are outward-rounded to four decimals; the exact rational
+endpoints are in the accompanying numerical record. The
+Chernoff rows are contained in the Hoeffding rows of the same evaluator
+(Corollary~\ref{cor:never-worse}); the cancelled columns are narrower here but
+are not claimed to be narrower at every dataset.}
+\label{tab:routes}\centering\small
+\begin{tabular}{llccc r}
+\toprule
+Feature sets & Evaluator & Untreated $q_{ST}$ & Treated $q_{ST}$ & Induction &
+Width reduction\\
+\midrule
+Hoeffding & \eqref{eq:target} & $[0,.1608]$ & $[.5232,1.4978]$ & $[.3624,1.4978]$ & ---\\
+Hoeffding & \eqref{eq:S1}     & $[0,.1282]$ & $[.6316,1.1908]$ & $[.5034,1.1908]$ & $39.47\%$\\
+Chernoff  & \eqref{eq:target} & $[.0054,.1190]$ & $[.5999,1.2746]$ & $[.4809,1.2692]$ & $30.58\%$\\
+Chernoff  & \eqref{eq:S1}     & $[.0130,.1010]$ & $[.6793,1.1045]$ & $[.5783,1.0916]$ & $54.79\%$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A qualitative gain accompanies the quantitative one. Under the original route
+the untreated arm returned $[0,.161]$, consistent with no spontaneous switching
+at all; the improved route returns $[.0130,.1010]$, which certifies a strictly
+positive baseline switching rate at the same confidence level. The true value is
+$.05$ per hour.
+
+A retained 20-founder example has a determinant interval reaching zero and
+returns unresolved under all four routes. The procedure never replaces that
+failure with a clipped finite answer.
+
+In 300 independent synthetic repetitions of the improved route, including fresh
+calibration each time, the interval covered the true contrast and excluded zero
+in all 300. For either empirical proportion the two-sided $95\%$ exact binomial
+Monte Carlo interval is $[.9878,1]$. This is a diagnostic of conservatism and
+power at this source, not the coverage proof and not a universal power claim.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/inference.pdf}
+\caption{Matched design diagnostics for the sources in \eqref{eq:example}. All
+panels use the same source pair and 200,000 total calibration readouts, rounded
+expected category counts and the conservative interval algorithm; they are not
+Monte Carlo coverage or prospective guarantees, and unbounded intervals are
+shown as unresolved rather than as finite widths. Left: varying the number of
+founders in each arm at four deadline rates, using the improved route. Middle:
+varying total expected founder observation time with equal allocation to the two
+arms; calibration time is not included in founder-hours and its sample count is
+held fixed. Right: the four evaluation routes of Table~\ref{tab:routes} at
+$\lambda=1$.}
+\label{fig:inference}
+\end{figure}
+
+\subsection{A switching-only record with six categories}\label{sec:six}
+If the scientific target is only within-cell switching, the daughter phenotype
+readout can be dropped entirely.
+
+\begin{proposition}\label{prop:six}
+Retain, per arm, the four deadline categories $(Y_0,Y_T)$ and two
+demographic-exit categories indexed by $Y_0$ alone, with counts
+$(n_{00},n_{01},n_{10},n_{11},n_{0D},n_{1D})$. These six categories determine
+all five features of \eqref{eq:S1}, hence Theorem~\ref{thm:CI} applies verbatim
+to this record.
+\end{proposition}
+\begin{proof}
+The four deadline proportions are immediate. The fifth feature is
+$\mu=(n_{10}+n_{11}+n_{1D})/n$, and $n_{0D}$ is determined by subtraction from
+$n$. No other functional of the record enters \eqref{eq:S1}.
+\end{proof}
+
+Here $D$ means \emph{either} first death \emph{or} first division, for this
+deliberately coarsened target; it does not mean death alone. The corresponding
+counts for the worked dataset are the last two columns of
+Table~\ref{tab:counts}. This six-category multinomial retains all five features
+including their dependencies, so no information about $q_{ST}$ is lost relative
+to the full record. Recovering $b,d,K$, or predicting the sister-dependence
+consequence of Section~\ref{sec:extinction}, still requires the richer record.
+This is a useful experimental cost distinction, not a claim that all mechanisms
+can be recovered from six categories.
+
+\subsection{Prospective guarantees and the source of cost}
+A prospective statement must control every source in a specified class, not just
+the realized dataset. Here is a deliberately local, nonempty example. Allow
+$\pi_T\in[.345,.355]$, $q_{TS}\in[.068,.072]$, $b_S\in[.218,.222]$,
+$b_T\in[.158,.162]$, $d_S\in[.118,.122]$, $d_T\in[.038,.042]$, and arbitrary
+stochastic $K$ in each arm. Set the true marker probabilities to $.1,.85$, but
+estimate them by the calibration procedure. Control $q_{ST}$ lies in
+$[.049,.051]$; the null treated range is the same, whereas the alternative
+treated range is $[.849,.851]$. Thus neither hypothesis hides a known
+demographic nuisance value, although these performance classes are intentionally
+narrow. Classify using the threshold $.4$ per hour.
+
+For this calculation, enclose the exact two-state inverse $(\lambda I-H)^{-1}$
+over the input boxes and apply the emissions, obtaining a box of true feature
+values. Then enlarge that box to cover every interval the procedure could
+report. Under the original construction the enlargement is by $2r_n$ and $2s_c$,
+the factor two accounting for sampling displacement and the reported confidence
+radius. Under Chernoff sets the corresponding enlargement of a true value $p$ is
+\begin{equation}\label{eq:double}
+ \mathcal E(p)=\bigcup\{C_L(a):\;n\,\kl(a\Vert p)\le L\}
+   =\bigl[\,\ell\bigl(a_-(p)\bigr),\;u\bigl(a_+(p)\bigr)\,\bigr],
+\end{equation}
+where $\ell,u$ are the endpoints of $C_L$ and $a_\pm$ those of the ball in the
+first argument; both maps are nondecreasing, so the union is the stated
+interval and a box of true values is enlarged by applying $\ell$ and $u$ at its
+two ends. By \eqref{eq:pinsker}, $\mathcal E(p)\subseteq[p-2r_n,p+2r_n]$, so the
+prospective enclosure is never wider than before. Inclusion arithmetic encloses
+every possible output on the coverage event; no source grid or optimizer
+establishes the extrema.
+
+At $\lambda=1$ the original route certifies the decision at
+$n=n_c=10^{6}$ per arm and per calibration state: all returned null contrast
+intervals lie inside $[-.129,.129]$ and all returned alternative intervals
+inside $[.441,1.299]$. The improved route certifies the same decision at
+$n=n_c=1.5\times10^{5}$, with null intervals inside $[-.144,.144]$ and
+alternative intervals inside $[.408,1.314]$; it does not certify at
+$n=n_c=1.4\times10^{5}$, where the alternative lower bound is $.3998$. The
+sufficient budget therefore falls from two million founders plus two million
+labelled calibration readouts to three hundred thousand of each, a factor of
+$6.7$. These remain sufficient budgets for this narrow class, not recommended
+experimental sizes and not lower bounds. At smaller budgets the rectangular
+method still loses information through interval dependencies, marker subtraction
+and determinant conditioning.
+
+There is nevertheless an intrinsic small-effect limit for the immediate-read
+record, or its founder-only coarsening. Compare sources differing only in
+$q_{ST}=a$ versus $a+\epsilon$, $a\ge a_0>0$. The latent stopped-path relative
+entropy is expected occupation in $S$ times
+$a\log(a/(a+\epsilon))+\epsilon\le\epsilon^2/a_0$. Expected occupation is at
+most $1/\lambda$; discarding latent information cannot increase relative
+entropy. Consequently any test on $n$ treated founders has error sum at least
+\begin{equation}\label{eq:lower}
+ \max\left\{0,1-\sqrt{\frac{n\epsilon^2}{2a_0\lambda}}\right\}.
+\end{equation}
+This follows from the variational testing bound, Pinsker's inequality and
+product additivity; the unchanged control adds no information about this pair.
+It explains why arbitrarily small induction cannot be resolved uniformly at a
+fixed sample size. It does not establish that the sufficient budgets above are
+necessary.
+
+\subsection{What a joint region could still buy}\label{sec:joint}
+Rectangular propagation discards the dependence between the features, and a
+better region is plausible. It is worth stating precisely what would be needed,
+because a Dirichlet posterior credible set is not automatically a uniformly
+valid frequentist confidence set, and an ordinary likelihood ellipsoid is
+generally only asymptotic.
+
+\begin{proposition}[Normalized-mixture region]\label{prop:mixture}
+For one ordered categorical sample with counts $n_1,\ldots,n_k$ let
+$\mathcal L(p;x)=\prod_rp_r^{n_r}$ and $m(x)=\int\mathcal L(v;x)\,\Pi(dv)$, where
+the mixing distribution $\Pi$ on the simplex is fixed before the data are seen.
+Then $\mathcal C_\alpha(x)=\{p:\mathcal L(p;x)\ge\alpha\,m(x)\}$ has coverage at
+least $1-\alpha$ for every $p$. For the uniform Dirichlet mixture,
+$m(x)=(k-1)!\prod_rn_r!/(n+k-1)!$.
+\end{proposition}
+\begin{proof}
+For fixed $p$, $\mathcal L(p;\cdot)$ is a probability distribution on ordered
+samples of length $n$, so $\sum_x m(x)=\int\sum_x\mathcal L(v;x)\Pi(dv)=1$ by
+Fubini. Hence $\E_p[m(X)/\mathcal L(p;X)]=\sum_{x:\mathcal L(p;x)>0}m(x)\le1$,
+where samples of zero probability contribute nothing. Markov's inequality gives
+$\Prob_p(m(X)/\mathcal L(p;X)>1/\alpha)\le\alpha$, which is the complement of
+$\{p\in\mathcal C_\alpha(X)\}$. The Dirichlet integral is the Beta function
+identity.
+\end{proof}
+
+Multiplying the mixture distributions for the two independent founder samples
+and the two independent calibration samples gives one normalized joint
+numerator, so a single threshold $\alpha=.05$ delivers simultaneous coverage
+without splitting the error budget across twelve marginal sets. Intersecting the
+region with the calibrated common-label and valid-source constraints and then
+projecting the induction target preserves coverage, provided the projection is
+outer-validated; an inner feasible region alone does not, because it can exclude
+the truth. The exact arithmetic numerator is straightforward, and certified
+projection of the nonlinear target is the real computational task; it is not
+implemented here. A closely related established alternative is the split
+likelihood-ratio construction of universal inference \citep{wasserman2020},
+which supplies finite-sample likelihood-ratio confidence sets and nuisance
+handling; its precise construction should be used rather than attaching a
+finite-sample label to an ordinary likelihood ellipsoid.
+
+Mixture penalties can themselves be conservative, so superiority over the
+simplified rectangle is not promised. The improvements actually carried out in
+this paper --- Proposition~\ref{prop:cancel} and Lemma~\ref{lem:chernoff} ---
+are both exact and both reuse the original coverage event, which is why they
+compose without any further union bound. We also note that one must not select
+the most favourable among several separately valid procedures without accounting
+for the selection; intersecting enclosures derived from the \emph{same}
+simultaneous event, as here, is a different and legitimate operation.
+
+\section{Calibration without pure populations}\label{sec:calibration}
+Theorem~\ref{thm:CI} requires independently justified state labels in the
+calibration sample. Pure sorted populations are a strong demand, and more
+calibration replicates reduce sampling uncertainty but never unknown systematic
+label contamination. Known mixtures suffice instead, exactly.
+
+\begin{proposition}[Known-mixture calibration]\label{prop:mixcal}
+Let two calibration preparations have independently known tolerant fractions
+$p_0\ne p_1$ \emph{at readout}, and let $r_g=\Prob(Y=1\mid\text{preparation }g)$.
+Under the same state-conditional channel, $r_g=e_S+(e_T-e_S)p_g$, hence
+\begin{equation}\label{eq:S2}
+ e_T-e_S=\frac{r_1-r_0}{p_1-p_0},\quad
+ e_S=\frac{p_1r_0-p_0r_1}{p_1-p_0},\quad
+ e_T=\frac{(1-p_0)r_1-(1-p_1)r_0}{p_1-p_0}.
+\end{equation}
+Pure states are the special case $p_0=0$, $p_1=1$. More generally, if $P$ is a
+known matrix of preparation compositions with full row rank and $Y=EP$ are the
+observed marker distributions, any right inverse gives $E=YP^{+}$.
+\end{proposition}
+\begin{proof}
+Condition on the latent state within a preparation and use that the channel does
+not depend on the preparation. The displayed formulas solve the resulting linear
+system, whose determinant is $p_1-p_0$. The matrix statement is the same
+computation with $P$ in place of $(p_0,p_1)$.
+\end{proof}
+
+With uncertain mixture fractions, propagate their independently justified
+confidence or bias regions jointly with $r_0,r_1$ and enforce a nonzero mixture
+contrast; the additional factor $|p_1-p_0|^{-1}$ quantifies the price of similar
+preparations. This does not solve unknown ground truth by itself: the
+compositions must be established by information independent of the uncalibrated
+marker being assessed. Sorting on that same marker and declaring the gates pure
+is circular.
+
+\begin{remark}[Bounded contamination]\label{rem:contam}
+If nominal $S$ and $T$ preparations have contamination fractions at most
+$\eta_S,\eta_T$ at readout, their marker means differ from $e_S,e_T$ by at most
+$\eta_S|e_T-e_S|$ and $\eta_T|e_T-e_S|$, hence by at most $\eta_S$ and $\eta_T$.
+Widen the calibration sets by these justified bounds and propagate the resulting
+channel region. Unknown contamination must not be converted into an arbitrarily
+small reserve. If cells switch between sorting and measurement, the relevant
+composition is the composition at readout; a known transition model and delay
+can propagate it, and without that knowledge sorting purity at time zero does not
+establish readout purity. If the resulting channel region admits rank loss,
+report partial or unresolved identification.
+\end{remark}
+
+\section{Sister concordance changes extinction without changing means}
+\label{sec:extinction}
+The joint kernel is identifiable for a reason beyond fitting lineage
+correlations: it determines a population outcome that mean growth cannot.
+Offspring generating-function orders have an established role in extinction
+theory \citep{bertacchi2026}. The following finite-time consequence is
+specialized to the identified two-state source and a fixed-marginal kernel
+change; it is not a new general principle that offspring dependence affects
+extinction.
+
+\begin{theorem}\label{thm:extinction}
+For an exchange-symmetric daughter kernel define
+\begin{equation}\label{eq:G}
+ G=Q-\diag(b+d)+2\diag(b)L.
+\end{equation}
+An expected row count vector obeys $m(t)=m(0)e^{tG}$. For two states let
+\begin{equation}\label{eq:Kchange}
+ K_i^{+}=K_i+\varepsilon_i(1,-1,-1,1),\qquad\varepsilon_i\ge0,
+\end{equation}
+with all entries nonnegative. All mean trajectories are unchanged, but for every
+initial type and $t\ge0$,
+\begin{equation}\label{eq:extorder}
+                F_i^{+}(t,0)\ge F_i(t,0).
+\end{equation}
+The same weak ordering holds for eventual extinction. If $d_S\ne d_T$ and
+$b_i\varepsilon_i>0$, then
+\begin{equation}\label{eq:strict}
+ F_i^{+}(t,0)-F_i(t,0)=\frac{b_i\varepsilon_i(d_S-d_T)^2}{3}t^3+O(t^4),
+\end{equation}
+so the finite-time inequality is strict for sufficiently small positive $t$.
+\end{theorem}
+\begin{proof}
+A type-$i$ event contributes $e_j-e_i$ for a switch, $-e_i$ for death, and
+$e_j+e_k-e_i$ for division. Taking conditional expectations gives row $i$ of
+\eqref{eq:G}. Yule domination gives finite first moments and justifies the
+stopped generator calculation and its limit, so $m'=mG$. The perturbation
+\eqref{eq:Kchange} preserves row mass and each daughter marginal, hence $G$.
+
+The offspring PGF difference is the exact polynomial identity
+\begin{equation}\label{eq:square}
+ \sum_{jk}(K_i^{+}-K_i)(j,k)x_jx_k=\varepsilon_i(x_S-x_T)^2\ge0.
+\end{equation}
+Let $f,f^+$ be the right sides of \eqref{eq:pgf}. The unit cube is invariant: on
+a face $x_i=0$ the field points inward, and on $x_i=1$ the switch terms and
+$b_i(\sum K_ix_jx_k-1)$ are nonpositive. Both fields are cooperative, because for
+$j\ne i$ their partial derivatives are $q_{ij}$ plus a nonnegative derivative of
+the offspring polynomial on the cube. Equation~\eqref{eq:square} implies
+$f^+(x)\ge f(x)$ there.
+
+Comparison follows by a strict-supersolution argument. On any fixed finite
+horizon, add $\eta e^{Ct}\one$ to the new solution, with $C$ larger than a
+Lipschitz constant of $f$ on a neighbouring positive cube. For sufficiently
+small $\eta>0$ this is a strict supersolution of the old ODE. At a first contact
+with the old solution, the touching coordinate is equal and the other
+coordinates are no smaller, contradicting cooperativity and the strict
+differential inequality. Letting $\eta$ decrease to zero proves
+\eqref{eq:extorder}. Extinction-by-time events increase with $t$; their limits
+yield the eventual ordering.
+
+At zero, $F_i'(0,0)=d_i$, so $(F_S^+-F_T^+)^2=(d_S-d_T)^2t^2+O(t^3)$. The
+difference equation is the old field difference plus this forcing multiplied by
+$b_i\varepsilon_i$. The old field is Lipschitz, so Gronwall's inequality first
+gives $F^+-F=O(t^3)$. Its old-field contribution to the derivative is then
+$O(t^3)$. Integrating the leading $t^2$ forcing proves \eqref{eq:strict}.
+\end{proof}
+
+If $b_i=b$ and $d_i=d$ are state independent, the total count process is a
+birth--death process independent of $Q,K,\pi$. Common demographic clocks
+therefore give equality of all unmarked count laws. This is a zero-effect
+boundary: increased sister concordance need not strictly increase eventual or
+finite-time extinction in every source. Eventual strictness is not proved by the
+cubic expansion, since both models may eventually go extinct with probability
+one.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/extinction.pdf}
+\caption{Model predictions, not biological measurements. Each kernel pair has
+exactly the same mean generator, so its two mean curves coincide (left).
+Numerical solutions of the branching ODE give extinction (middle) and the
+absolute extinction difference (right). The baseline perturbation increases
+24-hour extinction by approximately $0.0005464$; the explicitly synthetic
+large-contrast source gives approximately $0.05412$. The theorem proves the
+ordering, not these floating-point effect sizes. Parameters are specified in the
+text and retained with the figure data.}
+\label{fig:extinction}
+\end{figure}
+
+Figure~\ref{fig:extinction} illustrates Theorem~\ref{thm:extinction} on two
+sources. Using \eqref{eq:example} with $q_{ST}=.18$ and
+$\varepsilon_S=\varepsilon_T=.05$, the 24-hour extinction increase is
+approximately $0.0005464$. It is small and is not presented as practically
+important. Guided by the forcing in \eqref{eq:square}, a second synthetic source
+uses $q_{ST}=q_{TS}=.01$, $b=(.6,.4)$, $d=(.5,.005)$, $\pi_T=.35$,
+independent-daughter base marginals $L_S(T)=.25$, $L_T(T)=.75$, and
+$\varepsilon_i=.18$. All kernel entries remain positive. Its 24-hour increase is
+approximately $.05412$; mean growth is still identical within the pair. No
+compatible biological calibration is known here to justify that larger death
+contrast. A long-horizon prediction additionally assumes that the short-assay
+source continues to apply.
+
+The implication is specific: expected burden alone can miss an
+extinction-relevant component of inheritance. A clinical recommendation would
+require further assumptions about intervention effects, toxicity, competition
+and the persistence of the fitted source, all outside this paper.
+
+\section{Experimental meaning, model challenges and practical scope}
+\subsection{A single biological context, without invented calibration}
+Consider the AU565 lineage-imaging architecture studied by Mohammadi et
+al.~\citep{mohammadi2022}: drug-treated and control cells are tracked for
+cell-cycle phase, division and fate. It is a concrete architectural starting
+point, not a calibrated instance of our phenotype model.
+Table~\ref{tab:provenance} keeps source provenance separate from synthetic
+choices. We do not combine rates from unrelated cell lines to construct a
+supposedly calibrated organism.
+
+\begin{table}[tb]
+\caption{Parameter provenance for an AU565-inspired assay. Numerical model
+inputs are synthetic unless explicitly described as reported.}
+\label{tab:provenance}\centering\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{.20\linewidth}>{\raggedright\arraybackslash}p{.35\linewidth}>{\raggedright\arraybackslash}p{.35\linewidth}}
+\toprule
+Quantity & Value or requirement & Status and source\\
+\midrule
+Context & AU565; lapatinib or gemcitabine lineage imaging & Reported architecture, Mohammadi et al.~\citep{mohammadi2022}, methods\\
+Cadence/horizon & Images every 30 minutes; AU565 follow-up 96 hours & Reported; not the instantaneous event detection assumed here\\
+Recorded reporter & Nuclear/cell-cycle reporter and terminal fates & Reported; not a calibrated tolerance-state channel\\
+States $S,T$ & Predictive phenotypic response classes & Assumed model; no validated AU565 mapping supplied\\
+Marker $E$ & $e_S=.1$, $e_T=.85$ & Synthetic; labelled or known-mixture calibration required\\
+Rates and $K$ & Equation~\eqref{eq:example}; hours and inverse hours & Synthetic, not estimated from AU565 records\\
+Clock/delay & $\lambda\in\{.25,.5,1,2\}$ per hour; known $\tau$ & Design choices; detect interruptions explicitly\\
+Independent units & Independent founders/blocks & Required; related cells in one lineage are not iid roots\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With the marker and rate assumptions met, the experiment estimates both
+within-cell switching and division-associated daughter production. For the
+synthetic source \eqref{eq:example}, $L_S(T)=.26$ and $L_T(T)=.8$, so the
+inheritance contrast is $.54$ and the sister covariances are $.0724,.06$.
+Tolerant daughter-production intensities are $\zeta_S=.1144$ and $\zeta_T=.256$
+per hour. They are equal across the two example arms by construction; induction
+differs by $.8$ per hour. In an experiment neither equality need be assumed.
+Selection, inheritance and induction may all coexist, and none of them alone
+identifies genetic versus epigenetic causation.
+
+Multiplying every biological rate and $\lambda$ by $c>0$, and dividing
+$\tau,L_0$ by $c$, leaves the ideal record law unchanged. Thus ratios such as
+switching/division, death/division and delay times event rate govern this design.
+Scaling time cannot validate those ratios or supply a missing marker. A
+population doubling time, a mean cell-cycle duration and an exponential
+single-cell division hazard are not interchangeable parameters.
+
+\subsection{Age dependence and what a phase channel must supply}
+Constant hazards are a substantive assumption. If the division time $D$ has
+Laplace transform $\varphi(\lambda)=\E e^{-\lambda D}$ and there is no death or
+switching, then $\Prob(T<D)=1-\varphi(\lambda)$ and the one-state exponential
+source inverse produces an apparent birth rate
+\begin{equation}\label{eq:age}
+ b_{\rm app}(\lambda)=\lambda\bigl(A_\lambda^{-1}-1\bigr)
+  =\lambda\frac{\varphi(\lambda)}{1-\varphi(\lambda)}.
+\end{equation}
+For $D\sim\mathrm{Erlang}(2,\nu)$, $\varphi(\lambda)=(\nu/(\nu+\lambda))^2$ and
+$b_{\rm app}(\lambda)=\nu^2/(2\nu+\lambda)$. At $\nu=1$, the deadline rates
+$\lambda=1,2$ give $1/3$ and $1/4$, so no common homogeneous one-state generator
+explains both deadline groups. This is a model obstruction, not sampling noise,
+and it is experimentally testable: it converts the cross-deadline check
+\eqref{eq:identity} into a falsification instrument.
+
+Multiple deadline rates therefore measure aspects of the waiting-time
+distribution even when the Markov inverse fails. A continuum of Laplace
+transform values determines the waiting-time law under standard uniqueness
+conditions; finitely many noisy values do not identify an unrestricted
+distribution. Estimating a constrained waiting-time law is a well-posed future
+target, and it is not solved here.
+
+A finite-phase extension is available but is not automatic. Expand the state to
+(phenotype, cell-cycle phase), specify the phase transitions and the division
+reset, and apply Theorem~\ref{thm:resolvent} \emph{only if its full observation
+and preparation assumptions hold for the expanded chain}. Three conditions are
+easy to lose. First, the calibrated channel must distinguish all expanded
+states: if a two-state tolerance channel and a two-phase channel have
+independent errors conditional on the expanded state and each has rank two, their
+tensor channel has rank four; otherwise the joint channel must be calibrated
+directly. A phenotype-only marker has identical columns for the hidden phases
+and is not full rank, and FUCCI colour classes need not separate every hidden
+Erlang stage. Second, founder support must be positive on every expanded state:
+a cohort of newborn cells has zero mass in later phases, violating the positive
+founder masses used for row normalization, so an asynchronous calibrated
+preparation or a new reachability argument is required. Third, nondividing
+phases have $b_i=0$, where only the zero exit mass is recovered. The initial age
+distribution matters in its own right: an asynchronously sampled cell has a
+residual lifetime distribution that need not equal its newborn lifetime
+distribution, and age stratification alone does not make an age-dependent hazard
+constant. Internal-state and age-dependent branching models are developed in
+\citep{gunnarsson2023}; a phenotype-plus-phase extension should be positioned
+against that literature.
+
+Likewise, $F_\tau$ describes delayed \emph{biological state evolution}, not
+reporter maturation. If two hidden states have identical emissions and identical
+aggregated transition, demographic and daughter laws under every admitted
+intervention, they decorate the same observed process: all record laws agree,
+while the founder split and hidden inheritance can vary.
+
+\subsection{Destructive readouts and well-level dependence}
+Destructive initial staining cannot be applied to the same founder that is then
+followed. The initial marker requirement therefore needs a compatible live
+readout, a justified alternative preparation design, or a different theorem.
+Randomizing fixation times at the well level does not by itself supply the
+missing initial measurement or an immediate daughter-state measurement.
+
+If $k$ cells share one random well deadline $T_w$, their outcomes may be
+independent conditional on $T_w$ under an idealized source, but they are
+generally dependent after marginalizing it. For a category probability $p(T_w)$,
+independent wells and conditionally iid cells give
+\begin{equation}\label{eq:well}
+ \operatorname{Var}(\bar X)
+ =\frac{\operatorname{Var}\bigl(p(T_w)\bigr)}{W}
+ +\frac{\E\bigl[p(T_w)(1-p(T_w))\bigr]}{Wk}.
+\end{equation}
+Increasing cells per well does not remove the first term. One safe concentration
+construction treats each well's bounded average as a single independent
+observation and applies the bounded-difference argument across the $W$ wells; a
+richer conditional-on-time likelihood can use within-well information more
+efficiently, but it is not the iid-founder multinomial analysed above. Arbitrary
+shared well effects can create clone-like correlations, and treatment
+randomization alone does not turn a mixture over environments into a homogeneous
+Markov source. Use measured or controlled blocks and replicate independent units
+at the level on which errors are computed.
+
+Throughput is a real constraint, but no universal hardware ceiling follows from a
+platform name. What must be quantified for a specific instrument is the number of
+independent preparations, imaging fields, tracking failure rate, calibration
+acquisition, total cell-hours and the actual observed state channels.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/delay.pdf}
+\caption{Delay conditioning for the treated source in \eqref{eq:example}.
+Singular values are numerical evaluations of the exact channel \eqref{eq:delay};
+the pair-channel value is their square. The dashed $0.01$ spectral-error level
+illustrates where a norm perturbation bound alone cannot certify pair-channel
+rank; it is not an empirical calibration error and not a theorem that
+information vanishes at that delay. Right: additional daughter cell-hours per
+founder are bounded by $2\tau y_\lambda$, with $y_1\simeq.14624$. Founder
+observation averages $.79690$ hours in this arm. Long delay retains structural
+rank but can destroy practical precision.}
+\label{fig:delay}
+\end{figure}
+
+\subsection{A usable design decision}
+Table~\ref{tab:design} distinguishes identification from a ready assay. A cap of
+$14/\lambda$ hours has reserve below $10^{-6}$; known finite caps can instead be
+modelled exactly. Daughter monitoring may continue for $\tau$ after founder
+division, so elapsed follow-up is at most $L_0+\tau$ under a cap. The
+independently labelled calibration samples in the worked example total 200,000;
+their acquisition cost is additional to founder observation time.
+
+\begin{table}[tb]
+\caption{Design requirements and failure signs. Sample counts are independent
+roots or labelled calibration readouts, not descendant counts.}
+\label{tab:design}\centering\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{.22\linewidth}>{\raggedright\arraybackslash}p{.43\linewidth}>{\raggedright\arraybackslash}p{.25\linewidth}}
+\toprule
+Design or resource & What it supplies and costs & Failure sign / limit\\
+\midrule
+One binary endpoint & One count-threshold outcome & Preparation/rate alias, Proposition~\ref{prop:alias}\\
+Randomized stopped record & Initial marker, event class, endpoint or joint daughters; mean founder time $\le1/\lambda$ & Missing denominators or marker rank\\
+Six-category record & Switching target only, no daughter phenotypes, Proposition~\ref{prop:six} & Cannot recover $b,d,K$ or predict extinction\\
+Monitored delay & Each daughter: marker at $\tau$ or interruption; at most $2\tau y_\lambda$ extra cell-hours/root & Missed interruptions, unknown reporter memory\\
+Two arms and calibration & Worked example: 50,000 roots/arm, 100,000 labelled reads/state & Report unresolved if the determinant bound reaches zero\\
+Prospective decision & Narrow class of \S4.6: $1.5\times10^5$ roots/arm and reads/state & Sufficient for that class only; not a lower bound\\
+Calibration material & Pure states, or two known mixtures, Proposition~\ref{prop:mixcal} & Circular if gated on the same marker\\
+Division information & At $\lambda=1$, treated division yield $.14624$; needed for $K$ & Rare divisions weaken kernel recovery\\
+Physical cap & $L_0=14/\lambda$, reserve $<10^{-6}$ in each feature & Treating a capped kernel as an exact resolvent\\
+Multiple deadline rates & Intersect common-source confidence sets & Incompatible $H,B,\pi$; cause not uniquely identified\\
+Extinction prediction & Identified joint $K$ plus continued source validity & Extrapolation beyond validated times/conditions\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For an explicit reporter failure, suppose daughter interruption hazards are
+state independent and the delayed reporter has identical columns for the two
+birth states. The whole daughter channel then has identical columns. Any two
+kernels with the same row mass, including different sister covariances, give the
+same delayed pair law. Founder data can still recover $H,b,d$, but cannot repair
+that rank loss in the daughter readout. Thus an uncalibrated maturation channel
+cannot be substituted for the full-rank channel in Theorem~\ref{thm:delay}.
+
+For every limitation there is a specific observation that would address it: an
+initial or live state channel for preparation; labelled or independently
+characterized mixtures for calibration; demographic flags for denominator
+integrity; joint daughters for $K$; independent blocks for well effects; phase
+information or waiting-time profiles for age dependence. More uninformative
+replicates do not resolve an exact alias.
+
+The experimental conclusion is conditional but specific: with calibrated state
+channels, intact denominators and the stated stopping rule, switching and
+daughter production are separately recoverable, and joint daughter observations
+support an extinction consequence invisible to mean growth. Without those
+channels, the paper identifies concrete ambiguities rather than promising
+retrospective recovery from data that never measured them.
+
+\appendix
+\section{Numerical certification and implementation details}\label{app:numerics}
+The exact rational population law for a randomized deadline is particularly
+convenient. Rational $\lambda,H,B,E,\pi$ give rational matrices
+$A_\lambda,D_\lambda,J,V$; no exponential approximation is used for those laws.
+Directed checks include a three-state cycle with
+\[
+ H=\begin{bmatrix}-3&2&0\\0&-3&2\\2&0&-3\end{bmatrix},\quad
+ \lambda=\tfrac32,\quad
+ A_\lambda=\frac1{665}\begin{bmatrix}243&108&48\\48&243&108\\108&48&243\end{bmatrix}.
+\]
+The spectrum of $H$ is $-1,-4\pm i\sqrt3$. Rational matrix multiplication
+verifies \eqref{eq:inverse} exactly. Reducible and stiff-rate checks also
+include a zero eigenvalue, showing why inversion of $H$ itself is unnecessary.
+These examples validate implementation conventions; the integral proof of
+Theorem~\ref{thm:resolvent} supplies the general result.
+
+Interval operations are endpoint inclusion operations on exact fractions. For a
+positive rational $x$, the upward square-root approximation is
+$(\lfloor10^{12}\sqrt{x}\rfloor+1)/10^{12}$, obtained by integer square root of
+the scaled numerator and denominator. Matrix products are finite sums of
+interval products. A nonpositive lower determinant or marker contrast leads to
+an unbounded result, never an arbitrarily chosen denominator floor. For the
+prospective boxes, interval inversion of the two-by-two $\lambda I-H$ precedes
+the observed-law and target maps. This enclosure need not be sharp; its
+inclusion property and the explicit threshold separation are the certificate. No
+finite grid is substituted for a continuous parameter box.
+
+Chernoff sets require a certified enclosure of $\{q:n\kl(\hat p\Vert q)\le L\}$.
+We locate each endpoint by floating-point bisection, move it outward to a
+rational with denominator $10^{9}$, and then \emph{verify} that the candidate
+lies outside the set by evaluating a rational lower bound on
+$\kl(\hat p\Vert\cdot)$. That lower bound uses two-sided rational bounds on the
+logarithm: $\log x=2\operatorname{artanh}\frac{x-1}{x+1}$ with the odd series
+truncated after a fixed number of terms and the remainder bounded by the
+geometric tail
+$|z|^{2N+1}\bigl((2N+1)(1-z^2)\bigr)^{-1}$, preceded by exact halving of the
+argument into $[2/3,4/3]$ and a rational enclosure of $\log2$ obtained from the
+same series at $z=1/3$. Since $\kl$ is a positive combination of two logarithms
+with known signs, term-wise lower bounds give a sound lower bound on $\kl$. A
+separate audit re-evaluates every certified endpoint at 200 decimal digits and
+confirms that it lies outside the exact Chernoff set.
+
+The script \texttt{check\_paper.py} distributed with the source replays every
+constant printed above: the retained dataset regenerated from its seed, the
+six-category totals, the soundness of the logarithm and $\kl$ bounds, the
+containment of each Chernoff set in its Hoeffding radius, the four rows of
+Table~\ref{tab:routes} with their width reductions, the unresolved small-sample
+example, the exact resolvent checks, the prospective budgets, the delay channel
+values, the Erlang obstruction, the extinction effect sizes and the Monte Carlo
+diagnostic. All 86 checks pass.
+
+\section{Reproducibility and proof status}
+The chronological construction, the observation laws, the resolvent integral,
+matrix-log uniqueness, confidence coverage and the cooperative comparison are
+conventional mathematical proofs in this paper. Lean verifies a declared finite
+algebra subset: resolvent cancellation, the rational two-state target identity,
+rectangular delayed-channel cancellation, the offspring polynomial identity, and
+--- new in this version --- the cancelled-determinant identity \eqref{eq:S1} in
+the form of its two marker-block lemmas, the known-mixture calibration formulas
+\eqref{eq:S2}, the contamination bound of Remark~\ref{rem:contam}, and the
+six-category subtraction identity of Proposition~\ref{prop:six}. Successful
+compilation of that subset does not constitute a compiled proof of the
+stochastic theorems, and this paper must not be described as machine verified.
+In particular, Lemma~\ref{lem:chernoff}, Theorem~\ref{thm:CI} and
+Proposition~\ref{prop:mixture} are conventional proofs.
+
+The pinned environment uses Lean 4.30.0 and its frozen Mathlib dependency. All
+five modules, including the new
+\texttt{PhenotypeIdentification/CancelledTarget.lean}, compile with warnings
+promoted to errors, exit code zero and empty output. An axiom probe confirms
+that each of the six new declarations depends only on \texttt{propext},
+\texttt{Classical.choice} and \texttt{Quot.sound}; no custom mathematical axiom
+and no incomplete proof is admitted. The script \texttt{lean\_verify.py}
+reproduces the compilation and the probe and writes
+\texttt{lean\_receipt.json} with exit codes and source hashes.
+
+The source package is self-contained: \texttt{model.py} holds the synthetic
+source, the stopped observation law and the branching ODE; \texttt{certkit.py}
+holds exact interval arithmetic, the rational logarithm bounds, the Chernoff
+sets and the two target evaluators; \texttt{prospective\_boxes.py} holds the
+class-level decision; \texttt{make\_figures.py} regenerates the four vector
+figures; and \texttt{check\_paper.py} replays every number. Source-record
+simulation uses seed 20260922; the 300-repetition coverage and power diagnostic
+regenerates the calibration sample and both arms each time. Exact binomial
+intervals describe Monte Carlo uncertainty only. Extinction plots use numerical
+ODE solutions, not interval-certified effect magnitudes.
+
+All examples are synthetic. No experimental data were fitted, no empirical rate
+ranges are claimed, and no clinical conclusion is inferred. Author information,
+affiliations and a data and code availability statement are to be completed
+before submission.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

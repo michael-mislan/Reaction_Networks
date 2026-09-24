@@ -1,0 +1,85 @@
+import proofs.RepeatedFunction.Mission
+
+namespace RandomViability
+open Classical Set RAF RAF.Polymer RAF.Concrete PowerLawSmallRAF FiniteCopy Filter
+open scoped Topology
+noncomputable section
+set_option maxHeartbeats 150000
+
+theorem two_window_mission_from_noise {n : ℕ} (hn : 2 ≤ n)
+    (c : SourceMoleculeFibreConfig n) (V : NNReal) (hV : 0 < (V : ℝ))
+    (basal : Reaction n → NNReal) (cat : Reaction n → Molecule n → NNReal)
+    (hb : ∀ r,(basal r : ℝ) ≤ 4*(1/500000000 : ℝ)) (hcatCap : ∀ r q,(cat r q : ℝ) ≤ 16)
+    (hfood : ∀ q,molLength q ≤ 2 → c q = ∅) (r : Reaction n)
+    (hl : molLength (reactionLeft r) = 2) (hr : molLength (reactionRight r) = 2)
+    (hlen : molLength (reactionProduct r) = 4)
+    (huw : reactionLeft r ≠ reactionRight r)
+    (huz : reactionLeft r ≠ reactionProduct r) (hwz : reactionRight r ≠ reactionProduct r)
+    (hsel : r ∈ c (reactionProduct r))
+    (hbas : (1/500000000 : ℝ) ≤ basal r) (hcat : 4 ≤ (cat r (reactionProduct r) : ℝ))
+    (z : ℕ → JumpState (Molecule n → ℕ) (PhysicalCountChannel n))
+    (hinitM : (countMass (z 0).1 : ℝ)/V ≤ 10)
+    (hinitL : ((z 0).1 (reactionLeft r) : ℝ)/V = 1)
+    (hinitR : ((z 0).1 (reactionRight r) : ℝ)/V = 1)
+    (hinitP : ((z 0).1 (reactionProduct r) : ℝ)/V = 0)
+    (hc : ∀ i,jumpConsistent unboundedPhysicalNext (z i).1 (z (i+1)))
+    (hh : ∀ i,0 ≤ (z (i+1)).2.2)
+    (hd : Tendsto (fun K => prefixElapsed K (Preorder.frestrictLe K z)) atTop atTop)
+    (hnoiseM : massNoiseBound c V basal cat 200 (1/4) z)
+    (hnoiseL : coordinateNoiseBound c V basal cat (reactionLeft r) 200 (1/100000) z)
+    (hnoiseR : coordinateNoiseBound c V basal cat (reactionRight r) 200 (1/100000) z)
+    (hnoiseP : coordinateNoiseBound c V basal cat (reactionProduct r) 200 (1/300000000000000000000) z)
+    (hnoiseE : markedRewardNoiseBound c V basal cat (fun _ => exportReward V) 200 (1/40) z)
+    (hnoiseF : markedRewardNoiseBound c V basal cat (fun _ => grossFeedReward V) 200 1 z) :
+    twoWindowMission V z := by
+  have hmass : ∀ i,prefixElapsed i (Preorder.frestrictLe i z) ≤ 199 →
+      (countMass (z i).1 : ℝ) ≤ 11*V := by
+    intro i hi
+    have hg := physical_mass_localization hn c V hV basal cat 200 z hinitM hc hh hnoiseM i
+      (by linarith only [hi])
+    have he := (div_le_iff₀ hV).mp hg
+    nlinarith only [he,hV]
+  have hw (a b : ℝ) (ha : 1 ≤ a) (hab : a ≤ b) (hbTime : b < 200)
+      (hdur : 79 ≤ b-a) : windowOutputReady V a b z := by
+    obtain ⟨J,K,hj,hj',hk,hk',he,hM,hP⟩ := physical_interval_output_and_endpoint hn c V hV
+      basal cat hb hcatCap hfood r hl hr hlen huw huz hwz hsel hbas hcat
+      a b 200 ha hab hbTime z hinitM hinitL hinitR hinitP hc hh hd
+      hnoiseM hnoiseL hnoiseR hnoiseP hdur hnoiseE
+    exact ⟨J,K,hj,hj',hk,hk',he,hM,reactionProduct r,hlen,hP⟩
+  have hw1 := hw 1 100 (by norm_num) (by norm_num) (by norm_num) (by norm_num)
+  have hw2 := hw 100 199 (by norm_num) (by norm_num) (by norm_num) (by norm_num)
+  refine ⟨hmass,hw1,hw2,?_⟩
+  obtain ⟨J,K,_,_,hk,hk',_,_⟩ := hw2
+  have hm := prefix_elapsed_monotone z hh
+  have hM : ∀ i ≤ J+K,(countMass (z i).1 : ℝ) ≤ 11*V :=
+    fun i hi => hmass i ((hm hi).trans hk)
+  have hactive : ∀ i ≤ J+K,¬censoredNonfoodStop V 200 (massExitStop V) i (Preorder.frestrictLe i z) := by
+    intro i hi
+    exact mass_exit_active_before_first_exit V 200 z (by omega : i < J+K+1)
+      (fun j hj => hM j (by omega)) ((hm hi).trans_lt (by linarith only [hk]))
+  have hcomplete : ∀ i < J+K,(z (i+1)).2.2 ≤ 200-prefixElapsed i (Preorder.frestrictLe i z) := by
+    intro i hi
+    have he := (hm (show i+1 ≤ J+K by omega)).trans hk
+    dsimp only at he
+    rw [prefixElapsed_restrict_succ] at he
+    linarith only [he]
+  have hb0 : 0 ≤ 199-prefixElapsed (J+K) (Preorder.frestrictLe (J+K) z) := sub_nonneg.mpr hk
+  have hbcap : 199-prefixElapsed (J+K) (Preorder.frestrictLe (J+K) z) ≤
+      min (z (J+K+1)).2.2 (200-prefixElapsed (J+K) (Preorder.frestrictLe (J+K) z)) := by
+    apply le_min
+    · rw [prefixElapsed_restrict_succ] at hk'
+      linarith only [hk']
+    · linarith
+  have hbudget := marked_reward_budget c V basal cat (fun _ => grossFeedReward V)
+    200 199 1 6 z (J+K) hactive hcomplete hh hb0 hbcap
+    (fun i _ => (gross_feed_drift hn c V hV basal cat (z i).1).le) hnoiseF
+  norm_num at hbudget
+  refine ⟨⟨J+K,hk,hk',hbudget⟩,?_⟩
+  obtain ⟨I,hi,hi',hmReady,hpReady⟩ := physical_startup_at_every_time hn c V hV basal cat
+    hb hcatCap hfood r hl hr hlen huw huz hwz hsel hbas hcat 200 z
+    hinitM hinitL hinitR hinitP hc hh hd hnoiseM hnoiseL hnoiseR hnoiseP
+    1 le_rfl (by norm_num)
+  exact ⟨I,hi,hi',hmReady,reactionProduct r,hlen,hpReady⟩
+
+end
+end RandomViability

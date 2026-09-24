@@ -1,0 +1,76 @@
+\section{Source, shared input and preparation}\label{sec:model}
+\subsection{Inherited target population}
+The target has six types, ordered as
+\[
+ (UU,UR,RR,AU,AR,AA)
+ \longleftrightarrow ((0,0),(0,1),(0,2),(1,0),(1,1),(2,0)).
+\]
+The pair $(a,s)$ counts two kinds of marks on two sites; there are $u=2-a-s$ unmarked sites. With erasure parameter $e$, the chemical transitions are
+\begin{align}\label{eq:chemistry}
+ (a,s)\to(a+1,s)&:\ u(1/100+a/2),&
+ (a,s)\to(a,s+1)&:\ u(1/100+s/2),\nonumber\\
+ (a,s)\to(a-1,s)&:\ a(e+s/4),&
+ (a,s)\to(a,s-1)&:\ s(e+a/4).
+\end{align}
+Zero-rate transitions outside the state space are omitted. The resulting row generator is $Q_e$, with diagonal entries chosen to make row sums zero. The nominal division rate is $b=1/10$ and the nominal mortality vector is
+\begin{equation}\label{eq:deaths}
+ d=(3/10,3/10,3/10,1/100,3/10,1/100).
+\end{equation}
+These are stipulated baseline mortalities in a synthetic model. They are not an unpriced clinical anticancer treatment. Healthy baseline mortality is likewise explicit below.
+
+A dividing mother is removed. Her ordered daughters receive $(i,j)$ and $(a-i,s-j)$ old marks with probability
+\begin{equation}\label{eq:pairs}
+ 2^{-(a+s)}\binom ai\binom sj,
+ \qquad 0\le i\le a,\quad 0\le j\le s,
+\end{equation}
+and vacant sites are refilled with unmarked material. This is the complete allocation rule; there is no additional dilution event.
+
+\begin{remark}[Nature of the allocation law]\label{rem:binomial}
+Equation~\eqref{eq:pairs} is an \emph{independent Bernoulli allocation of each individual mark to the first daughter, with complementary allocation to the second}. The first daughter's two mark counts are therefore independent binomials, $i\sim\mathrm{Bin}(a,1/2)$ and $j\sim\mathrm{Bin}(s,1/2)$. It is not a hypergeometric split: no sampling without replacement from a pooled set occurs. Complementarity is what makes the two daughters dependent, and that dependence is invisible to the first-moment operator below.
+\end{remark}
+
+Its generating vector is
+\begin{equation}\label{eq:F}
+ F(x)=\left(x_0^2,\ x_0x_1,\ \frac{x_0x_2+x_1^2}{2},\
+ x_0x_3,\ \frac{x_0x_4+x_1x_3}{2},\ \frac{x_0x_5+x_3^2}{2}\right)^{\!\top},
+\end{equation}
+and the nonlinear extinction field is
+$\Phi(x)=Q_ex+d\odot(\mathbf 1-x)+b(F(x)-x)$, with $D\Phi(\mathbf 1)=A_e$ for the operator defined next. Write $L_{ij}$ for the expected number of type-$j$ daughters produced by a type-$i$ mother. For a column vector of weights $w$, the generator of $z\cdot w$ is $z\cdot A_ew$, where
+\begin{equation}\label{eq:A}
+ A_e=Q_e+b(L-I)-\operatorname{diag}(d).
+\end{equation}
+The $-I$ term removes the mother, and both daughters contribute to $L$. This first-moment operator uses the two-daughter expectation, not an independent-daughter replacement. A replacement kernel can preserve $L$, hence every mean equation, while changing extinction probabilities through $F$; a first-moment upper bound is insensitive to exactly that dependence.
+
+\begin{remark}[Memory and the Markov property]\label{rem:markov}
+Cellular memory here is represented by persistent inherited mark configurations, which are part of the state. The expanded process $(Z,H,c)$ is Markov once its sufficient state and the delivered input are specified; the model is not intrinsically non-Markovian. What memory costs is dimension, not the Markov property. General history-dependent control policies need not leave the unaugmented count process Markov, but that is a separate control issue and is not used below.
+\end{remark}
+
+\subsection{Healthy reserve and delivery}
+The healthy source is a count process on $\{0,\ldots,K\}$ with unit jumps, absorbing zero and hard capacity $K$. Its comparison rates are
+\begin{equation}\label{eq:healthy}
+ \lambda_h=\reff h(1-h/K),\qquad \mu_h=mh.
+\end{equation}
+For the actual source we allow predictable, locally bounded birth rates at least the displayed $\lambda_h$ and death rates at most the displayed $\mu_h$, subject to the same state space and unit-jump structure. These inequality directions are what an upper bound on failure requires, and they include renewal inhibition: if a nominal renewal rate $r$ retains at least a fraction $\chi_{\min}>0$ under exposure, take $\reff=r\chi_{\min}$. A count unit is an independently specified functional unit of this jump model. Enlarging $K$ changes the preparation or the physical scale; subdividing one correlated unit into several labels does not justify changing the noise law, and cannot legitimately improve a capacity certificate.
+
+Administration $a(t)$ produces an effect-normalized concentration $c(t)$ by
+\begin{equation}\label{eq:pk}
+ \dot c=a-k_ec,\qquad c(0)=0,\qquad
+ e(t)=1/100+c(t).
+\end{equation}
+The same concentration injures healthy units at per-unit rate
+\begin{equation}\label{eq:shared}
+ m_H(t)=\frac{3/10+c(t)}{\sigma}+\nu.
+\end{equation}
+Thus target and healthy effects cannot be prescribed independently: one input drives both. The parameter $\sigma$ describes differential response and $\nu$ is extra healthy mortality. The linear effect law and instantaneous logistic regeneration are stipulated modelling assumptions, not measured concentration--response curves; Section~\ref{sec:limits} records what each costs.
+
+The mission starts with four $AA$ founders, has deadline $T=120$, and requires $\delta=\alpha=1/100$. The administered course is
+\begin{equation}\label{eq:course}
+ a(t)=\begin{cases}29/100,&0\le t\le112,\\0,&t>112.\end{cases}
+\end{equation}
+The limits are $a\le3/10$, $\int_0^{120}a\le33$, $c\le3/10$ and $\int_0^{120}c\le33$. The final eight time units are a real washout tail and are retained in every healthy estimate. No target immigration occurs, so extinction is absorbing, including after the deadline. Indefinite healthy safety is not required and is not proved.
+
+\begin{remark}[Exact scope of the uncertainty set]\label{rem:box}
+The target-rate uncertainty set consists of independent \emph{fixed} multiplicative factors in $[99/100,101/100]$ on each positive off-diagonal rate in~\eqref{eq:chemistry}, on each entry of~\eqref{eq:deaths}, and on the division rate $b$. Zero rates remain zero, the $Q$ diagonal is reconstructed to keep row sums zero, and the allocation law~\eqref{eq:pairs} is fixed, as are the state space and the initial target preparation. The same factor applies throughout the course, and a single administration works for every choice in the box without observing that choice. This is a deterministic robustness specification, not a statistical confidence region, and it is narrower than ``one-percent uncertainty in every biological parameter'': in particular the daughter law is not varied.
+\end{remark}
+
+The joint process can be constructed from independent driving Poisson random measures using predictable thinning. Under bounded controls the target count is dominated by a Yule process with per-cell rate $101/1000$, and all other target intensities are bounded by a constant times its count on a finite horizon. The healthy space is finite. These bounds give nonexplosion and justify localization for the generator and expectation arguments below \citep{ethierkurtz}.

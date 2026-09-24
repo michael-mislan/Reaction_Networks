@@ -1,0 +1,361 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,array,tabularx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\hypersetup{pdftitle={Cycle structure, capacity, and resource costs of phosphorylation memory},
+ pdfsubject={Stable-equilibrium capacity of the edge-specific multisite phosphorylation cube, finite-molecule operation, and certified resource costs},
+ pdfkeywords={multisite phosphorylation, multistability, mass-action kinetics, chemical reaction networks, degree theory, continuous-time Markov chains, large deviations, biochemical memory}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\ET}{E_{\mathrm T}}
+\newcommand{\FT}{F_{\mathrm T}}
+\newcommand{\ST}{S_{\mathrm T}}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\tl}[1]{#1^{-}}
+\newcommand{\hd}[1]{#1^{+}}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\cN}{\mathcal N}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\cW}{\mathcal W}
+\newcommand{\cZ}{\mathcal Z}
+\newcommand{\cI}{\mathcal I}
+\newcommand{\bM}{\mathbf M}
+\newcommand{\one}{\boldsymbol 1}
+\newcommand{\trec}{t_{\mathrm{rec}}}
+\newcommand{\eb}{\epsilon_{\mathrm b}}
+\newcommand{\kB}{k_{\mathrm B}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\spanop}{span}
+\DeclareMathOperator{\ind}{ind}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\Var}{Var}
+\setlength{\emergencystretch}{1.5em}
+
+\title{Cycle structure, capacity, and resource costs\\ of phosphorylation memory}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+How many recoverable states can a substrate with \(n\) modification sites support when all
+sites share one kinase and one phosphatase? We study the distributive mass-action network on
+the \(n\)-cube of phosphoforms in which every enzyme--edge interaction has its own bound
+complex and all bound substrate is retained in the conserved inventory. Let \(C_n\) be the
+largest number of locally asymptotically stable positive equilibria that one list of rate
+constants can have in one compatibility class. We prove
+\(\max\{n,\lfloor(2^{n-2}+n)/2\rfloor\}\le C_n\le 2^n\), so that \(C_n=\Theta(2^n)\); the upper
+bound counts nonhyperbolic attractors, and the lower bound is attained by hyperbolic sinks. In
+contrast, when the effective modification ratios are balanced around every elementary square
+of the cube, the capacity is exactly \(n\), the value for a single sequential chain; more than
+\(n\) stable states therefore require a nonzero effective cycle affinity. The exponential
+construction combines an exponentially large loading-interpolation space with an
+independently normally attracting saturated family. We then separate this structural capacity
+from operation. A finite-molecule theorem for the full continuous-time Markov chain converts
+any finite set of hyperbolic sinks into labels with explicit retention, recovery and readout
+guarantees at a computable sufficient system size; a local large-deviation theorem for crowded
+states gives an exit barrier of order \(\delta^{2n}\), with recovery time of order
+\(\delta^{-(2n-2)}\) at separation \(\delta\); and a reversible extension with one common
+ATP-hydrolysis potential shows that finitely many sinks persist under finite chemical driving.
+Exact certificates for a three-site source with four sinks and seven equilibria illustrate the
+theory. For this example the sufficient certificates remain astronomically expensive, and we
+prove a concentration-ratio obstruction for its design family; these are diagnoses of the
+constructions, not lower bounds for phosphorylation memory in general. The proofs are
+conventional mathematics, supported by exact rational and interval computations and by a small
+amount of machine-checked algebra.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+\subsection{Background and question}
+Reversible phosphorylation at several sites is among the most common mechanisms by which cells
+regulate protein function \cite{Cohen2000,SalazarHofer2009}. Since Lisman's proposal that a
+bistable kinase--phosphatase system could store information for times far longer than the
+lifetime of its molecules \cite{Crick1984,Lisman1985}, multisite modification has also been
+discussed as a chemical memory, and the stochastic lifetime of such switches has been studied
+in detail for particular models \cite{Bialek2001,MZLW2005}. The mathematical starting point is
+multistationarity. Markevich, Hoek and Kholodenko observed that a two-site substrate acted on
+distributively by one kinase and one phosphatase can be bistable although its only feedback is
+competition for the shared enzymes \cite{Markevich2004}. For the \emph{sequential} mechanism,
+in which the sites are modified in a fixed order, Wang and Sontag proved that there are at most
+\(2n-1\) positive equilibria \cite{WangSontag2008}; examples with \(2n-1\) equilibria are known
+for \(n\le4\) \cite{FHC2014}; and Feliu, Rendall and Wiuf proved that \(\lfloor n/2\rfloor+1\)
+of the equilibria can be asymptotically stable \cite{FRW2020}. A companion paper
+\cite{Companion} shows that the sequential chain has at most \(n\) locally asymptotically
+stable equilibria and that \(n\) hyperbolic sinks, together with \(n-1\) saddles, occur for
+every \(n\). Further results on parameter regions, bistability and dynamics are in
+\cite{Gunawardena2005,ConradiFlockerziRaisch2008,FeliuWiuf2012,HolsteinFlockerziConradi2013,
+ConradiMincheva2014,HellRendall2015,CFMW2017,BihanDickensteinGiaroli2020,FKdWY2022,FKdWY2023,
+TorresFeliu2021}, and surveys in \cite{ConradiShiu2018,Dickenstein2016,Dickenstein2020}.
+
+A substrate with \(n\) sites has \(2^n\) phosphoforms, not \(n+1\), and when the order of
+modification is not enforced all of them participate
+\cite{Gunawardena2007,SuwanmajoKrishnan2015}. Thomson and Gunawardena showed that the
+equilibria of such post-translational modification systems are still described by rational
+functions of the free-enzyme ratio \cite{ThomsonGunawardena2009b,ManraiGunawardena2008}, and
+their numerical experiments suggested that the number of stable phosphoform distributions
+grows with \(n\) \cite{ThomsonGunawardena2009}. This raises the question studied here.
+
+\begin{quote}
+\emph{For the unordered distributive mechanism with one kinase and one phosphatase, how many
+stable equilibria can coexist for one set of rate constants and one set of conserved totals,
+which kinetic structure is responsible for the number, and what does it cost to use these
+equilibria as the states of a finite-molecule memory?}
+\end{quote}
+
+The last part of the question matters because four quantities are easily conflated
+(Table~\ref{tab:notions}). An equilibrium can be stable and yet restore disturbances so slowly,
+or lie so close to its neighbours, that it is useless as a stored state; and a rigorous
+probability bound for a finite number of molecules can be far more expensive than the
+underlying dynamics. Throughout this paper the word \emph{capacity} refers to the second row of
+Table~\ref{tab:notions} unless it is qualified.
+
+\begin{table}[tbp]
+\centering\small
+\caption{Four quantities that should not share the word ``capacity'' without qualification.}
+\label{tab:notions}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+Quantity & Meaning\\
+\midrule
+Positive-equilibrium count & Number of positive steady states, stable or unstable, in one
+compatibility class\\
+Stable-equilibrium capacity \(C_n\) & Largest number of locally asymptotically stable
+equilibria for one rate list and one class (Definition~\ref{def:capacity})\\
+Operational label count & Number of states meeting a common preparation, recovery,
+retention and observation contract for a finite number of molecules
+(Section~\ref{sec:finite})\\
+Information capacity & A channel-theoretic quantity, which needs specified inputs,
+observations and an error law; not determined here\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The model}
+Vertices of the \(n\)-cube are subsets \(I\subseteq[n]=\{1,\dots,n\}\), and \(S_I\) denotes
+the phosphoform whose phosphorylated sites are exactly those in \(I\). An \emph{edge} is a
+pair \(e=(\tl e,\hd e)\) with \(\hd e=\tl e\cup\{i\}\), \(i\notin\tl e\); we call \(\tl e\) the
+tail and \(\hd e\) the head. There are \(q=2^n\) vertices and \(m=n2^{n-1}\) edges. For every
+edge the kinase \(E\) and the phosphatase \(F\) act by the distributive mass-action mechanism
+\begin{equation}\label{eq:source}
+ S_{\tl e}+E\ \underset{b_e}{\overset{a_e}{\rightleftharpoons}}\ C_e
+       \ \xrightarrow{\ c_e\ }\ S_{\hd e}+E,
+ \qquad
+ S_{\hd e}+F\ \underset{\beta_e}{\overset{\alpha_e}{\rightleftharpoons}}\ Y_e
+       \ \xrightarrow{\ \gamma_e\ }\ S_{\tl e}+F .
+\end{equation}
+All \(6m=3n2^n\) rate constants are positive. The two enzymes are shared by all edges, so the
+binding reactions compete for the free enzymes, but the complexes \(C_e,Y_e\) are
+edge-specific. A mechanism in which one bound complex can release several different products
+is a different network, and our results do not automatically transfer to it. There are
+\(q+2m+2=(n+1)2^n+2\) species and three conserved totals,
+\begin{equation}\label{eq:totals}
+ \ET=E+\sum_e C_e,\qquad \FT=F+\sum_eY_e,\qquad
+ \ST=\sum_I S_I+\sum_e(C_e+Y_e).
+\end{equation}
+The bound substrate is part of \(\ST\); no quasi-steady-state or low-enzyme approximation is
+made anywhere in the paper. The set of nonnegative concentrations with prescribed positive
+totals is a \emph{compatibility class}. It is a compact convex polytope of dimension
+\(d=q+2m-1\), invariant under the dynamics, and every statement about stability refers to the
+dynamics within a class. For \(n=3\) there are \(34\) species, \(12\) edges, \(72\) rate
+constants and \(d=31\). The \emph{sequential chain} is the analogous network on a path
+\(S_0,\dots,S_n\) with \(n\) edges \cite{WangSontag2008,Companion}.
+
+\begin{definition}\label{def:capacity}
+A \emph{sink} is a positive equilibrium that is locally asymptotically stable relative to its
+compatibility class; it need not be hyperbolic. A \emph{hyperbolic sink} is one at which the
+Jacobian restricted to the class is Hurwitz. The \emph{stable-equilibrium capacity} \(C_n\) is
+the supremum, over all positive rate constants and all positive totals, of the number of sinks
+in the class. Equilibria of different rate lists or different classes are never combined.
+\end{definition}
+
+\subsection{Results}
+Put \(p_e=a_e/(b_e+c_e)\), \(q_e=\alpha_e/(\beta_e+\gamma_e)\) (the \emph{loadings}) and
+\(k_e^+=c_ep_e\), \(k_e^-=\gamma_eq_e\) (the \emph{effective rates}), and let
+\(\rho_e=k_e^+/k_e^-\). The rates are \emph{square balanced} if
+\begin{equation}\label{eq:balance-intro}
+ \rho_{(I,I\cup\{i\})}\,\rho_{(I\cup\{i\},I\cup\{i,j\})}
+ =\rho_{(I,I\cup\{j\})}\,\rho_{(I\cup\{j\},I\cup\{i,j\})}
+\end{equation}
+for every \(I\) and every pair \(i\ne j\) outside \(I\); the logarithm of the quotient of the
+two sides is the \emph{effective affinity} of that square.
+
+\begin{theorem}[Architecture]\label{thm:capacity}
+For every \(n\ge2\),
+\[
+ \max\Bigl\{n,\Bigl\lfloor\frac{2^{n-2}+n}{2}\Bigr\rfloor\Bigr\}\ \le\ C_n\ \le\ 2^n ,
+\]
+and \(C_3\ge4\). Consequently \(2^{n-3}\le C_n\le2^n\) for \(n\ge3\), and \(C_n=\Theta(2^n)\).
+The upper bound holds for sinks in the sense of Definition~\textup{\ref{def:capacity}},
+including nonhyperbolic ones; every lower bound is attained by hyperbolic sinks of
+\eqref{eq:source} with one common list of positive rational rate constants and one triple of
+positive rational totals.
+\end{theorem}
+
+\begin{theorem}[Balanced ceiling]\label{thm:balanced}
+If the rates are square balanced, every compatibility class contains at most \(2n-1\) positive
+equilibria and at most \(n\) sinks, and there are square-balanced rates and totals with exactly
+\(n\) hyperbolic sinks. Hence more than \(n\) sinks require a nonzero effective affinity on
+some square.
+\end{theorem}
+
+Theorem~\ref{thm:balanced} says that a balanced cube has the capacity of a single sequential
+chain, however large its \(2^n\)-vertex state space is. Balance is weaker than permutation
+symmetry of the sites: it constrains only equilibrium geometry. Under the stronger symmetric
+choice of rates the cube reduces \emph{exactly} to a chain, both as an ordinary differential
+equation and as a Markov chain on molecule counts (Propositions~\ref{prop:lift}
+and~\ref{prop:lump}). The converse of the last sentence of Theorem~\ref{thm:balanced} is
+false: an unbalanced square is not sufficient for additional sinks, and an effective affinity
+is a property of competing kinetic pathways, not a chemical free energy
+(Section~\ref{sec:driving}).
+
+The remaining results concern operation and cost; their scopes are summarized in
+Table~\ref{tab:scope}.
+\begin{itemize}
+\item \emph{Finite-molecule memory} (Theorem~\ref{thm:finite}). For the full Markov chain of
+\eqref{eq:source} at system size \(\Omega\), a rational quadratic Lyapunov function at each
+hyperbolic sink yields explicit bounds for the probability of leaving a neighbourhood before
+time \(t\) and for failing to return to a preparation set, uniformly over declared sets of
+initial counts, together with a decoder for a bounded-error readout and nonempty sets of
+actual integer preparations. The bounds are sufficient, not necessary.
+\item \emph{Crowding} (Theorem~\ref{thm:action}). In the family of \cite{Companion} in which
+the \(2n-1\) equilibria of a chain (or of its symmetric lift to the cube) are separated by a
+small parameter \(\delta\), the reaction-path action needed to leave a declared tube around a
+sink is \(c\,\delta^{2n}(1+O(\delta))\), and the exit time satisfies
+\(\log\tau/(\Omega\delta^{2n})\to c\) in probability when first \(\Omega\to\infty\) and then
+\(\delta\to0\). Since the recovery time is of order \(\delta^{-(2n-2)}\) and the readout gap of
+order \(\delta\), barrier, recovery and resolution are tied together in this family.
+\item \emph{Observation} (Propositions~\ref{prop:packing} and~\ref{prop:passive}). A bounded-error readout with
+\(d_{\mathrm{obs}}\) channels of range \(R_j\) and tolerance \(\varepsilon_j\) distinguishes at
+most \(\prod_j(1+\lfloor R_j/2\varepsilon_j\rfloor)\) labels; a passive observation changes
+neither the chemistry nor the exit law; and a bounded-gain observation cannot separate
+coalescing states.
+\item \emph{Finite driving} (Theorem~\ref{thm:driving}). Every finite set of hyperbolic sinks
+persists in a reversible mass-action extension that satisfies detailed balance at unit
+activities and is driven by one common ATP-hydrolysis potential, provided the potential is
+large enough; an explicit sufficient threshold is given in Proposition~\ref{prop:robust}.
+\item \emph{A certified example} (Section~\ref{sec:example}). An explicit rational three-site
+source has exactly seven positive equilibria in one class, four hyperbolic sinks and three
+unstable equilibria, with well separated readouts (normalized gaps above \(0.11\)). Every
+claim about it is verified in exact arithmetic. Its certified sufficient resources are
+nevertheless astronomically large, and Proposition~\ref{prop:obstruction} shows that in its
+design family the kinase-to-substrate ratio on one retained branch is below \(7\times10^{-11}\)
+whatever positive loadings are used.
+\end{itemize}
+
+\begin{table}[tbp]
+\centering\small
+\caption{Results, type of evidence, and essential scope. ``Exact replay'' refers to the
+rational and interval computations described in Appendix~\ref{app:certificates}.}
+\label{tab:scope}
+\begin{tabularx}{\textwidth}{@{}p{0.23\textwidth}p{0.27\textwidth}X@{}}
+\toprule
+Result & Evidence & Scope and limits\\
+\midrule
+\(C_n\le2^n\) (Thm.~\ref{thm:upper}) & Proof: elimination, Sard, degree & All positive
+rates and totals; nonhyperbolic sinks included; not claimed sharp\\
+Balanced capacity \(n\) (Thm.~\ref{thm:balanced}) & Proof; attainment from \cite{Companion} &
+Balance of effective ratios only; equilibrium statement, no dynamical reduction\\
+Exact symmetric reduction (Props.~\ref{prop:lift}, \ref{prop:lump}) & Proof: ODE and generator
+identities & Symmetric lifted rates; observations that factor through the aggregation\\
+\(C_n\ge\lfloor(2^{n-2}+n)/2\rfloor\) (Thm.~\ref{thm:lower}) & Proof: interpolation rank,
+normal hyperbolicity, singular perturbation & Fixed \(n\); no bound on rates, conditioning or
+resources uniform in \(n\)\\
+Finite-molecule memory (Thm.~\ref{thm:finite}) & Proof: exact generator identity & Sufficient
+bounds; local disturbance sets; preparation, not writing\\
+Crowded-state barrier (Thm.~\ref{thm:action}) & Proof: foliation, Hamilton--Jacobi
+subsolutions, change of measure & One family; declared local tube; iterated limit
+\(\Omega\to\infty\), then \(\delta\to0\)\\
+Finite driving (Thm.~\ref{thm:driving}, Prop.~\ref{prop:robust}) & Proof; explicit threshold &
+Chemostatted extension; sufficient, very conservative threshold\\
+Four sinks, seven equilibria (Prop.~\ref{prop:foursinks}) & Exact replay & One rational
+three-site source and class\\
+Operating contract and Table~\ref{tab:resources} (Prop.~\ref{prop:contract}) & Exact replay &
+Sufficient resources for the stated protocol; exploratory physical ceilings\\
+Ratio obstruction (Prop.~\ref{prop:obstruction}) & Proof and exact replay & Fixed effective
+rates, target and branch of the example\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{What is not claimed}
+The upper bound \(2^n\) is not claimed to be sharp, and the value of \(C_n\) is open for every
+\(n\ge3\). The exponential construction is not economical: the number of species and of rate
+constants grows like \(n2^n\), and its rates are badly conditioned. The resource figures in
+Section~\ref{sec:example} are \emph{sufficient} for the stated guarantees; they are neither
+estimates of the minimum resources of the example nor lower bounds for other designs, and we do
+not claim that phosphorylation memory is infeasible. No writing protocol that switches
+between labels is analysed; labels are prepared. Bounds on periodic or other non-equilibrium
+attractors are outside the scope; such attractors exist in sequential chains with \(n\ge3\)
+\cite{CompanionOsc}. Finally, the analytic theorems are not formalized in a proof assistant;
+only a few algebraic identities are (Appendix~\ref{app:certificates}).
+
+\subsection{Organization and notation}
+Section~\ref{sec:geometry} parametrizes the equilibria, proves a regularity lemma in which
+only the totals are perturbed, and derives \(C_n\le2^n\). Section~\ref{sec:balance} treats
+square balance and the symmetric lift. Section~\ref{sec:lower} proves the exponential lower
+bound. Section~\ref{sec:finite} contains the finite-molecule theorem, Section~\ref{sec:crowding}
+the crowding and observation results, Section~\ref{sec:driving} the reversible extension and
+the robustness estimate, and Section~\ref{sec:example} the certified example.
+Section~\ref{sec:discussion} discusses interpretation and open problems.
+Appendix~\ref{app:sequential} recalls what is used from \cite{Companion},
+Appendix~\ref{app:action} proves Theorem~\ref{thm:action}, and
+Appendix~\ref{app:certificates} documents the computations. Several small parameters occur and
+are not interchangeable; Table~\ref{tab:parameters} lists them.
+
+\begin{table}[tbp]
+\centering\small
+\caption{Parameters with distinct roles.}\label{tab:parameters}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+Symbol & Role\\
+\midrule
+\(u=E/F\), \(r=\ET/\FT\) & Free-enzyme ratio (the coordinate on the equilibrium curve) and
+total-enzyme ratio\\
+\(p_e,q_e\); \(k_e^\pm\); \(\rho_e\) & Loadings; effective rates; effective ratios
+(Section~\ref{sec:geometry})\\
+\(\kappa\), \(\eta\), \(\eb\) & Loading scale, enzyme scale \((\ET,\FT)=(r\eta,\eta)\), and
+binding relaxation time in the construction of Section~\ref{sec:lower}\\
+\(\delta\) & Separation of the equilibria in the crowded family of
+Section~\ref{sec:crowding}\\
+\(\Omega\) & System size: counts are \(\Omega\) times concentrations
+(Section~\ref{sec:finite})\\
+\(\vartheta\) & ADP and phosphate activity in the reversible extension; the driving potential
+is \(-2\log\vartheta\) in units of \(\kB T\) (Section~\ref{sec:driving})\\
+\(\varepsilon_j\), \(R_j\) & Observation tolerance and range of readout channel \(j\)\\
+\(\trec\), \(T\) & Certified recovery time and storage horizon\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\input{part1}
+\input{part2}
+\input{part3}
+
+\appendix
+\input{appendix}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+\end{document}

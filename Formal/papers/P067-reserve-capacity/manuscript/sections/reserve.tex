@@ -1,0 +1,94 @@
+\section{A return-level certificate for reserve loss}\label{sec:reserve}
+\begin{theorem}[Anchored reserve bound]\label{thm:anchor}
+Fix integers $1\le h_{\min}\le M\le K$, constants $\reff,m,T>0$, and put $L=h_{\min}-1$. Define
+\begin{equation}\label{eq:scale}
+ P_L=1,\qquad
+ P_j=\prod_{h=h_{\min}}^j\frac{Km}{\reff(K-h)}\quad(L<j<M),\qquad
+ D_M=\sum_{j=L}^{M-1}P_j.
+\end{equation}
+For the constant chain~\eqref{eq:healthy}, the probability, starting from $M-1$, of hitting $L$ before $M$ is
+\begin{equation}\label{eq:q}
+ q_M=\frac{P_{M-1}}{D_M}.
+\end{equation}
+For every initial count $h_0\ge M$,
+\begin{equation}\label{eq:anchorbound}
+ \Prob_{h_0}(\tau_H\le T)
+ \le \min\{1,MmTq_M\}
+ \le \min\left\{1,MmT\prod_{h=h_{\min}}^{M-1}
+               \frac{Km}{\reff(K-h)}\right\}.
+\end{equation}
+The upper bounds also hold for adapted unit-jump rates with births at least the comparison rates and deaths at most the comparison rates, on the same capped state space.
+\end{theorem}
+
+\begin{proof}
+Let $p_h$ be the probability of hitting $L$ before $M$. At an interior state,
+\[
+ \lambda_h(p_{h+1}-p_h)=\mu_h(p_h-p_{h-1}),\qquad p_L=1,\quad p_M=0.
+\]
+Successive differences are multiplied by $\mu_h/\lambda_h=Km/[\reff(K-h)]$. Summing those differences between the two boundaries gives the standard scale-function solution \citep{karlin1975},
+\begin{equation}\label{eq:ph}
+ p_h=\frac{\sum_{j=h}^{M-1}P_j}{D_M}.
+\end{equation}
+In particular this proves~\eqref{eq:q}. If $M=h_{\min}$, the departure already crosses the threshold and the empty-product convention gives $q_M=1$.
+
+Starting at or above $M$, every failure must be part of an excursion initiated by a jump $M\to M-1$. That departure counting process has intensity $Mm\1_{\{H_t=M\}}$, so its compensator, and hence its expected number by time $T$, is at most $MmT$. At each departure the strong Markov property gives eventual failure probability $q_M$. Summing these conditional probabilities over departures and applying the union bound gives the first inequality; counting a failure occurring after $T$ from an excursion begun before $T$ only enlarges the event. Since $D_M\ge P_L=1$, the second inequality follows. Upward excursions above $M$ must revisit $M$ before reaching the lower boundary, so they do not escape this accounting.
+
+For the adapted source, couple it above a constant comparison chain. At equal states use common jumps at the smaller rates; assign excess actual births and excess comparison deaths to the appropriate chain, which preserves the order. When the states differ, unit jumps cannot cross without first meeting. This nearest-neighbour coupling requires no monotonicity of the logistic birth rate in the state. The threshold-crossing event of the actual chain is therefore contained in that of the lower comparison chain, which proves the extension, including its boundary and initial-state assertions.
+\end{proof}
+
+\begin{corollary}[Incomplete or random preparation]\label{cor:initial}
+For $h_{\min}\le h_0<M$, the same comparison gives
+\begin{equation}\label{eq:initial}
+ \Prob_{h_0}(\tau_H\le T)\le
+ \min\left\{1,\frac{\sum_{j=h_0}^{M-1}P_j}{D_M}+MmTq_M\right\},
+\end{equation}
+and the right-hand side is nonincreasing in $h_0$. For a random initial count, average the first term over its actual law, using zero for counts at least $M$ and one for counts below $h_{\min}$. In particular, if $\Prob(H_0<M)\le\eta$, the bound is at most $\min\{1,\eta+MmTq_M\}$.
+\end{corollary}
+\begin{proof}
+For the constant comparison chain, first stop on reaching $L$ or $M$. Equation~\eqref{eq:ph} bounds failure before reaching $M$; upon reaching $M$ the remaining time is no greater than $T$, so Theorem~\ref{thm:anchor} applies at that endpoint, and the strong Markov property assembles the two stages. Monotonicity in $h_0$ holds because the numerator in~\eqref{eq:ph} is a sum of nonnegative terms over $j\ge h_0$. Order coupling transfers the result to the adapted source, and averaging the conditional initial-state bounds proves the random-preparation statement.
+\end{proof}
+
+\begin{remark}[Which of the two bounds to use]\label{rem:whichbound}
+The two inequalities in~\eqref{eq:anchorbound} differ by the factor $D_M\ge1$, which is a genuine improvement when the interior products decay slowly. At the operating instance of Theorem~\ref{thm:main} one has $D_{278}\approx2.59809$, so retaining the denominator improves the certificate by a factor of about $2.6$. We state the main theorem with the cruder product because that is the inequality carried by the formal certificate; the sharper form is used in Corollaries~\ref{cor:filling} and~\ref{cor:smaller}, where it is evaluated in exact rational arithmetic. Proposition~\ref{prop:highrenewal} shows that at high renewal the two agree to leading order, since then $D_M\to1$.
+\end{remark}
+
+\subsection{Capacity at finite renewal}\label{sec:capacity}
+The product in~\eqref{eq:anchorbound} is itself a finite design rule. Its capacity dependence becomes transparent when the threshold is a fixed fraction of the reserve.
+
+\begin{theorem}[Capacity law with explicit rounding]\label{thm:capacity}
+Fix $m,\reff>0$ and $0<\theta<1$ such that $x_*=1-m/\reff>\theta$. For each integer $K$, set
+\[
+ h_{\min}=\lceil K\theta\rceil,\qquad M=\lfloor Kx_*\rfloor,
+\]
+and assume $h_{\min}\le M$ and $H_0\ge M$. Put
+\begin{align}\label{eq:action}
+ f_\theta&=\log\frac{\reff(1-\theta)}m,\nonumber\\
+ \Iact(\theta;\reff,m)
+ &=(1-\theta)\log\frac{\reff(1-\theta)}m-(1-\theta)+\frac m{\reff}>0.
+\end{align}
+Then the sources covered by Theorem~\ref{thm:anchor} satisfy
+\begin{equation}\label{eq:capacitybound}
+ \Prob(\tau_H\le T)
+ \le\min\{1,KmT\exp[-K\Iact+2f_\theta]\}.
+\end{equation}
+For any positive sequence $T_K$ with $\log T_K=o(K)$, the corresponding upper exponential rate is at most $-\Iact$.
+\end{theorem}
+\begin{proof}
+The function $f(x)=\log[\reff(1-x)/m]$ is decreasing and nonnegative on $[\theta,x_*]$. The negative logarithm of the product in~\eqref{eq:anchorbound} is a left Riemann sum for $Kf$,
+\[
+ S_K=\sum_{h=h_{\min}}^{M-1}f(h/K)
+ \ge K\int_{h_{\min}/K}^{M/K}f(x)\,dx.
+\]
+Each omitted end interval has length less than $1/K$ and integrand at most $f_\theta$. Consequently
+\[
+ S_K\ge K\int_\theta^{x_*}f(x)\,dx-2f_\theta=K\Iact-2f_\theta.
+\]
+The integral is strictly positive because $x_*>\theta$; elementary integration gives~\eqref{eq:action}. Substitute this estimate into~\eqref{eq:anchorbound} and use $M\le K$. Dividing the logarithm of the resulting bound by $K$ gives the last assertion.
+\end{proof}
+
+Thus an explicit sufficient sizing condition is
+\begin{equation}\label{eq:sizing}
+ K\Iact\ge\log\frac{KmT}{\alpha}+2f_\theta,\qquad
+ \lceil K\theta\rceil\le\lfloor Kx_*\rfloor,\quad H_0\ge\lfloor Kx_*\rfloor.
+\end{equation}
+The constant $2f_\theta$ controls integer rounding; it is not a hidden $K$-dependent error. Merely assuming $h_{\min}/K\to\theta$ would generally give an $o(K)$ correction rather than this fixed one. Equation~\eqref{eq:capacitybound} is an upper-bound exponent, not a claim about an exact fixed-time large-deviation rate, and no matching lower bound is asserted in this regime. At the instance of Theorem~\ref{thm:main} the envelope~\eqref{eq:capacitybound} evaluates to about $3.434\times10^{-5}$, looser than the exact product $6.938\times10^{-6}$: use the product for finite design and the action for interpretation.

@@ -1,0 +1,9 @@
+import proofs.TinyProgrammableChemicalFactory.RateBudget
+import proofs.TinyProgrammableChemicalFactory.OperationKernel
+import proofs.TinyProgrammableChemicalFactory.CorrectionWalk
+import proofs.TinyProgrammableChemicalFactory.SelectionRound
+
+#print axioms TinyProgrammableChemicalFactory.enlarged_box_budget
+#print axioms TinyProgrammableChemicalFactory.central_derivative_nonneg
+#print axioms TinyProgrammableChemicalFactory.embedded_down_probability
+#print axioms TinyProgrammableChemicalFactory.selection_five_four

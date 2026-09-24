@@ -1,0 +1,1402 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,amsthm,booktabs,microtype,graphicx}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prb}{\mathbb P}
+\newcommand{\one}{\mathbf 1}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Id}{\mathrm{Id}}
+
+\title{Inherited-family dependence can reverse an\\ equal-exposure treatment decision}
+\author{}
+\date{21 September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We exhibit two seven-type branching models that agree on every type-resolved
+population mean, under every common deterministic schedule, and nevertheless
+prefer opposite orders for two equal-exposure interventions. The models differ
+only in the joint law of sister birth states: one partitions the mother's
+epigenetic marks complementarily between daughters, the other draws both
+daughters independently from the very same one-daughter marginal. All division,
+death, switching and mutation rates, the one-mutant-daughter convention and
+both exposures are identical. The objective is eventual total extinction under
+a declared common continuation, so the comparison is a probability, not a mean.
+Exact outward arithmetic places the four one-founder extinction probabilities in
+rational intervals of width $3\times10^{-15}$ and proves opposite order margins
+exceeding $1.6\times10^{-6}$; an analytic curvature bound together with four
+additional enclosed flows certifies the reversal throughout an interval of
+killing rates of width $1.6\times10^{-5}$. We identify the mechanism: the two
+laws share their first-order response to rare acquisition, and their second-order
+responses differ by the transported sister covariance. We prove this correction
+has a definite sign, so the independent approximation is systematically
+optimistic about eradication, and we give an exact finite-amplitude response
+identity valid at the witness parameters. The operational cost of the
+approximation is the loss $1.7013\times10^{-6}$ in extinction probability
+incurred by following its recommendation when the complementary law holds; a
+decision-preservation criterion says when a schedule ranking survives the
+approximation, and a scalar survival floor bounds what any predictable feedback
+course can achieve. Two continuation perturbations are quantified separately:
+residual acquisition up to $3\times10^{-5}$ and finite clearing of duration
+$152$, the latter at a common exposure cost $15.2$ times the course itself.
+Arguments are conventional probability and ODE proofs, numerical claims are
+exact interval arithmetic under a written soundness proof, and a thin Lean root
+checks selected algebra but not the stochastic theorem. This is a synthetic
+counterexample with a small near-tie effect, not a calibrated treatment
+recommendation.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+\subsection{A model-reduction question}
+Reversible tolerance can sustain a cell population long enough for durable
+resistance to arise, and branching models already connect phenotypic switching,
+permanent resistance and drug sequencing \cite{gunnarsson2020,iwasa2006}.
+Dose-response and induction laws shape optimal dosing \cite{gunnarsson2025}, and
+the timing of a second strike has been analysed directly in terms of
+evolutionary rescue \cite{patil2026,orr2014}. Neither treatment sequencing nor
+the general observation that offspring dependence can affect extinction is new
+here.
+
+Our question is narrower and is about model reduction. When a stochastic
+population model is simplified, a common and reasonable defence is that the
+simplification preserves the observable mean dynamics. Suppose it does so
+exactly: fix the molecular dynamics, all demographic rates, the acquisition
+convention, every one-daughter marginal, the two actions and their exposures,
+and change only the \emph{dependence between the two sister states produced at a
+division}. Every type-resolved mean trajectory is then unchanged, under every
+common schedule. Can the better treatment order for an exact extinction
+objective nevertheless change?
+
+\subsection{What we prove}
+It can. We construct a literal seven-type source (Section~\ref{sec:source}) with
+six molecular types carrying activating and repressive marks and one durable
+resistant type $M$. Under the \emph{complementary} law $J$ each old mark of the
+mother is allocated to one daughter or the other by a fair coin, so the pair
+conserves the mother's marks. Under the \emph{independent} law $I$ both daughters
+are drawn independently from exactly the marginal that $J$ induces. The two laws
+have identical marginals and, as a consequence of the one-mutant-daughter
+convention, identical complete mean operators (Proposition~\ref{prop:means}).
+
+Two actions $A$ and $B$ of ten time units each are compared in both chronological
+orders, with equal deadline and equal integrated rate increments. The objective
+is eventual total extinction under a declared post-course continuation which we
+prove clears every finite molecular population almost surely and creates no new
+$M$ (Proposition~\ref{prop:endpoint}). Theorem~\ref{thm:decision} states the
+counterexample: from any number of identical $AA$ founders, $J$ strictly prefers
+$BA$ and $I$ strictly prefers $AB$, with one-founder margins above
+$1.6\times10^{-6}$, and both preferences persist throughout a certified interval
+of the killing rate in $B$.
+
+Section~\ref{sec:mechanism} explains why. Expanding in the acquisition scale
+$\eps$, the two laws share the first-order coefficient exactly; the second-order
+coefficients differ by the transported covariance between sisters
+(equation~\eqref{eq:covtransport}). We prove in Theorem~\ref{thm:sign} that this
+covariance is nonpositive coordinatewise, so the independent approximation
+over-estimates extinction probability at leading order --- it is systematically
+optimistic about eradication. That sign alone does not decide a schedule
+comparison, because a reversal depends on the \emph{difference} of two such
+errors; Proposition~\ref{prop:exact} supplies an exact finite-amplitude identity
+for that difference, and the schedule-gap identity~\eqref{eq:gapidentity}
+connects it to the certified numbers.
+
+Section~\ref{sec:decision} gives the operational content: the direct cost of
+acting on the approximation, a criterion under which a schedule ranking is
+protected from it, the founder count at which the advantage is largest, and a
+minimax reading of the information limitation. Section~\ref{sec:floor} proves a
+survival floor valid for \emph{every} admitted predictable feedback course, so
+the exhibited schedules are compared against a genuine feasibility limit.
+Section~\ref{sec:continuation} quantifies how much the declared continuation can
+be perturbed before the conclusion is lost, and states the exposure cost of the
+finite version honestly.
+
+\subsection{What is not claimed}
+We do not optimise over schedules, identify the maximal reversal set, or refute
+any model-specific timing theorem proved under different assumptions. The effect
+is small and sits near a tie by construction: that is the point, since a decision
+procedure is exactly where a small modelling error becomes consequential. All
+rates are synthetic mathematical assumptions, not calibrated drug
+concentrations, doses or clinical cure probabilities, and nothing here is a
+treatment recommendation. The acquisition probabilities are stipulated
+coarse-grained per-division quantities and are not per-base mutation rates.
+
+\subsection{Evidence conventions}\label{sec:evidence}
+Claims carry one of four labels, used consistently and summarised in
+Appendix~\ref{sec:evidencemap}. \textbf{C} is a conventional written proof.
+\textbf{E} is a computation in exact rational or outward dyadic interval
+arithmetic, rigorous under a conventional soundness proof given in
+Appendix~\ref{sec:certificate}; the arithmetic is exact, but the integrator
+itself is not machine-verified. \textbf{K} is a strictly compiled Lean module;
+these cover selected algebra only and no Lean theorem asserts the
+probability-to-ODE bridge or the complete result. \textbf{N} is a floating-point
+diagnostic, used for illustration and never as an input to a certified sign.
+
+\section{The literal source and the extinction endpoint}\label{sec:source}
+
+\subsection{Molecular types, marks and rates}
+A molecular cell carries two sites, each unmarked, activating or repressive. Its
+type is the pair $(a,r)$ of activating and repressive mark counts with
+$a+r\le2$; there are six such types, and we write $u=2-a-r$ for the number of
+unmarked sites.
+
+\begin{center}
+\begin{tabular}{lrrrrrr}\toprule
+Type&$UU$&$UR$&$RR$&$AU$&$AR$&$AA$\\\midrule
+Activating marks $a$&0&0&0&1&1&2\\
+Repressive marks $r$&0&1&2&0&1&0\\\bottomrule
+\end{tabular}
+\end{center}
+
+Throughout, $r$ denotes a repressive mark count. The extinction probability of
+the resistant family is written $\rho$, never $r$. The nonzero molecular jump
+rates are
+\begin{align}
+ (a,r)\to(a+1,r)&:u(.01+a/2),&
+ (a,r)\to(a,r+1)&:u(.01+r/2),\label{eq:source}\\
+ (a,r)\to(a-1,r)&:a(e+r/4),&
+ (a,r)\to(a,r-1)&:r(e+a/4).\label{eq:source2}
+\end{align}
+Writing and erasing are each autocatalytic in their own mark and antagonised by
+the opposite mark. Vanishing prefactors suppress invalid boundary transitions.
+Let $Q_e$ be the resulting conservative generator, with diagonal minus the
+outgoing sum. Division has constant rate $b=.1$; molecular death is
+$d_i=d_i^0+c$, where $d_i^0=.01$ for the protected types $a>r$, namely $AU$ and
+$AA$, and $d_i^0=.3$ otherwise. The erasure level $e$ and the additional death
+$c$ are the two action variables.
+
+The seventh type $M$ is durable resistance. It divides into two $M$ cells at rate
+$\beta=.1$, dies at rate $\delta=.02$, never reverts, and is unaffected by either
+action. Its stipulated rates do not depend on the mark counts of the cell it came
+from. Its extinction probability from one cell is the minimal first-event fixed
+point
+\begin{equation}
+ \rho=\delta/\beta=1/5.\label{eq:rho}
+\end{equation}
+Note that $RR$ means ``two repressive marks'' and is a molecular type; it is not
+the resistant type $M$.
+
+\subsection{Two sister laws with the same marginals}
+Under the complementary law $J$, each of the mother's $a$ activating and $r$
+repressive marks is assigned independently to one of the two daughters by a fair
+coin:
+\begin{equation}
+ (Y,Z)=\bigl((I,J_r),\,(a-I,r-J_r)\bigr),\qquad
+ I\sim\mathrm{Bin}(a,1/2),\quad J_r\sim\mathrm{Bin}(r,1/2),\label{eq:Jlaw}
+\end{equation}
+independently of each other. Unmarked sites refill each daughter to two sites.
+The pair conserves the mother's old marks exactly. For molecular test functions
+$f,g$ write
+\[
+ D_{D,i}(f,g)=\E_{D,i}\bigl[f(Y)g(Z)\bigr],\qquad
+ (\Lambda f)_i=\E_i\bigl[f(Y)\bigr].
+\]
+The comparison law $I$ draws both daughters independently from that same
+one-daughter marginal, so
+\begin{equation}
+ D_{I,i}(f,g)=(\Lambda f)_i(\Lambda g)_i.\label{eq:Ilaw}
+\end{equation}
+Both laws are exchangeable and both induce the same $\Lambda$, which is the only
+sense in which they agree at the level of a single daughter. Law $I$ is an
+approximation: it generally does not conserve the mother's old marks across the
+pair. It is exactly the reduction obtained by recording the empirical
+one-daughter distribution and then assuming sisters are independent.
+
+\subsection{Division-associated acquisition of durable resistance}
+At each molecular division, with probability $\mu_i=\eps\kappa_i$, exactly one of
+the two sampled daughters, chosen uniformly, is replaced by an $M$ cell;
+otherwise both daughters retain their molecular types. We set $\kappa_i=.4$ for
+the protected types $AU,AA$ and $\kappa_i=.1$ otherwise, and admit
+$0\le\eps\le5/2$, which is exactly the range making every $\mu_i$ a probability.
+The mother is removed and exactly two daughters remain. Exchangeability gives
+the offspring probability generating function
+\begin{equation}
+ G_{D,i}(x,y)=(1-\mu_i)D_{D,i}(x,x)+\mu_i\,y\,(\Lambda x)_i.\label{eq:offspring}
+\end{equation}
+This convention is part of the model statement. Mutating each daughter
+independently, or adding a third cell, changes \eqref{eq:offspring} and is a
+different source; we do not study those variants. We call the event
+\emph{division-associated acquisition of durable resistance}, and emphasise that
+it is a stipulated coarse-grained probability per division, not a per-base DNA
+mutation probability.
+
+\begin{figure}[ht]
+\centering\includegraphics[width=\linewidth]{figures/source.pdf}
+\caption{The comparison changes only sister dependence. Both laws use the same
+daughter marginals, the same demographic rates and the same one-mutant-daughter
+convention. The declared continuation is part of the extinction endpoint.}
+\label{fig:source}
+\end{figure}
+
+\subsection{Backward field and the shared mean operator}
+The backward field on the invariant cube $[0,1]^7$ is
+\begin{align}
+ \Phi_{D,i}(x,y)&=(Q_ex)_i+d_i(1-x_i)+b\{G_{D,i}(x,y)-x_i\},\label{eq:field}\\
+ \Phi_M(y)&=\delta(1-y)+\beta(y^2-y).\label{eq:fieldM}
+\end{align}
+By \eqref{eq:rho}, $\Phi_M(\rho)=0$: the mutant coordinate is stationary at
+$\rho$, for every action, so from the terminal value $\rho$ it stays there and
+the molecular block decouples into a six-dimensional autonomous system with
+$y\equiv\rho$. We use this repeatedly.
+
+\begin{proposition}[Matched means; C, with E arithmetic]\label{prop:means}
+For molecular test weights $f$ and mutant weight $g$, the mean operator of the
+augmented process has molecular coordinates
+\begin{equation}
+ (\mathcal A_\eps(f,g))_i=(Q_ef)_i+b\{(2-\mu_i)(\Lambda f)_i+\mu_ig-f_i\}-d_if_i
+ \label{eq:mean}
+\end{equation}
+and mutant coordinate $(\beta-\delta)g$. It does not involve the joint daughter
+law. Consequently $J$ and $I$ have identical type-resolved mean trajectories
+under every common deterministic schedule, including the continuation. At
+$\eps=0$ the molecular block is $A=Q_e+b(2\Lambda-\Id)-\diag(d)$. Differentiating
+\eqref{eq:field} at the all-one vector gives $D\Phi(\one)=\mathcal A_\eps$, with
+the \emph{positive} mean-operator sign.
+\end{proposition}
+
+\begin{proof}
+Differentiate \eqref{eq:offspring} at $(x,y)=(\one,1)$ in the direction $(f,g)$.
+Bilinearity and symmetry of $D_D$ with $D_D(\one,\one)=1$ and
+$D_D(\one,f)=\Lambda f$ give $(1-\mu_i)\cdot2(\Lambda f)_i$ from the first term,
+and $\mu_i(g+(\Lambda f)_i)$ from the second; the sum is
+$(2-\mu_i)(\Lambda f)_i+\mu_ig$, which involves $D_D$ only through $\Lambda$.
+Adding the transport, death and removal terms of \eqref{eq:field} gives
+\eqref{eq:mean}. Both laws induce the same $\Lambda$, so the two mean operators
+coincide. Forward mean row vectors obey $m'=m\mathcal A_\eps$ and backward
+rewards are columns; the derivative at $\one$ carries a positive sign, and
+inserting a negative one corrupts every sensitivity equation below. The exact
+rational identity of the two $7\times7$ mean matrices is checked
+symbolically \textup{(E)}.
+\end{proof}
+
+Proposition~\ref{prop:means} says only that the two laws agree law-to-law for a
+fixed common schedule. It does \emph{not} say $AB$ and $BA$ have the same means,
+and it does not automatically extend to unconditional means under
+population-dependent feedback, where the realised action and the population can
+be correlated differently under the two laws.
+
+\subsection{Construction and the probability bridge}
+
+\begin{proposition}[Construction and probability bridge; C]\label{prop:bridge}
+For bounded action ranges and a finite initial population the process is
+nonexplosive. For deterministic piecewise constant actions, the backward flow of
+\eqref{eq:field}--\eqref{eq:fieldM} from a terminal payoff $g\in[0,1]^7$ equals
+the actual expected product of $g$ over the terminal population. Chronological
+phases $A$ then $B$ give $q=F_A^{10}\bigl(F_B^{10}(g)\bigr)$, where $F^t_\bullet$
+is the time-$t$ flow of the corresponding phase field. Fixed founders $z$ give
+probability $\prod_iq_i^{z_i}$; a random preparation requires averaging that
+product over its actual law.
+\end{proposition}
+
+\begin{proof}
+Construct bounded per-cell marked Poisson proposals on a countable binary
+genealogical tree, with thinning for type changes, death and division. A Yule
+process of per-cell rate $b=.1$ dominates the population size. Its finite mean on
+compact intervals bounds the expected integrated population and hence the
+expected total proposal count, so localisation excludes explosion; this also
+covers predictable population feedback, used in Section~\ref{sec:floor}. Under
+deterministic rates, future descendant clocks are independent conditional on
+daughter types. First-event conditioning gives \eqref{eq:field}: death
+contributes the empty product $1$, a type change contributes the new
+continuation value, and a division contributes the joint offspring monomial,
+averaged over the joint birth law --- this is the unique place where $J$ and $I$
+differ. The probability of two events descended from one founder in time $h$ is
+$O(h^2)$ uniformly. Bounded convergence and nonexplosion justify the integral
+identity and its differentiation. The polynomial field is Lipschitz on the cube,
+so uniqueness identifies its solution with the expectation. At a zero coordinate
+the field is nonnegative and at a one coordinate it is nonpositive, proving
+invariance of the cube. Conditioning at phase boundaries gives chronological
+composition. Independent founders multiply only under the stated deterministic
+schedule.
+\end{proof}
+
+\subsection{The declared continuation and the endpoint}
+The objective is eventual total extinction, so the regime after the finite course
+is part of the statement. After the deadline $T$ we set $e=.3$, $c=0$ and
+$\mu=0$, keeping the $M$ rates fixed.
+
+\begin{proposition}[Clearing continuation and terminal payoff; C, with E arithmetic]
+\label{prop:endpoint}
+Under this continuation every finite molecular population becomes extinct almost
+surely, and the continuation extinction vector is
+\begin{equation}
+ g=(1,1,1,1,1,1,\rho)=(1,1,1,1,1,1,1/5).\label{eq:terminal}
+\end{equation}
+Consequently eventual total survival is exactly survival of an $M$ family seeded
+by time $T$.
+\end{proposition}
+
+\begin{proof}
+Let $A_0$ be the mutation-free molecular mean matrix of the clearing source. For
+the positive weight $w=(14,11,10,84,43,107)$, exact rational substitution gives
+\begin{equation}
+ A_0w\le-.09\,w,\qquad -.09\,w-A_0w=(.2,.2,.2,1.56,.78,1.49)\ \ \text{\textup{(E)}}.
+ \label{eq:weight}
+\end{equation}
+By the stopped generator identity and Gronwall, the expected weighted molecular
+population decays at rate at least $.09$. Its minimum positive weight is $10$, so
+by Markov's inequality the probability of being nonempty at time $t$ is at most
+$e^{-.09t}\langle w,z\rangle/10$ and tends to zero; hence almost sure molecular
+extinction from any finite configuration. There is no acquisition after $T$, so
+no new $M$ appears, and $M$ is autonomous with extinction probability $\rho$ per
+initial cell by \eqref{eq:rho}; nonexplosion identifies the limit over
+genealogical depths with extinction. Finiteness of the population at $T$ and
+conditional independence of the autonomous $M$ families then give
+\eqref{eq:terminal} and the stated equivalence.
+\end{proof}
+
+Four natural events must be kept apart, since an $M$ cell can appear and later
+die. Table~\ref{tab:events} lists them with the terminal payoff computing each,
+together with floating diagnostics at the witness parameters which show they are
+genuinely different numbers.
+
+\begin{table}[ht]
+\centering\small
+\caption{Distinct endpoints and their backward constructions. Probabilities are
+complementary-law $AB$ diagnostics from one $AA$ founder, evidence \textbf{N};
+the certified table is Table~\ref{tab:certificate}.}
+\label{tab:events}
+\begin{tabular}{llr}\toprule
+Event&Backward construction&Diagnostic\\\midrule
+Total survival past the deadline $T$&terminal $0$, complement&$.14318$\\
+Some $M$ present at $T$&terminal $(\one,0)$, complement&$.03292$\\
+Some $M$ ever appeared by $T$&killed molecular field, mutant term deleted&$.03785$\\
+Eventual total survival (our objective)&terminal $(\one,\rho)$, complement&$.03042$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The dependence mechanism}\label{sec:mechanism}
+
+The certified reversal of Section~\ref{sec:certified} does not rest on this
+section: the four enclosed flows prove it outright. But without a mechanism the
+result reads as an unexplained numerical coincidence, so we record what actually
+drives it. Everything here is a conventional proof, exact algebra, or a finite
+exact check.
+
+Throughout this section the terminal molecular payoff is $\one$ and the mutant
+coordinate is frozen at its exact fixed point $y\equiv\rho$, which is the
+situation of \eqref{eq:terminal}.
+
+\subsection{The first-order response is common}
+\begin{proposition}[Rare-acquisition expansion; C]\label{prop:expansion}
+On a fixed finite deterministic course, the molecular backward solution admits
+the expansion $x_D=\one-\eps h+\eps^2k_D+O(\eps^3)$, in which
+\begin{align}
+ h'&=Ah+b\kappa(1-\rho),&h(0)&=0,\label{eq:h}\\
+ k_D'&=Ak_D+bD_D(h,h)+b\kappa(2-\rho)\Lambda h,&k_D(0)&=0,\label{eq:k}
+\end{align}
+with $A=Q_e+b(2\Lambda-\Id)-\diag(d)$ and all products with $\kappa$ taken
+coordinatewise. The first coefficient $h$ is the same for both daughter laws.
+\end{proposition}
+
+\begin{proof}
+At $\eps=0$ we have $\mu\equiv0$ and $x\equiv\one$ solves \eqref{eq:field}
+exactly, so the expansion starts at $\one$; smooth dependence of a polynomial ODE
+on a parameter over a compact finite-horizon domain justifies it. Substituting
+$x=\one-\eps h+\eps^2k+O(\eps^3)$ into $D_D$ and using bilinearity, symmetry and
+$D_D(\one,f)=\Lambda f$ gives
+\[
+ D_D(x,x)=1-2\eps\Lambda h+\eps^2\{2\Lambda k+D_D(h,h)\}+O(\eps^3),
+\]
+while $(\Lambda x)_i=1-\eps(\Lambda h)_i+O(\eps^2)$ and $\mu_i=\eps\kappa_i$.
+Collecting the $O(\eps)$ and $O(\eps^2)$ coefficients of \eqref{eq:field} with
+$y=\rho$ gives \eqref{eq:h} and \eqref{eq:k}; the detailed collection is in
+Appendix~\ref{sec:mechdetail}. The $\eps$-coefficient involves $D_D$ only through
+$\Lambda$, which is common, so $h$ is common.
+\end{proof}
+
+\subsection{The second order is transported sister covariance}
+Both laws are exchangeable with the same marginal, so
+$\E_{J,i}[h(Y)]=\E_{J,i}[h(Z)]=(\Lambda h)_i$ and, by \eqref{eq:Ilaw},
+\[
+ D_{I,i}(h,h)-D_{J,i}(h,h)=(\Lambda h)_i^2-\E_{J,i}[h(Y)h(Z)]
+ =-\Cov_{J,i}\bigl(h(Y),h(Z)\bigr).
+\]
+Subtracting the two copies of \eqref{eq:k} --- the acquisition term
+$b\kappa(2-\rho)\Lambda h$ is common and cancels --- gives the transport equation
+for $\Delta=k_I-k_J$:
+\begin{equation}
+ \boxed{\ \Delta'=A\Delta-b\,\Cov_{J}\bigl(h(Y),h(Z)\bigr),\qquad\Delta(0)=0,\ }
+ \label{eq:covtransport}
+\end{equation}
+coordinatewise, and hence, with $U_A(t,s)$ the mean propagator of the
+phase-dependent $A$,
+\begin{equation}
+ \Delta(t)=-\int_0^tU_A(t,s)\,b\,\Cov_{J,s}\bigl(h(Y),h(Z)\bigr)\,ds.
+ \label{eq:duhamel}
+\end{equation}
+Sensitivity states and propagators carry through phase boundaries without reset.
+These are finite-horizon expansions; they assert nothing uniformly in time or in
+founder number.
+
+\subsection{The correction has a definite sign}
+Order the molecular types by
+\begin{equation}
+ (a,r)\preceq(a',r')\quad:\Longleftrightarrow\quad a\le a'\ \text{and}\ r\ge r',
+ \label{eq:order}
+\end{equation}
+so that ``more activating, fewer repressive'' is higher. This is a partial order
+with least element $RR$ and greatest element $AA$, and exactly six covering
+pairs: $RR\lessdot UR$, $UR\lessdot UU$, $UR\lessdot AR$, $UU\lessdot AU$,
+$AR\lessdot AU$ and $AU\lessdot AA$. Let $\mathcal C$ be the closed convex cone of
+vectors that are nonnegative and $\preceq$-increasing.
+
+\begin{lemma}[$h$ stays in the monotone cone; C, with a finite E check]
+\label{lem:cone}
+At the witness parameters, $h(t)\in\mathcal C$ for every $t\in[0,20]$ and for both
+chronological orders.
+\end{lemma}
+
+\begin{proof}
+The forcing $b\kappa(1-\rho)$ of \eqref{eq:h} is nonnegative, and $\kappa$ is
+$\preceq$-increasing: a violation would need $\kappa_i=.4$ and $\kappa_j=.1$ with
+$i\preceq j$, hence $i\in\{AU,AA\}$, but every $j$ above $AU=(1,0)$ has $a\ge1$
+and $r\le0$ and so lies in $\{AU,AA\}$, and the only $j$ above $AA=(2,0)$ is
+$AA$ \textup{(E)}. Since $h(0)=0\in\mathcal C$, it suffices that
+$\mathcal C$ is forward invariant for the affine field $f\mapsto Af+b\kappa(1-\rho)$
+in each phase. The cone is the polyhedron cut out by $f_{RR}\ge0$ together with
+$f_j-f_i\ge0$ over the six covering pairs, so by Nagumo's subtangentiality
+criterion invariance holds as soon as each active constraint has nonnegative
+outward rate.
+
+For the constraint $f_{RR}\ge0$: if $f\in\mathcal C$ with $f_{RR}=0$ then $f\ge0$
+because $RR$ is least, and $A$ is Metzler \textup{(E)}, so
+$(Af)_{RR}=A_{RR,RR}\cdot0+\sum_{k\ne RR}A_{RR,k}f_k\ge0$; adding the nonnegative
+forcing keeps it nonnegative.
+
+For a covering constraint $i\lessdot j$: if $f\in\mathcal C$ with $f_i=f_j$ we need
+$(Af)_j-(Af)_i+b(1-\rho)(\kappa_j-\kappa_i)\ge0$, and the last term is
+nonnegative, so it suffices that $(Af)_j\ge(Af)_i$. The slice
+$\mathcal C\cap\{f_i=f_j\}$ is again a cone, and the layer-cake decomposition
+$f=\int_0^\infty\one_{\{f>t\}}\,dt$ writes any of its elements as a nonnegative
+combination of indicators of up-sets, each of which satisfies the same equality
+$\one_{\{f>t\}}(i)=\one_{\{f>t\}}(j)$ because $f_i=f_j$. The poset has exactly
+seven nonempty up-sets, so the requirement reduces to a finite list of
+inequalities. Exact rational evaluation confirms all of them: $32$ inequalities
+for phase $A$ and $32$ for phase $B$, all nonnegative \textup{(E)}. Both phases
+therefore leave $\mathcal C$ invariant, and the two phases compose because the cone
+is the same. The explicit inequalities are in Appendix~\ref{sec:mechdetail}.
+\end{proof}
+
+\begin{theorem}[The independent approximation is optimistic at leading order; C]
+\label{thm:sign}
+Under the hypothesis of Lemma~\ref{lem:cone},
+$\Cov_{J,i}(h(Y),h(Z))\le0$ for every molecular type $i$ and every time, and
+therefore $\Delta=k_I-k_J\ge0$ coordinatewise. Ignoring sister dependence
+over-estimates the eventual extinction probability at leading order in $\eps$,
+equivalently it under-estimates the probability of rescue.
+\end{theorem}
+
+\begin{proof}
+Fix a mother of type $(a,r)$ and let $\xi_1,\dots,\xi_a$ and
+$\zeta_1,\dots,\zeta_r$ be the independent fair allocation bits of
+\eqref{eq:Jlaw}, so that $Y=(\sum_m\xi_m,\sum_m\zeta_m)$ and
+$Z=(a-\sum_m\xi_m,\,r-\sum_m\zeta_m)$. Introduce the independent bit vector
+\[
+ W=(\xi_1,\dots,\xi_a,\,1-\zeta_1,\dots,1-\zeta_r)\in\{0,1\}^{a+r},
+\]
+whose coordinates are again independent and fair. Increasing a coordinate of $W$
+either increases the activating count of $Y$ or decreases its repressive count,
+so $Y$ is $\preceq$-increasing in $W$; simultaneously it decreases the activating
+count of $Z$ or increases its repressive count, so $Z$ is $\preceq$-decreasing in
+$W$. By Lemma~\ref{lem:cone}, $h$ is $\preceq$-increasing, so $h(Y)$ is a
+coordinatewise increasing and $h(Z)$ a coordinatewise decreasing function of the
+independent vector $W$. Harris' correlation inequality for product measures
+\cite{harris1960} gives $\Cov(h(Y),h(Z))\le0$.
+
+The forcing $-b\Cov_J(h(Y),h(Z))$ in \eqref{eq:covtransport} is therefore
+nonnegative. Each phase matrix $A$ is Metzler, so its propagator $U_A(t,s)$ is
+entrywise nonnegative, and \eqref{eq:duhamel} with $\Delta(0)=0$ gives
+$\Delta\ge0$. Since $x_D=\one-\eps h+\eps^2k_D+O(\eps^3)$ with $h$ common, the
+first term of $x_I-x_J$ that does not cancel is $\eps^2\Delta$, and it is
+nonnegative; by Propositions~\ref{prop:bridge} and \ref{prop:endpoint} $x$ is
+the eventual extinction probability.
+\end{proof}
+
+Two qualifications matter. First, Theorem~\ref{thm:sign} is a statement about the
+fixed source above, with constant division rate and the stated monotone death and
+acquisition profiles; state-dependent division would break Lemma~\ref{lem:cone},
+whose finite check is specific to these two phase matrices. Second, and
+decisively for our purpose, a nonnegative dependence error \emph{for each
+schedule separately} does not decide which schedule has the larger error. The
+reversal depends on that difference, which the next two results address.
+
+\subsection{An exact finite-amplitude response identity}
+The expansion above explains where the effect comes from but cannot certify it.
+At the witness value $\eps=1/10$ the best remainder bound we obtained from a
+generic third-derivative estimate exceeds $600$, seven orders of magnitude larger
+than the $10^{-6}$ decision (Appendix~\ref{sec:mechdetail}). That is a failed
+sufficient bound, not a false expansion. The following identity replaces it and
+is exact at every $\eps$.
+
+\begin{proposition}[Exact dependence response; C]\label{prop:exact}
+For a common terminal molecular payoff let $z=x_I-x_J$ and put
+\begin{align}
+ B(t)f&=Q_ef-(d+b)f+b(1-\mu)D_I(x_I+x_J,f)+b\mu\rho\Lambda f,\label{eq:Bop}\\
+ C(t)&=b(1-\mu)\bigl\{D_I(x_J,x_J)-D_J(x_J,x_J)\bigr\}
+      =-b(1-\mu)\Cov_J\bigl(x_J(Y),x_J(Z)\bigr).\label{eq:Cforce}
+\end{align}
+Then $z'=B(t)z+C(t)$ with $z(0)=0$, so
+$z(t)=\int_0^tU_B(t,s)C(s)\,ds$. The operator $B(t)$ is Metzler on the invariant
+cube, so $U_B$ is nonnegative, and the response to $|C|$ bounds the absolute
+dependence error.
+\end{proposition}
+
+\begin{proof}
+Subtract the two copies of \eqref{eq:field} and add and subtract
+$D_I(x_J,x_J)$. Bilinearity and symmetry of $D_I$ give
+$D_I(x_I,x_I)-D_I(x_J,x_J)=D_I(x_I+x_J,x_I-x_J)$, which is the third term of
+\eqref{eq:Bop} applied to $z$; the transport, death, removal and mutant terms are
+linear in $x$ and common to both laws, giving the remaining terms of
+\eqref{eq:Bop}. What is left over is exactly \eqref{eq:Cforce}, and the second
+form of $C$ follows as in \eqref{eq:covtransport}. All coefficients of $Q_e$,
+$D_I$ and $\Lambda$ off the diagonal are nonnegative and $x_I+x_J\ge0$ on the
+cube, so $B(t)$ is Metzler.
+\end{proof}
+
+Proposition~\ref{prop:exact} isolates the whole dependence error: the common
+acquisition terms enter only through the linear response $B$, and cancel from the
+forcing $C$. Note that \eqref{eq:Cforce} is again a sister covariance, now of the
+full finite-$\eps$ solution rather than of the first-order coefficient.
+
+\subsection{From the mechanism to the certified reversal}
+Write $E_s=q_I(s)-q_J(s)$ for the dependence error of schedule $s$ and
+$G_D=q_D(AB)-q_D(BA)$ for the signed order gap of law $D$. Then, trivially but
+usefully,
+\begin{equation}
+ G_J=G_I-(E_{AB}-E_{BA}).\label{eq:gapidentity}
+\end{equation}
+This is the bridge between mechanism and certificate. Theorem~\ref{thm:sign} says
+both $E_{AB}$ and $E_{BA}$ are positive at leading order, and
+Proposition~\ref{prop:exact} says each is a transported covariance; because the
+covariance is generated during one pulse and then propagated through the other,
+the two schedules transport it differently, and their difference is what
+\eqref{eq:gapidentity} feeds into the order gap. Section~\ref{sec:certified}
+certifies that this difference exceeds the order margin, which is exactly the
+condition for a reversal. Figure~\ref{fig:decision}(c) displays the leading-order
+transport for the two schedules; at $\eps=1/10$ it reproduces each certified
+error, and their difference, to within about $18\%$, which is the expected size
+of the neglected $O(\eps^3)$ term \textup{(N)}.
+
+Neither the covariance sign alone nor any qualitative asymptotic argument proves
+the finite witness. The enclosed flows do.
+
+\section{A certified equal-exposure decision reversal}\label{sec:certified}
+
+\subsection{Actions and exposure accounting}
+Let $\eps=1/10$, so the acquisition probability per division is $.04$ for the
+protected types and $.01$ otherwise. Fix the two actions
+\[
+ A:(e,c)=(3/10,\,0),\qquad B:(e,c)=(1/100,\ 120553/10^6),
+\]
+each applied for ten time units and followed by the continuation of
+Proposition~\ref{prop:endpoint}. Action $A$ erases marks aggressively without
+extra killing; action $B$ kills without erasing. Both orders have deadline
+$T=20$, intrinsic-erasure increment exposure $2.9$ above the baseline $.01$, and
+additional molecular-death exposure $1.20553$. The $M$ rates are unaffected by
+either action.
+
+These are equal integrals of model rate increments. They are not equal measured
+drug masses, equal toxicity burdens, equal pharmacokinetic exposures or equal
+healthy-cell constraints; the equality is an assumption of the comparison, chosen
+so that no difference in the total amount of intervention can explain the result.
+
+\subsection{The counterexample}
+
+\begin{theorem}[Matched means, opposite decisions; C with E arithmetic]
+\label{thm:decision}
+For every positive integer $n$ of identical $AA$ founders, complementary
+inheritance $J$ gives strictly larger eventual total-extinction probability under
+$BA$ than under $AB$, while independent-marginal inheritance $I$ gives strictly
+larger probability under $AB$ than under $BA$. At the central parameters each
+one-founder order margin exceeds $1.6\times10^{-6}$ in magnitude. Both
+preferences persist for every
+\begin{equation}
+ .120545\le c_B\le.120561,\label{eq:neighborhood}
+\end{equation}
+all other quantities held fixed.
+\end{theorem}
+
+\begin{proof}
+The exact outward arithmetic of Appendix~\ref{sec:certificate} places the four
+one-founder extinction probabilities in the rational intervals of
+Table~\ref{tab:certificate}, whence
+\begin{align}
+ -1.702\times10^{-6}&<q_J(AB)-q_J(BA)<-1.701\times10^{-6},\label{eq:gapJ}\\
+  1.770\times10^{-6}&<q_I(AB)-q_I(BA)< 1.771\times10^{-6}.\label{eq:gapI}
+\end{align}
+Propositions~\ref{prop:bridge} and \ref{prop:endpoint} identify these $AA$
+coordinates with eventual total extinction from one $AA$ founder. All four
+numbers lie strictly in $(0,1)$, so raising them to the power $n$ preserves the
+strict orders. Proposition~\ref{prop:means} gives equality of all mean
+trajectories between the two laws, schedule by schedule. The interval assertion
+is Lemma~\ref{lem:curvature} below.
+\end{proof}
+
+\begin{table}[ht]
+\centering
+\caption{Rational outward intervals for eventual total extinction from one $AA$
+founder, at the central parameters. The exact dyadic intervals in the
+reproduction files are tighter; each order-gap enclosure has width below
+$4\times10^{-16}$.}
+\label{tab:certificate}
+\begin{tabular}{lll}\toprule
+Law and order&Lower endpoint&Upper endpoint\\\midrule
+$J$, $AB$&.969579866104740&.969579866104742\\
+$J$, $BA$&.969581567445558&.969581567445561\\
+$I$, $AB$&.969623237350068&.969623237350071\\
+$I$, $BA$&.969621466763777&.969621466763781\\\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Curvature turns four endpoint flows into a continuum}
+The interval statement cannot be obtained by sampling. We prove it from two
+enclosed endpoint gaps, the preserved central certificate and an analytic bound
+on the second derivative of the gap in the parameter. We write the argument out
+in full, because the intermediate step --- how a secant becomes a uniform
+derivative bound --- is what makes the conclusion valid off the sampled points.
+
+\begin{lemma}[Curvature and the certified interval; C with E arithmetic]
+\label{lem:curvature}
+Let $G_D(c)=q_D(AB;c)-q_D(BA;c)$ as a function of the additional death rate $c$
+in pulse $B$, all else fixed. Then $|G_D''|\le6912$ uniformly on the nonnegative
+parameter range, and $G_J<0<G_I$ throughout \eqref{eq:neighborhood}.
+\end{lemma}
+
+\begin{proof}
+Work with the six molecular coordinates, the mutant coordinate being frozen at
+$\rho$. Write the molecular backward field along the schedule as $f(t,x,c)$, let
+$\chi_B(t)$ indicate the phase carrying the varied parameter, and set $J_x=D_xf$,
+$u=\partial_cx$, $v=\partial_c^2x$. Since $c$ enters \eqref{eq:field} only through
+$d_i=d_i^0+c$ in the term $d_i(1-x_i)$, we have $\partial_cf=\chi_B(\one-x)$,
+$\partial_c\partial_xf=-\chi_B\Id$ and $\partial_c^2f=0$. Differentiating the
+flow equation once and twice in $c$ gives
+\begin{align}
+ u'&=J_xu+\chi_B(t)(\one-x),&u(0)&=0,\label{eq:u}\\
+ v'&=J_xv+D_{xx}f[u,u]-2\chi_B(t)u,&v(0)&=0.\label{eq:v}
+\end{align}
+The factor two in \eqref{eq:v} arises because
+$\partial_cJ_x=D_{xx}f[u,\cdot]-\chi_B\Id$ contributes $-\chi_Bu$ in addition to
+the $-\chi_Bu$ obtained by differentiating the forcing of \eqref{eq:u}.
+Sensitivities pass through the phase boundary without resetting, and pulse
+durations are fixed, so there is no moving-boundary derivative.
+
+Three uniform bounds on the cube are needed, all by direct inspection of
+\eqref{eq:source}--\eqref{eq:offspring} \textup{(E)}. The Jacobian $J_x$ is
+Metzler with molecular row sums at most $b-d_i-b\mu_i(2-\rho)\le b-d_i\le.09$, so
+its logarithmic sup norm is at most $.09$. The state Hessian satisfies
+$\|D_{xx}f[u,u]\|_\infty\le2b\|u\|_\infty^2=.2\|u\|_\infty^2$, since the only
+quadratic term is $b(1-\mu_i)D_i(x,x)$ and $D_i$ has unit total mass. At the
+molecular vector $\one$ with mutant coordinate $\rho$ the field equals
+$-b\mu_i(1-\rho)$, of sup norm at most $b\eps\kappa_{\max}(1-\rho)=.0032$; this
+is \emph{not} evaluated at the full seven-dimensional all-one vector, where the
+field vanishes.
+
+Variation of constants applied to $\one-x$, then to \eqref{eq:u}, gives for
+$0\le t\le20$
+\begin{equation}
+ \|\one-x(t)\|_\infty\le.0032\,te^{.09t},\qquad
+ \|u(t)\|_\infty\le\int_0^te^{.09(t-s)}.0032\,se^{.09s}ds=.0016\,t^2e^{.09t}<6,
+ \label{eq:ubound}
+\end{equation}
+the last step using $e^{1.8}<9$, which follows from $e<3$ and hence
+$e^{1.8}<e^2<9$. Feeding \eqref{eq:ubound} into \eqref{eq:v},
+\begin{equation}
+ \|v(20)\|_\infty\le\int_0^{20}e^{.09(20-s)}\bigl\{.2\|u(s)\|_\infty^2
+   +2\|u(s)\|_\infty\bigr\}ds\le20\cdot9\{.2\cdot36+2\cdot6\}=3456.
+ \label{eq:vbound}
+\end{equation}
+Each $G_D$ is a difference of two such schedule coordinates, so
+$|G_D''|\le2\cdot3456=6912$ uniformly, and the bound holds on both phases and on
+the whole nonnegative parameter range.
+
+Now the endpoints. Exact arithmetic on four additional flows with identical
+source equations gives
+\begin{equation}
+ -5.114\times10^{-7}<G_J(.120545)<-5.113\times10^{-7},\qquad
+  5.830\times10^{-7}<G_I(.120561)<5.831\times10^{-7}\ \ \text{\textup{(E)}}.
+ \label{eq:endpoints}
+\end{equation}
+For law $J$ form the secant of $G_J$ between $.120545$ and the central value
+$.120553$, a span of $8\times10^{-6}$; combining \eqref{eq:endpoints} with
+\eqref{eq:gapJ} encloses that secant slope in
+$(-.1487475,-.1487474)$. By the mean value theorem the secant equals
+$G_J'(\xi)$ at some $\xi$ strictly inside that span, hence inside
+\eqref{eq:neighborhood}. Every point $c$ of \eqref{eq:neighborhood} satisfies
+$|c-\xi|\le1.6\times10^{-5}$, so the curvature bound gives
+$|G_J'(c)-G_J'(\xi)|\le6912\cdot1.6\times10^{-5}=.110592$ and therefore
+\[
+ G_J'(c)<-.1487474+.110592=-.03815\qquad\text{for all $c$ in
+ \eqref{eq:neighborhood}}.
+\]
+The same computation for $I$, using the secant between $.120553$ and $.120561$
+together with \eqref{eq:gapI}, gives $G_I'(c)<-.03785$ on the same interval.
+Both gaps are therefore strictly decreasing across \eqref{eq:neighborhood}. Since
+$G_J$ is negative at the left endpoint and decreasing, it is negative throughout;
+since $G_I$ is positive at the right endpoint and decreasing, it is positive
+throughout. No sampling and no root bracket are used.
+\end{proof}
+
+\begin{remark}
+The interval \eqref{eq:neighborhood} is an \emph{inner} certified interval, not
+the maximal reversal set: it is bounded by where we placed endpoint flows. Its
+width $1.6\times10^{-5}$ is $8000$ times the width of the elementary Lipschitz
+neighbourhood ($2\times10^{-9}$) available before this argument, which measures
+an improvement in the certificate and not an amplification of any biological
+effect. The margins at the endpoints are correspondingly smaller than the central
+margins. Determining the maximal set would require either many more endpoint
+flows or a validated root enclosure; neither is needed here.
+\end{remark}
+
+\subsection{The approximation error against the decision margin}
+Ignoring sister dependence changes the extinction coordinate by
+\begin{equation}
+ E_{AB}\approx4.3371245\times10^{-5},\qquad
+ E_{BA}\approx3.9899318\times10^{-5},\qquad
+ E_{AB}-E_{BA}\approx3.4719271\times10^{-6},
+ \label{eq:errors}
+\end{equation}
+all three enclosed exactly \textup{(E)}. Both absolute errors are small ---
+about four parts in $10^{5}$ of a probability close to $.97$ --- and they have
+the sign predicted by Theorem~\ref{thm:sign}. But their \emph{difference} exceeds
+the approximate order margin $1.771\times10^{-6}$, and by
+\eqref{eq:gapidentity} that is precisely what flips the sign of the gap.
+Absolute probability accuracy and decision accuracy are therefore different
+things. This result isolates decision vulnerability near a tie; it does not claim
+a large population-level benefit.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figures/decision.pdf}
+\caption{(a) The shaded interval is certified by two endpoint enclosures, the
+preserved central certificate and the analytic curvature bound of
+Lemma~\ref{lem:curvature}; the smooth curves are floating-point diagnostics and
+their zero crossings, near $.1205416$ and $.1205649$, are neither certified root
+brackets nor a claim about a maximal reversal region. (b) Curves use midpoints of
+the enclosed one-founder probabilities; the unique maxima at $32$ founders are
+established by exact rational increment signs, not by the plotted samples.
+(c) Leading-order dependence error $\eps^2\Delta_{AA}$ transported backward from
+the deadline, from \eqref{eq:covtransport}, with the phase boundary at $s=10$;
+stars mark the certified finite-$\eps$ values $E_s$ of \eqref{eq:errors}. The
+curves cross: the schedules differ in how the covariance forcing generated in one
+pulse is propagated through the other.}
+\label{fig:decision}
+\end{figure}
+
+\section{What the approximation costs a decision maker}\label{sec:decision}
+
+\subsection{The direct misspecification cost}
+The cleanest operational quantity involves no hypothetical randomisation over
+models. Suppose the complementary law $J$ is the true source and a modeller,
+having validated the means, adopts the independent approximation and follows its
+recommendation $AB$. The loss relative to the recommendation $BA$ that $J$ would
+have given is
+\begin{equation}
+ R_{I\to J}=q_J(BA)-q_J(AB)=m_J\in
+ \bigl(1.70134081854\times10^{-6},\,1.70134081866\times10^{-6}\bigr)\ \ \text{\textup{(E)}}.
+ \label{eq:direct}
+\end{equation}
+This is simultaneously lost extinction probability and added eventual-survival
+probability. We write $m_J=q_J(BA)-q_J(AB)>0$ and $m_I=q_I(AB)-q_I(BA)>0$ for the
+two order margins throughout.
+
+\subsection{When a schedule ranking is protected}
+\begin{corollary}[A replacement for unqualified mean-based decisions; C]
+\label{cor:criterion}
+If two schedules admit valid bounds $|q_J(s)-q_I(s)|\le E_s$ and
+$q_I(A)-q_I(B)>E_A+E_B$, then $q_J(A)>q_J(B)$. Signed bounds on $E_A-E_B$, when
+available, are sharper and may be used instead. Conversely, no decision rule
+using only the complete type-resolved mean trajectories can always select the
+better of our two schedules for both inheritance laws.
+\end{corollary}
+
+\begin{proof}
+The first assertion is the triangle inequality. For the second, the mean data are
+identical for the two models by Proposition~\ref{prop:means}, so a rule using only
+those data returns the same answer in both; Theorem~\ref{thm:decision} requires
+opposite answers.
+\end{proof}
+
+The worked instance is instructive. The independent-model central margin lies in
+$(1.770,1.771)\times10^{-6}$ and the paired correction $E_{AB}-E_{BA}$ in
+$(3.471,3.473)\times10^{-6}$, so subtracting the signed correction certifies the
+complementary preference for $BA$. Had only a symmetric bound of
+$\pm4\times10^{-6}$ on that correction been available, the corrected margin
+interval would contain zero and the defensible output would be ``order
+unresolved at this approximation-error level'' \textup{(E)}. This concerns model
+approximation error and is not an empirical confidence interval; empirical
+uncertainty would have to be modelled separately.
+
+For a fixed heterogeneous preparation, telescoping the product of coordinates
+gives $|P_J-P_I|\le\sum_iz_i|q_{J,i}-q_{I,i}|$. An ordering for identical $AA$
+founders proves no ordering for an arbitrary mixture.
+
+\subsection{Founder scaling}
+\begin{proposition}[Unique founder maximum; C with E arithmetic]\label{prop:founders}
+Fix a law and let $0<l<h<1$ be its worse and better one-founder extinction
+probabilities. The advantage $A_n=h^n-l^n$ is positive, tends to zero, and
+satisfies $A_n\le n(h-l)h^{n-1}$. Its increment $A_{n+1}-A_n=l^n(1-l)-h^n(1-h)$
+changes sign at most once. For both laws the increment is positive at $n=31$ and
+negative at $n=32$, so both advantages attain their unique integer maximum at
+$32$ identical $AA$ founders, with values in
+$(2.08950953,2.08950954)\times10^{-5}$ for $J$ and
+$(2.17745028,2.17745029)\times10^{-5}$ for $I$.
+\end{proposition}
+
+\begin{proof}
+Positivity and the factorisation $A_n=(h-l)\sum_{j<n}h^{n-1-j}l^j\le n(h-l)h^{n-1}$
+are immediate, as is $A_n\to0$. Dividing the increment by $h^n$ gives
+$(l/h)^n(1-l)-(1-h)$, and $(l/h)^n$ strictly decreases, so the increment changes
+sign at most once. The two increment signs are evaluated in exact rational
+arithmetic from the endpoints of Table~\ref{tab:certificate} \textup{(E)}, which
+avoids selecting an integer by rounded logarithms.
+\end{proof}
+
+A larger founder count therefore does not amplify the effect indefinitely; it
+changes achieved risk without changing the preferred schedule
+(Figure~\ref{fig:decision}(b)).
+
+\subsection{A minimax reading of the information limitation}
+The next proposition is a statement about a class of models that the permitted
+information cannot separate. It is secondary to \eqref{eq:direct} and we state it
+as such.
+
+\begin{proposition}[Regret under mean-indistinguishable information; C with E arithmetic]
+\label{prop:regret}
+A randomised decision rule that sees only information common to the two models,
+including their complete type-resolved mean trajectories, has worst-case expected
+extinction regret at least
+\[
+ R_*=\frac{m_Jm_I}{m_J+m_I}\in
+ \bigl(8.67636512\times10^{-7},\,8.67636514\times10^{-7}\bigr),
+\]
+and the bound is attained in this two-model problem by choosing $AB$ with
+probability $m_I/(m_J+m_I)$.
+\end{proposition}
+
+\begin{proof}
+Such a rule selects $AB$ with the same probability $p$ under both laws. Its
+regrets are $pm_J$ and $(1-p)m_I$. If $p\ge m_I/(m_J+m_I)$ the first is at least
+$R_*$, otherwise the second is; the displayed probability equalises them. The
+function $(s,t)\mapsto st/(s+t)$ increases in each positive argument, so
+substituting the endpoints of the certified intervals for $m_J$ and $m_I$ gives
+the enclosure \textup{(E)}. The randomisation selects an entire deterministic
+course independently of the population; the claim does not restrict a rule that
+observes sister pairs or any other information distinguishing the two laws.
+\end{proof}
+
+\begin{remark}
+The premise is an information restriction, not a physical randomisation of
+nature. If the conservative law $J$ is already known to hold, the two-world
+premise does not apply and the relevant loss is the deterministic
+\eqref{eq:direct}, which is about twice $R_*$. Halving the number by
+randomisation does not reduce the cost of the deterministic mistake under $J$.
+Nor is $p_*$ a dosing recommendation. Note also that an optimiser working inside
+model $I$ uses that model's assumed offspring law as well as the mean data; the
+actual modelling failure is treating validated means as sufficient warrant for
+that additional assumption.
+\end{remark}
+
+\section{A survival floor for every admitted feedback course}\label{sec:floor}
+
+The reversal compares two fixed schedules. It is natural to ask what any
+controller could achieve, including one that adapts to the observed population.
+The next theorem answers this in the direction that matters --- it is a
+feasibility obstruction --- and it holds without assuming independence between
+founder outcomes, which fails under feedback.
+
+\begin{theorem}[Scalar feedback envelope; C with E arithmetic]\label{thm:floor}
+On $[0,T]$ let actions be bounded and predictable, let division have constant
+rate $b>0$, and let $d_i\le d_{\max}$ and $\mu_i\ge\mu_{\min}>0$. Retain the
+normalised binary daughter law and the one-mutant-daughter convention. Let $M$
+have autonomous rates $\beta>\delta>0$ with $\rho=\delta/\beta$, and assume
+$d_{\max}\ge b\rho$. Let the post-course continuation create no new $M$, clear
+every finite molecular population almost surely, and retain the autonomous $M$
+rates. Define $q$ by
+\begin{equation}
+ q'=d_{\max}(1-q)+b\bigl\{(1-\mu_{\min})q^2+\mu_{\min}\rho q-q\bigr\},
+ \qquad q(0)=1.\label{eq:scalar}
+\end{equation}
+Then from $n$ molecular founders of arbitrary types and $m$ initial mutants every
+such feedback course satisfies
+\begin{equation}
+ \Prb(\text{eventual total survival})\ge1-q(T)^n\rho^m.\label{eq:floor}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The scalar field of \eqref{eq:scalar} is $-b\mu_{\min}(1-\rho)<0$ at $q=1$ and
+$(1-\rho)(d_{\max}-b\rho)\ge0$ at $q=\rho$, so $[\rho,1]$ is invariant and
+$q\in[\rho,1]$ throughout. Evaluate the actual molecular field at the constant
+molecular vector with all coordinates equal to $q$ and mutant coordinate $\rho$.
+All molecular jumps cancel because $Q_e$ is conservative, and every normalised
+two-daughter law satisfies $D(q\one,q\one)=q^2$ --- this is where the comparison
+becomes law-independent. The difference between the scalar field and the actual
+one is
+\[
+ (d_{\max}-d_i)(1-q)+b(\mu_i-\mu_{\min})q(q-\rho)\ge0.
+\]
+For a population $z$ set $V(t,z)=q(T-t)^{\sum_{i\in S}z_i}\rho^{z_M}$. Direct
+evaluation of each jump gives, for the currently chosen predictable action $u$,
+\[
+ (\partial_t+\mathcal G_u)V=V\sum_i\frac{z_i}{q_i}\{\Phi_i^u(q)-q_i'\}\le0,
+ \qquad q_M=\rho.
+\]
+This is a conditional generator identity for a population test function and
+requires no independence between founder outcomes. Stop at bounded population and
+proposal count, apply the stopped Dynkin inequality, and remove the stopping by
+nonexplosion (Proposition~\ref{prop:bridge}) and bounded convergence, using
+$0\le V\le1$. At $T$, $V(T,Z_T)=\rho^{Z_M(T)}$ is the conditional probability of
+eventual extinction under the declared continuation, since that continuation
+clears the molecular population and creates no new $M$. Taking expectations gives
+\eqref{eq:floor}.
+\end{proof}
+
+On the admitted action rectangle $.01\le e\le.3$, $0\le c\le.121$ with $\eps=.1$,
+we have $b=.1$, $d_{\max}=.421$, $\mu_{\min}=.01$ and $\rho=.2$, and
+$d_{\max}\ge b\rho$ holds comfortably. Writing $a=1-q$ reduces \eqref{eq:scalar}
+exactly to the Riccati equation
+\begin{equation}
+ a'=.0008-.3228\,a-.099\,a^2,\qquad a(0)=0\ \ \text{\textup{(E)}},
+ \label{eq:riccati}
+\end{equation}
+and an exact scalar enclosure gives
+\begin{equation}
+ .0024725782<a(20)<.0024725784\ \ \text{\textup{(E)}}.\label{eq:concretefloor}
+\end{equation}
+A one-founder eventual-survival target below $.00247$ is therefore impossible in
+this actuator class, whatever the feedback policy. The risk actually achieved by
+complementary $BA$ is about $.03041843$. The gap between the achieved risk and
+the universal necessary bound is a factor of about twelve: the floor is a genuine
+obstruction, but neither global optimality nor near-optimality of the exhibited
+schedule follows from it. The floor pertains to the stated endpoint and action
+class; an arbitrary new continuation is not automatically covered.
+
+\section{How much continuation perturbation the decision tolerates}
+\label{sec:continuation}
+
+The baseline clearing continuation runs indefinitely and is not drug-free:
+maintaining $e=.3$ above the baseline $.01$ has infinite integrated erasure
+increment if the continuation is charged to the exposure budget. The equal
+exposures of Section~\ref{sec:certified} compare the two finite courses. The two
+propositions below quantify two separate departures from the idealised
+continuation, both at the central course parameters. They are separate
+scenarios; combining them, altering the $M$ dynamics, or adding population
+interactions requires a further argument.
+
+Both bounds are one-sided, which is what makes them efficient. Writing
+$\widehat q_s$ for the perturbed eventual extinction probability, in each case
+$0\le q_s-\widehat q_s\le\theta_s$, so only $\theta_{BA}$ can erode the $J$
+preference $m_J$ and only $\theta_{AB}$ can erode the $I$ preference $m_I$.
+
+\subsection{Residual acquisition after the course}
+\begin{proposition}[Residual acquisition; C with E arithmetic]\label{prop:residual}
+Keep $e=.3$, $c=0$ after $T$, but replace zero acquisition by
+$\mu_i=\eta\kappa_i$. For either inheritance law and either course $s$,
+\[
+ 0\le q_s(0)-q_s(\eta)\le\eta U_s,\qquad
+ U_{AB}<.050002,\quad U_{BA}<.053172.
+\]
+Both central order preferences persist for every $0\le\eta\le3\times10^{-5}$.
+\end{proposition}
+
+\begin{proof}
+Let $A_0$ be the mutation-free molecular clearing mean matrix and $f=b\kappa$.
+Matrices act on column rewards, forward mean rows obeying $m'=mA$. The perturbed
+molecular mean matrix is $A_\eta=A_0-\diag(b\eta\kappa)\Lambda\le A_0$ entrywise
+and is Metzler, so semigroup comparison together with \eqref{eq:weight} preserves
+almost sure molecular clearing and bounds the molecular occupation means. Define
+the nonnegative column
+\[
+ v=\int_0^\infty e^{tA_0}f\,dt=-A_0^{-1}f,
+\]
+solved exactly in rationals \textup{(E)}. Integrating the acquisition intensity
+against the dominated molecular mean and conditioning on each seed's autonomous
+descendants, the expected number of additional surviving resistant families from
+molecular type $i$ is at most $(1-\rho)\eta v_i$; a union bound converts that
+expectation into a probability bound. Coupling with zero acquisition shows
+extinction can only decrease, because baseline molecular descendants already
+clear and the additional surviving mutant families are the only new source of
+survival. Conditioning at the deadline and writing $A_A,A_B$ for the
+finite-course molecular mean matrices gives
+\[
+ U_{AB}=(1-\rho)\bigl[e^{10A_A}e^{10A_B}v\bigr]_{AA},\qquad
+ U_{BA}=(1-\rho)\bigl[e^{10A_B}e^{10A_A}v\bigr]_{AA},
+\]
+enclosed by validated linear flows as described in
+Appendix~\ref{sec:linear}. Since the corrections are one-sided, it suffices that
+$\eta U_{BA}<m_J$ and $\eta U_{AB}<m_I$. At $\eta=3\times10^{-5}$ these read
+$1.59515\times10^{-6}<1.70134\times10^{-6}$ and
+$1.50006\times10^{-6}<1.77058\times10^{-6}$ \textup{(E)}.
+\end{proof}
+
+The binding constraint is the first, and the same bounds fail at
+$\eta=3.2\times10^{-5}$, so $3\times10^{-5}$ is close to what this argument can
+give. It allows post-course acquisition probabilities up to $1.2\times10^{-5}$
+per division, still far below the in-course value $.04$; the improvement is a
+sharper sufficient radius, not a demonstration of broad biological robustness.
+Under residual acquisition the molecular continuation extinction coordinates fall
+below one and become law dependent, so \eqref{eq:terminal} is not reused as their
+exact value.
+
+\subsection{Finite clearing and its exposure cost}
+\begin{proposition}[Finite clearing; C with E arithmetic]\label{prop:clearing}
+Apply the baseline mutation-free clearing source for only $H$ time units after
+$T$, and then a common specified source that retains autonomous $M$, has no
+immigration, and differs from baseline only through the remaining molecular
+cells. If $\widetilde q_s$ is the resulting eventual extinction probability, then
+\[
+ 0\le q_s-\widetilde q_s\le C_se^{-.09H},\qquad
+ C_{AB}<1.430424,\quad C_{BA}<1.452994,
+\]
+and $H=152$ preserves both central preferences. The additional common erasure
+increment exposure is $.29H=44.08$.
+\end{proposition}
+
+\begin{proof}
+The contraction weight \eqref{eq:weight} bounds the probability that any
+molecular cell remains at $T+H$ by $C_se^{-.09H}$, with
+$C_{AB}=[e^{10A_A}e^{10A_B}w]_{AA}/10$ and similarly for $BA$; the constants are
+enclosed by validated linear flows (Appendix~\ref{sec:linear}).
+
+For the sign, condition on the configuration at $T+H$. Under the baseline
+continuation the conditional eventual extinction probability is exactly
+$\rho^{Z_M}$, by Proposition~\ref{prop:endpoint}. Under the alternate source,
+total extinction implies extinction of the autonomous descendants of the $M$
+cells already present, an event of probability exactly $\rho^{Z_M}$ and
+unaffected by any later molecular behaviour; hence the conditional probability is
+at most $\rho^{Z_M}$. Therefore $\widetilde q_s\le q_s$. On the event that no
+molecular cell remains at $T+H$ the two continuations couple exactly, since the
+alternate source differs from baseline only through remaining molecular cells and
+admits no immigration, so the difference is supported on the complementary event
+and is bounded by its probability.
+
+Because the error is one-sided, it suffices that $C_{BA}e^{-.09H}<m_J$ and
+$C_{AB}e^{-.09H}<m_I$. Bounding $e^{.09H}$ from below by a truncation of its
+nonnegative power series, at $H=152$ these read
+$1.66386\times10^{-6}<1.70134\times10^{-6}$ and
+$1.63801\times10^{-6}<1.77058\times10^{-6}$ \textup{(E)}. The same bounds fail at
+$H=151$.
+\end{proof}
+
+This sign argument requires that later molecular behaviour cannot alter the
+autonomous descendants of the $M$ cells already present. It must not be extended
+to a continuation violating that assumption. Under the cruder two-sided estimate
+$|\widetilde q_s-q_s|\le C_se^{-.09H}$ with the errors summed, the same margins
+require $H=162$; the one-sided argument saves ten time units.
+
+The honest reading is twofold, and both halves should be stated together. Finite
+clearing \emph{is} realisable: the counterexample does not secretly depend on an
+infinite intervention. But the sufficient duration is expensive. The added common
+erasure increment exposure $44.08$ is exactly $15.2$ times the finite-course
+increment $2.9$, and the clearing phase lasts $7.6$ times as long as the course
+itself. The initial sequencing still changes how many resistant families are
+seeded, and clearing does not erase that difference because $M$ is unaffected by
+it; but the common burden substantially weakens the practical attractiveness of
+the construction. No optimality of $H=152$ is asserted, and $H$ is a sufficient
+duration derived from a bound, not a physical minimum. Replacing the global
+weight estimate by an enclosed expected molecular cell count at $T+H$ would
+tighten it; no such optimisation is needed for the methodological theorem.
+
+\section{Dimensionless parameters, data requirements and limits}\label{sec:units}
+
+Put $\tau=bt$ with reference division rate $b=.1$. Table~\ref{tab:units} gives
+every source coefficient in these units. Each pulse then has dimensionless
+duration one and the course has $\tau=2$.
+
+\begin{table}[ht]
+\centering\small
+\caption{Complete dimensionless synthetic specification. Rates divide by $b$;
+probabilities and mark counts do not. Erasure $e$ and additional death $c$ are
+model rates, not drug concentrations.}\label{tab:units}
+\begin{tabular}{lll}\toprule
+Quantity&Dimensional value or formula&Dimensionless value\\\midrule
+Activating write rate&$u(.01+a/2)$&$u(.1+5a)$\\
+Repressive write rate&$u(.01+r/2)$&$u(.1+5r)$\\
+Activating erase rate&$a(e+r/4)$&$a(e/b+2.5r)$\\
+Repressive erase rate&$r(e+a/4)$&$r(e/b+2.5a)$\\
+Molecular division&$.1$&$1$\\
+Base death, $AU,AA$&$.01$&$.1$\\
+Base death, other types&$.3$&$3$\\
+Pulse $A$: $(e,c)$&$(.3,0)$&$(3,0)$\\
+Pulse $B$: $(e,c)$&$(.01,.120553)$&$(.1,1.20553)$\\
+Pulse duration; deadline&$10;20$&$1;2$\\
+Clearing: $(e,c,\mu)$&$(.3,0,0)$&$(3,0,0)$\\
+Mutant birth; death&$.1;.02$&$1;.2$\\
+Course acquisition $AU,AA$&$\eps\kappa=.1(.4)$&$.04$ per division\\
+Course acquisition, other&$\eps\kappa=.1(.1)$&$.01$ per division\\
+Partition probability&$1/2$ per old mark&$1/2$\\
+Feedback erasure range&$[.01,.3]$&$[.1,3]$\\
+Feedback additional death&$[0,.121]$&$[0,1.21]$\\\bottomrule
+\end{tabular}
+\end{table}
+
+The correct reading of these numbers is narrow. The initial two-pulse course is
+short relative to the reference division timescale: its integrated division
+hazard is two. Calendar duration, cell-cycle statistics, acquisition mechanism
+and intervention response all remain uncalibrated. It would be wrong to call the
+course ``two cell generations'': division is an exponential clock rather than a
+synchronised cycle, so $bT=2$ is the expected number of divisions along an
+immortal tracked lineage, while death and conditioning on survival change that
+reading. In a pure-birth reference population the doubling time is $\log2/b$, so
+$T=20$ equals $2/\log2\approx2.885$ doubling times --- which is again not a
+population doubling count in the full model with death, state changes and
+selection. A physical division rate $b_{\rm phys}$ would map one pulse to
+$1/b_{\rm phys}$ physical time units, but choosing a time unit cannot by itself
+establish that the regimen is acute rather than protracted. Finally, the
+objective extends well beyond the course: the finite-clearing construction of
+Proposition~\ref{prop:clearing} adds another $152$ time units before the
+alternate source begins, so $20$ is not the horizon over which eventual rescue is
+observed.
+
+Likewise, a per-division probability of reaching a coarse-grained durable state
+is not comparable with a per-base DNA mutation rate. A meaningful comparison
+would require a specified target size, a route to resistance, a heritability
+assumption and an acquisition mechanism. The values $.01$ and $.04$ are synthetic
+and would need independent justification in any application; calling them
+phenotypic switching does not supply that justification, particularly as $M$ here
+is irreversible and autonomous.
+
+The practical content is about what a model must preserve, not about dosing. Our
+worked example fixes $AA$ founders and compares exactly two equal-duration orders
+under a declared continuation. To assess an instance of this phenomenon one would
+need the joint sister-state distribution conditional on maternal state,
+type-specific division and death hazards, switching rates under intervention,
+division-associated acquisition, the preparation law, and the survival and
+reversion behaviour of the durable state. Marginal daughter frequencies and total
+population means, however well validated, cannot identify the dependence that
+decides this comparison.
+
+\paragraph{Remaining limits.} The result is confined to the literal source, the
+stipulated acquisition convention, the $AA$ preparation, the two pulse orders,
+the certified killing interval and the declared continuations. The effect is
+small. Feedback feasibility is bounded but not optimised. Finite clearing is
+expensive. Acquisition rates and calendar times are not calibrated. Competition,
+spatial structure, immune effects, pharmacokinetics, toxicity, density
+dependence, inherited mutant phenotypes, simultaneous continuation perturbations
+and global schedule optimisation are all absent. None of these is needed for the
+counterexample, and none of them repairs the failure it exhibits: exact agreement
+of the complete mean dynamics does not determine the preferred order for eventual
+extinction.
+
+\appendix
+
+\section{Mechanism details}\label{sec:mechdetail}
+
+\subsection{Collecting the expansion}
+Substituting $x=\one-\eps h+\eps^2k+O(\eps^3)$, $\mu_i=\eps\kappa_i$ and $y=\rho$
+into \eqref{eq:field} and using $Q_e\one=0$:
+\begin{align*}
+ (Q_ex)_i&=-\eps(Q_eh)_i+\eps^2(Q_ek)_i,\\
+ d_i(1-x_i)&=\eps d_ih_i-\eps^2d_ik_i,\\
+ (1-\mu_i)D_i(x,x)&=1-\eps\kappa_i-2\eps(\Lambda h)_i
+   +\eps^2\bigl\{2(\Lambda k)_i+D_i(h,h)+2\kappa_i(\Lambda h)_i\bigr\}+O(\eps^3),\\
+ \mu_i\rho(\Lambda x)_i&=\eps\kappa_i\rho-\eps^2\kappa_i\rho(\Lambda h)_i+O(\eps^3),\\
+ -x_i&=-1+\eps h_i-\eps^2k_i.
+\end{align*}
+The left side is $x'=-\eps h'+\eps^2k'$. Matching $O(\eps)$ gives
+$-h'=-(Q_eh)_i+d_ih_i+b\{-2(\Lambda h)_i+\kappa_i\rho-\kappa_i+h_i\}$, that is
+\eqref{eq:h}. Matching $O(\eps^2)$ gives
+$k'=(Q_ek)_i-d_ik_i+b\{2(\Lambda k)_i+D_i(h,h)+(2-\rho)\kappa_i(\Lambda h)_i-k_i\}$,
+that is \eqref{eq:k}. The $O(\eps^2)$ acquisition contribution
+$b(2-\rho)\kappa_i(\Lambda h)_i$ involves the joint law only through $\Lambda$ and
+therefore cancels from $\Delta=k_I-k_J$.
+
+\subsection{The quasi-monotonicity inequalities}
+The order \eqref{eq:order} has least element $RR$, greatest element $AA$, six
+covering pairs and seven nonempty up-sets, namely
+\begin{gather*}
+\{AA\},\quad \{AU,AA\},\quad \{UU,AU,AA\},\quad \{AR,AU,AA\},\\
+\{UU,AR,AU,AA\},\quad \{UU,UR,AR,AU,AA\},\quad \text{and all six types}.
+\end{gather*}
+For each of the six covering pairs $i\lessdot j$ and each up-set indicator $\chi$
+with $\chi_i=\chi_j$, Lemma~\ref{lem:cone} requires
+$\sum_k(A_{jk}-A_{ik})\chi_k\ge0$. This is $32$ rational inequalities per phase.
+Exact evaluation confirms all $64$; the minimum value attained is $0$, at the
+pair $UR\lessdot UU$ against the ray $\chi=\one_{\{AA\}}$, in both phases. The
+script \texttt{verify\_claims.py} in the source package re-runs the enumeration
+and the arithmetic.
+
+\subsection{Why the asymptotic remainder is not usable}
+Let $P,V_2,V_3$ bound the first three $\eps$-derivatives of $x$ in sup norm. With
+logarithmic Jacobian norm at most $.09$ and the elementary bounds
+$|f_\eps|\le.04$, $|f_{x\eps}|\le.12$, $|f_{xx}|\le.2$ and $|f_{xx\eps}|\le.08$,
+the variational equations and positive scalar comparison give
+\[
+ P'=.09P+.04,\qquad V_2'=.09V_2+.2P^2+.24P,\qquad
+ V_3'=.09V_3+.6PV_2+.36V_2+.24P^2,
+\]
+all starting from zero, whence
+$\|x_I-x_J-\eps^2\Delta\|\le V_3(T)\eps^3/3$. At $T=20$ the coarse algebraic
+bound $e^{1.8}<9$ yields $P\le7.2$, $V_2\le2177.28$ and $V_3<1.84\times10^6$, so
+the permitted error at $\eps=.1$ exceeds $600$. A valid asymptotic statement can
+therefore be entirely useless for a $10^{-6}$ decision. This motivated both the
+exact identity of Proposition~\ref{prop:exact} and the enclosed flows.
+No larger search for a sharper remainder was undertaken.
+
+\section{Exact enclosure method and evidence boundary}\label{sec:certificate}
+
+\subsection{Why the flow intervals are rigorous}
+Write the literal field as $d+Bz+C(z,z)$ with nonnegative quadratic
+coefficients. If $c_0=z$, the normalised time derivatives obey
+\begin{equation}
+ (k+1)c_{k+1}=\one_{k=0}d+Bc_k+\sum_{j=0}^kC(c_j,c_{k-j}),\label{eq:jets}
+\end{equation}
+by differentiating the polynomial ODE. Applying \eqref{eq:jets} with $c_0$ equal
+to the \emph{whole} invariant cube and outward interval arithmetic bounds the
+normalised twelfth derivative everywhere in each phase. If the largest absolute
+endpoint is $M$, Taylor's theorem bounds the degree-$11$ local remainder by
+$M(\Delta t)^{12}$. A small final Taylor term is never used as an unproved error
+estimate.
+
+The Jacobian of the full field is Metzler on the cube, with molecular row sums at
+most $b-d_i\le.09$ and mutant row sum $\beta-\delta=.08$. The maximal-coordinate
+differential inequality for the difference of two solutions therefore gives
+sup-norm Lipschitz factor $e^{.09t}$; the implementation uses the rational upper
+bound $e^{.09\Delta t}\le1/(1-.09\Delta t)$. This estimate applies to the segment
+between any two probability solutions, so it does not require a componentwise
+interval box to stay inside the cube.
+
+All interval endpoints are integers divided by $2^{110}$. Multiplication and
+positive integer division round outward, and rational source coefficients are
+enclosed before use. Each step evaluates a degree-$11$ Horner polynomial on
+intervals, projects the midpoint into the cube, and adds the distance from that
+centre to both endpoints, including the projection, to the local remainder. If
+the old error is $E$, the new error satisfies
+\[
+ E_{\rm next}\le\frac{E}{1-.09\Delta t}+E_{\rm rounding}+M(\Delta t)^{12}.
+\]
+Errors carry across phase boundaries without reset. With $\Delta t=1/20$ each
+schedule takes $400$ steps, and each central order-gap enclosure has width below
+$4\times10^{-16}$, more than nine orders of magnitude smaller than the margin.
+This is exact validated arithmetic under the foregoing conventional soundness
+proof; it is not a machine-verified integrator.
+
+\subsection{Scalar and linear consequences}\label{sec:linear}
+For \eqref{eq:concretefloor} the interval $[0,.8]$ is invariant for $a$ in
+\eqref{eq:riccati}, whose field derivative $-.3228-.198a$ is negative there, so
+the flow is $1$-Lipschitz and the same normalised-derivative construction --- one
+coordinate, step $.1$, degree $11$, $200$ steps --- accumulates local and rounding
+error without growth. It encloses $a(20)$ in
+$(.002472578295567906,.002472578295567911)$. The closed-form Riccati solution was
+evaluated as a diagnostic and matches to floating precision; it is not the
+certificate.
+
+For the linear rewards of Section~\ref{sec:continuation}, the exact source
+matrices satisfy $\|A\|_\infty\le3$ with row sums at most $.09$. The global bounds
+$9\|v\|_\infty<1000$ and $9\|w\|_\infty<1000$ control the reference rewards, and
+at each step the centre is checked to have norm at most $950$, so the local
+reference trajectory over $\Delta t=.05$ stays below $1000$. A degree-$15$ Taylor
+evaluation then has local remainder at most $1000\cdot3^{16}(.05)^{16}/16!$.
+Outward arithmetic, explicit centre rounding and the same rational logarithmic
+norm growth enclose the course means, so the continuation constants $U_s$ and
+$C_s$ do not rely on an unenclosed floating-point matrix exponential.
+
+Regret, founder and perturbation comparisons are rational operations on the
+preserved central certificate. The interval theorem of
+Lemma~\ref{lem:curvature} adds only four endpoint flows; it is not a validated
+high-dimensional sensitivity search. Floating-point roots and curves are
+illustrations and are inputs to no certified sign conclusion.
+
+\section{Evidence map and reproduction}\label{sec:evidencemap}
+
+\begin{center}\small
+\begin{tabular}{lp{.72\linewidth}}\toprule
+Evidence&Claims supported\\\midrule
+C: conventional&Branching construction and probability bridge; extinction
+endpoint; expansion and exact response identities; covariance sign via Nagumo and
+Harris; curvature bound and the secant argument; feedback envelope; occupation,
+coupling and clearing bounds.\\
+E: exact arithmetic&Mean-operator identity; clearing weight; the $64$
+quasi-monotonicity inequalities; central and endpoint flow intervals; scalar
+floor; linear reward bounds $U_s,C_s$; regret enclosure, founder increment signs
+and the two continuation radii.\\
+K: Lean kernel&Finite source normalisation and augmented linearisation; the
+offspring expansion and covariance-forcing algebra; continuation weight;
+scalar-envelope and barrier algebra; regret inequalities; decision-preservation
+and presentation margins. Not the complete stochastic theorem.\\
+N: diagnostics&Table~\ref{tab:events} probabilities; the smooth gap curves and
+their zero crossings; the leading-order transport curves of
+Figure~\ref{fig:decision}(c). No certified conclusion rests on these.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The probability construction, ODE correspondence, continuation identification,
+mechanism, curvature argument and feedback theorem are conventional proofs. The
+numerical claims use exact outward arithmetic under Appendix~\ref{sec:certificate}.
+Lean modules under \texttt{proofs/EvolutionaryRescue/} check the literal source
+linearisation, the continuation weight, the scalar-envelope algebra, the regret
+inequalities and the presentation margins; strict verification treats compiler
+warnings as errors. The thin \texttt{Main.lean} imports those modules. It does
+\emph{not} formalise the stochastic process, the interval integrator or the
+complete probability theorem, and no end-to-end Lean formalisation is claimed.
+Exact rational arithmetic does not by itself make the integrator kernel-verified;
+that boundary is stated here rather than buried in a repository note.
+
+The source package accompanying this manuscript contains \texttt{main.tex}, the
+figure sources and two scripts: \texttt{figures.py}, which rebuilds both figures
+from the preserved certificates, and \texttt{verify\_claims.py}, which replays
+every printed numerical claim, asserting the exact ones and tagging the
+diagnostics. The preserved original certificate is
+\texttt{results/decision\_certificate.json}; the additional endpoint flows,
+continuation constants, scalar floor and decision consequences are under
+\texttt{results/postproof/}. The campaign workspace
+\texttt{REPRODUCE.md} gives a bounded command that audits the original
+certificate, rebuilds the selected consequences and figures, strictly verifies
+the Lean root and compiles this manuscript; the original four-flow producer
+remains available for independent replay. Reported reproduction receipts record
+provenance, not mathematical proof.
+
+\begin{thebibliography}{9}
+
+\bibitem{gunnarsson2020}
+E.~B. Gunnarsson, S.~De, K.~Leder and J.~Foo.
+Understanding the role of phenotypic switching in cancer drug resistance.
+\emph{Journal of Theoretical Biology} \textbf{490} (2020), 110162.
+\url{https://arxiv.org/abs/2001.07690}.
+
+\bibitem{gunnarsson2025}
+E.~B. Gunnarsson, B.~V. Magn\'usson and J.~Foo.
+Optimal dosing of anti-cancer treatment under drug-induced plasticity.
+arXiv:2412.16391v2 (2025). \url{https://arxiv.org/abs/2412.16391}.
+
+\bibitem{harris1960}
+T.~E. Harris.
+A lower bound for the critical probability in a certain percolation process.
+\emph{Mathematical Proceedings of the Cambridge Philosophical Society}
+\textbf{56} (1960), 13--20.
+
+\bibitem{iwasa2006}
+Y.~Iwasa, M.~A. Nowak and F.~Michor.
+Evolution of resistance during clonal expansion.
+\emph{Genetics} \textbf{172} (2006), 2557--2566.
+\url{https://doi.org/10.1534/genetics.105.049791}.
+
+\bibitem{orr2014}
+H.~A. Orr and R.~L. Unckless.
+The population genetics of evolutionary rescue.
+\emph{PLOS Genetics} \textbf{10}(8) (2014), e1004551.
+\url{https://doi.org/10.1371/journal.pgen.1004551}.
+
+\bibitem{patil2026}
+S.~Patil, A.~Ahmed, Y.~Viossat and R.~Noble.
+Preventing evolutionary rescue in cancer using two-strike therapy.
+\emph{Genetics} \textbf{232}(2) (2026), iyaf255.
+\url{https://doi.org/10.1093/genetics/iyaf255}.
+
+\end{thebibliography}
+\end{document}

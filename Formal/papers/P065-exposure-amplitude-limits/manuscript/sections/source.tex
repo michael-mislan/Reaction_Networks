@@ -1,0 +1,220 @@
+\section{A molecular inheritance realization}
+\label{sec:source}
+
+At $N$ sites a cell has $a$ activating, $r$ repressive and $s=N-a-r$ unmarked
+sites. Following the reader--writer motif and the companion chronological
+inheritance construction \citep{dodd2007,molecular}, the four chemical rates are
+\begin{align}\label{eq:chem}
+ (a,r)\to(a+1,r)&:\ s(.01+a/N),&
+ (a,r)\to(a,r+1)&:\ s(.01+r/N),\\
+ (a,r)\to(a-1,r)&:\ a\bigl(e+r/(2N)\bigr),&
+ (a,r)\to(a,r-1)&:\ r\bigl(e+a/(2N)\bigr).\nonumber
+\end{align}
+Division removes the mother. The ordered daughters receive $(i,j)$ and
+$(a-i,r-j)$ old marks with probability $2^{-(a+r)}\binom ai\binom rj$ and are
+refilled to $N$ sites with unmarked material; there is no extra dilution term
+and no artificial recovery interval. Division is $b=.1$, and death is $.01$ if
+$a>r$ and $.3$ otherwise, so the states with $a>r$ are the \emph{protected}
+ones. Intrinsic erasure is $e=.01+v$, so the eraser actuator has
+$R=\partial_eQ_e$ and amplitude $v_{\max}=e_{\max}-.01$. The time unit is
+synthetic and these rates are modelling assumptions, not measured
+phenotype-switching rates.
+
+For $N=2$ order the states as $(UU,UR,RR,AU,AR,AA)$. Their mark counts are,
+respectively, $(0,0)$, $(0,1)$, $(0,2)$, $(1,0)$, $(1,1)$ and $(2,0)$.
+A complete source specification is
+\begin{align*}
+ (Q_ef)_0&=(f_1-f_0)/50+(f_3-f_0)/50,\\
+ (Q_ef)_1&=.51(f_2-f_1)+.01(f_4-f_1)+e(f_0-f_1),\\
+ (Q_ef)_2&=2e(f_1-f_2),\\
+ (Q_ef)_3&=.51(f_5-f_3)+.01(f_4-f_3)+e(f_0-f_3),\\
+ (Q_ef)_4&=(e+.25)(f_1+f_3-2f_4),\\
+ (Q_ef)_5&=2e(f_3-f_5),
+\end{align*}
+with the ordered daughter law
+\[
+ D(x,x)=\left(x_0^2,\ x_0x_1,\ \frac{x_0x_2+x_1^2}{2},\ x_0x_3,\
+          \frac{x_0x_4+x_1x_3}{2},\ \frac{x_0x_5+x_3^2}{2}\right)^{\!T}.
+\]
+The one-daughter marginal follows from this law; the mean operator is its
+linearization at $\one$, not an independent-daughter replacement. All exact
+computations below use the pair law.
+
+\subsection{Exact exposure certificates at two sites}
+\label{sec:twosite}
+
+Take
+\begin{equation}\label{eq:q}
+ q=(.94,.982,.987,.27,.735,.235)^T,\qquad c=67/73 .
+\end{equation}
+Exact rational calculation gives $\Phi_{.01}(q)\le0$ with minimum slack
+$1/5000$. The derivative of $Q_e$ satisfies
+\[
+ Rq=\bigl(0,\ q_0-q_1,\ 2(q_1-q_2),\ q_0-q_3,\ q_1+q_3-2q_4,\
+      2(q_3-q_5)\bigr)^T,
+\]
+and the slacks in $c(1-q)-Rq$ are exactly
+\begin{equation}\label{eq:slacks}
+ \left(\frac{201}{3650},\ \frac{534}{9125},\ \frac{1601}{73000},\ 0,\
+       \frac{33669}{73000},\ \frac{9229}{14600}\right)^{\!T}.
+\end{equation}
+The certificate therefore holds for every nonnegative control increment for
+which the bounded-action construction is made. The baseline continuation
+satisfies $q^{\mathrm{off}}\le q$ by the supermartingale argument following
+Theorem~\ref{thm:main}, which also covers any off-source with
+$\Phi_{\mathrm{off}}(q)\le0$. For $n$ founders of type $AA$,
+Theorem~\ref{thm:main} gives
+\begin{equation}\label{eq:AA}
+ r_\pi(T)\ \ge\ 1-\left[1-\frac{153}{200}e^{-67B/73}\right]^n .
+\end{equation}
+The zero slack at $AU$ makes $67/73$ the smallest admissible coefficient for
+this particular $q$ and these six inequalities. It identifies a limiting
+certificate constraint, not a dominant biological trajectory and not an optimal
+intervention target.
+
+\begin{remark}[How much is lost by the displayed certificate]
+\label{rem:optcert}
+The bound \eqref{eq:AA} improves on the horizon-independent form
+$[1-(47/200)^n]e^{-67B/73}$ used in earlier drafts: writing $\alpha=e^{-cB}$,
+the function $1-(1-\alpha\eta)^n$ is concave in $\alpha$ and lies above its
+chord $\alpha[1-(1-\eta)^n]$, with equality at $n=1$, so the improvement is in
+the founder dependence and not a new one-founder constant. One may also ask how
+much is lost by fixing \eqref{eq:q}. Optimizing the certificate numerically and
+then verifying the result in exact rational arithmetic gives
+$\eta=.77849912\ldots$ and $c=.916533$ in place of $\eta=.765$ and
+$c=.917808\ldots$, raising $B_{\mathrm{nec}}(1,.01)$ from $4.725705$ to
+$4.751365$, an improvement of $0.54\%$. The vector is recorded in
+the data file \texttt{site\_certificates.json}. The gap to the certified sufficient
+exposure of Section~\ref{sec:pulse} is therefore not an artefact of the choice
+\eqref{eq:q}.
+\end{remark}
+
+For the constant erasure $e=.3$, set
+$w_*=(1419,1105,1000,8423,4305,10765)^T$. The exact residuals of
+$-(21/200)w_*-A_{.3}w_*$ are
+\[
+ (201/200,\ 37/40,\ 11/20,\ 47/8,\ 99/40,\ 301/40)^T>0 ,
+\]
+so Proposition~\ref{prop:weight} applies with $\gamma=21/200$ and
+$C=10.765$; equation \eqref{eq:upper} gives $10.765\,ne^{-.105t}$. With
+$v_{\max}\ge.29$, an early $.29$ increment for
+\begin{equation}\label{eq:sufficient2}
+ \tau=\frac{200}{21}\log\frac{10.765n}{\delta},\qquad
+ B_{\mathrm{suff}}=\frac{58}{21}\log\frac{10.765n}{\delta}
+\end{equation}
+achieves risk at most $\delta$ at every $T\ge\tau$ and after any subsequent
+continuation without immigration. This certificate is for $e=.3$ exactly, not
+for an unstated interval of uncertain erasure rates.
+
+\begin{table}[t]
+\centering
+\caption{Two-site source, $AA$ founders, target risk $.01$, amplitude at least
+$.29$. The sufficient horizon is part of the guarantee. Rounded values display
+the exact logarithmic formulas \eqref{eq:necessary} and
+\eqref{eq:sufficient2}; they are not rounded admission tests.}
+\label{tab:budget}
+\input{tables/budget_rows}
+\end{table}
+
+\begin{figure}[t]
+\centering\includegraphics[width=.94\linewidth]{figures/budget.pdf}
+\caption{Proved exposure floor and achievable weighted bound for the two-site
+source, with free finite horizon. The gap is unclassified, not a numerically
+estimated optimal frontier. Exposure is reaction rate integrated over synthetic
+time.}
+\label{fig:budget}
+\end{figure}
+
+\subsection{A certified finite-time pulse}
+\label{sec:pulse}
+
+For one $AA$ founder use $e=.3$ on $[0,40]$, then $e=.01$ on $(40,100]$, with
+the same background killing throughout. The exposure is $B=.29\times40=11.6$.
+The backward calculation is
+$\mathcal F_{.3}^{40}\bigl(\mathcal F_{.01}^{60}(0)\bigr)$, where
+$\mathcal F_e^t$ is the six-dimensional flow of $\dot u=\Phi_e(u)$. An
+outward-rounded dyadic Taylor enclosure proves
+\begin{equation}\label{eq:validated}
+ \Prob_{AA}(|Z_{100}|>0)
+ \ \le\ \frac{24892257049354995536083116261}
+             {2535301200456458802993406410752}
+ \ <\ 0.009818264214475\ <\ .01 .
+\end{equation}
+Appendix~\ref{app:validated} gives the error argument and arithmetic
+specification. The sufficient exposure at this particular horizon is therefore
+$11.6$, against $19.282156\ldots$ from \eqref{eq:sufficient2} and a necessary
+$4.725704\ldots$ from \eqref{eq:necessary}; the certified bracket at $n=1$,
+$T=100$, $v_{\max}=.29$, $\delta=.01$ is
+\[
+ 4.725704\ldots\ \le\ B^*(100,.01)\ \le\ 11.6 ,
+\]
+a ratio of about $2.45$ rather than the $4.08$ obtained from the mean
+certificate. Neither endpoint is asserted to be the exact optimum. For
+independent founders under a \emph{deterministic} schedule, a single-founder
+upper risk $\varepsilon$ gives population risk at most
+$1-(1-\varepsilon)^n\le n\varepsilon$; this use of independence is legitimate
+precisely because the schedule is predetermined. Equation
+\eqref{eq:validated} alone therefore does not achieve $.01$ for ten or a
+hundred founders.
+
+\subsection{Preparation and withdrawal are part of the theorem}
+\label{sec:withdrawal}
+
+Three experiments must be distinguished: eraser withdrawal under continuing
+background killing; withdrawal of both interventions into a specified
+off-source; and a later rechallenge or regrowth-threshold assay. The last
+requires its own stopped event and is not analyzed here. After eraser-only
+withdrawal our default off-source is $e=.01$ with the original death vector. If
+the off-source preserves $Q,b,D$ and reduces death coordinatewise then
+$\Phi_{\mathrm{off}}(q)\le\PhiB(q)\le0$ and the exposure floor persists. For the
+explicit full-withdrawal scenario with $b=.1$, $d=.01$ in every state, the total
+count is an ordinary birth--death process with extinction vector
+$q^{\mathrm{off}}=.1\,\one$, the smaller root of $.01(1-x)+.1(x^2-x)=0$. This is
+a stipulated full-withdrawal model, not a fitted biological law.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figures/policy.pdf}
+\caption{Left: $AA$ survival by time $100$ for equal-exposure early, late and
+spread eraser schedules (lines: numerical diagnostics). The marked upper bound
+at $B=11.6$ is rigorous. Right: numerical eventual-survival comparisons after
+eraser withdrawal at $40$, keeping background killing until $100$ (then
+baseline or full withdrawal), or removing all killing immediately at $40$.
+Every plotted continuation is stated; no curve is a clinical relapse estimate.}
+\label{fig:policy}
+\end{figure}
+
+Erasure is not universally beneficial at a fixed short horizon. From an $RR$
+founder the analytic finite-time extinction solution satisfies
+\begin{equation}\label{eq:taylor}
+ u_{RR}^{.3}(t;0)-u_{RR}^{.01}(t;0)
+ =-\frac{49619}{600000000}\,t^4+O(t^5),
+\end{equation}
+so stronger erasure \emph{lowers} extinction probability for all sufficiently
+small $t>0$. This is a source-level failure of monotonicity: erasure also
+removes repressive marks and permits access to the protected active states, and
+the source assigns lower death to $a>r$. It is a rigorous counterexample to
+universal monotonicity, not evidence that an epigenetic drug rescues tumours,
+and it does not imply a large experimental effect: at $t=1$ the numerical
+difference is about $4.1\times10^{-5}$. The exact calculation is in
+Appendix~\ref{app:taylor}; finite-time numerical differences are labelled
+separately. Preparation, budget, duration and endpoint all matter, and an
+early/late ordering seen for $AA$ need not persist for $RR$.
+
+\subsection{Slower protected division}
+\label{sec:variation}
+
+To challenge the demographic assumptions without rescaling the clock, replace
+the division rate in states $a>r$ by a common unknown fixed $b_P\in[.08,.1]$,
+keeping all death and chemical rates fixed. An independently checked rational
+supersolution and positive weight give, uniformly on that interval,
+\[
+ q_{AA}=.34796677,\qquad c=0.9163811468\ldots,\qquad
+ \gamma=.1004,\qquad C=10.764704 .
+\]
+The data file \texttt{source\_certificates.json} records the exact value of
+$c$, all coordinates and the endpoint residuals. Each inequality is affine in
+$b_P$, so
+exact endpoint checks prove the whole interval. This is a scenario family, not a
+confidence interval inferred from experiments, and a $20\%$ reduction in
+protected division is a modest perturbation; it does not demonstrate robustness
+to deep dormancy or to orders-of-magnitude slower persister division.

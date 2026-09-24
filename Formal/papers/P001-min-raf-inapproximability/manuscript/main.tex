@@ -1,0 +1,597 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Minimum autocatalytic networks cannot be approximated within any constant
+% factor: an approximation-preserving reduction from Set Cover, with a
+% machine-checked proof.
+%
+% Author metadata: set the three macros below before submission.
+% ---------------------------------------------------------------------------
+\newcommand{\PaperAuthor}{Anonymous manuscript}
+\newcommand{\PaperAffiliation}{}
+\newcommand{\PaperDate}{September 7, 2026}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+
+\setlist{itemsep=2pt,topsep=3pt}
+\setlength{\emergencystretch}{1.5em}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{construction}[theorem]{Construction}
+\newtheorem{hypothesis}[theorem]{Hypothesis}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\cl}{\operatorname{cl}}
+\newcommand{\OPT}{\mathrm{OPT}}
+\newcommand{\RAF}{\mathrm{RAF}}
+\newcommand{\optraf}{\OPT_{\RAF}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\pw}[1]{2^{#1}}
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\tauI}{\tau(\cI)}
+\newcommand{\SetCover}{\textup{\textsc{Set Cover}}}
+\newcommand{\MinRAF}{\textup{\textsc{Min-RAF}}}
+\newcommand{\NP}{\mathsf{NP}}
+\newcommand{\Ptime}{\mathsf{P}}
+
+\title{Minimum autocatalytic networks cannot be approximated\\ within any constant factor}
+\author{\PaperAuthor\\ \PaperAffiliation}
+\date{\PaperDate}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A reflexively autocatalytic and food-generated set (RAF) is a nonempty set of reactions in a catalytic reaction system whose reactants can all be built up from a designated food set and each of whose reactions is catalysed by a food molecule or by a product of the set. Steel, Hordijk and Smith (\emph{J.\ Theor.\ Biol.}, 2013) proved that finding a RAF of minimum size is NP-hard and asked whether the smallest RAF can be approximated in polynomial time within a constant factor of optimal. We answer this question negatively for general finite catalytic reaction systems: unless $\Ptime=\NP$, no polynomial-time algorithm returns, on every system that contains a RAF, a RAF whose size is within any fixed constant factor of the minimum. The proof is an approximation-preserving reduction from \SetCover. For an instance with $m$ elements and $n$ sets and an amplification parameter $M\ge 1$, we construct a system with one food molecule and $m+nM$ reactions, each with at most two reactants and exactly one product, and prove an exact structural theorem: its RAFs are precisely the sets $\cR(D)$ indexed by the set covers $D$, and $|\cR(D)|=m+M|D|$. With $M\ge m$, a RAF within factor $c$ of optimal decodes in linear time to a cover within factor $2c-1$ of optimal, so the reduction is an AP-reduction with constant $2$. The same construction shows that estimating the minimum RAF size, even without producing a RAF, is NP-hard within any constant factor, that irreducible RAFs of the constructed systems are exactly the inclusion-minimal covers, and that a single system can contain two irreducible RAFs whose sizes differ by an arbitrarily large factor. The structural theorem, the objective identity, the decoding arithmetic and the conditional hardness transfer have been formalized and checked in the Lean~4 proof assistant with warnings promoted to errors.
+\end{abstract}
+
+\noindent\textbf{Keywords.} autocatalytic sets; RAF theory; catalytic reaction systems; approximation hardness; set cover; approximation-preserving reductions; irreducible RAFs; formal verification.
+
+\medskip
+\noindent\textbf{MSC 2020.} 68Q17, 68W25, 92E20, 05C65, 68V20.
+
+\section{Introduction}\label{sec:intro}
+
+Reflexively autocatalytic and food-generated sets (RAFs) are a finite combinatorial model of collectively self-sustaining reaction networks. The concept originates in Kauffman's autocatalytic sets of proteins~\cite{kauffman1986autocatalytic,kauffman1993origins}, was given its present form by Hordijk and Steel~\cite{hordijk2004detecting}, and has grown into a structural theory with efficient algorithms~\cite{hordijk2012structure,hordijk2015algorithms,steel2019autocatalytic,steel2020structure} and applications to the origin of metabolism and of life~\cite{hordijk2017chasing,hordijk2018life,xavier2020autocatalytic}. A catalytic reaction system (CRS) consists of molecule types, reactions with reactants and products, a food set of freely available molecules, and a catalysis relation. A nonempty set of reactions is a RAF if its reactions can be carried out in some order starting from the food set and every one of them is catalysed by a molecule that is food or is produced by the set.
+
+Because unions of RAFs are RAFs, a CRS that contains a RAF contains a unique largest one, the \emph{maxRAF}, and the RAF algorithm of Hordijk and Steel~\cite{hordijk2004detecting} computes it in polynomial time. The optimization problem points the other way. Steel, Hordijk and Smith~\cite{steel2013minimal} studied \emph{minimal} autocatalytic networks: the irreducible RAFs (iRAFs), which contain no proper RAF, and the smallest RAF overall. They proved that finding a RAF of minimum size is NP-hard, gave efficiently computable lower bounds on its size, showed how to certify for a fixed number $k$ of listed iRAFs that the list is complete, and closed by asking whether the size of a smallest RAF can be approximated within a constant factor of optimal~\cite{steel2013minimal}. In the language of approximation algorithms this asks whether \MinRAF{} is in the class $\mathsf{APX}$.
+
+This paper answers the question in the negative for general finite CRSs.
+
+\begin{theorem}[Main theorem, informal]\label{thm:main-intro}
+Unless $\Ptime=\NP$, there is no polynomial-time algorithm and no constant $\alpha\ge 1$ such that, on every finite catalytic reaction system that contains a RAF, the algorithm returns a RAF of size at most $\alpha$ times the minimum. This holds even for systems with a single food molecule in which every reaction has at most two reactants and exactly one product, and in which the whole reaction set is itself a RAF.
+\end{theorem}
+
+\subsection*{The construction}
+
+The proof is a reduction from \SetCover, the problem of covering a universe $U=\{0,\dots,m-1\}$ by as few as possible of given sets $A_0,\dots,A_{n-1}\subseteq U$. \SetCover{} is one of the original NP-complete problems~\cite{karp1972reducibility,garey1979computers}, the greedy algorithm approximates it within $1+\ln m$~\cite{johnson1974approximation,lovasz1975ratio,chvatal1979greedy}, and a sequence of results~\cite{lund1994hardness,razsafra1997subconstant,feige1998threshold,alon2006algorithmic,moshkovitz2015projection,dinur2014analytical} culminating in Dinur and Steurer's theorem that $(1-\varepsilon)\ln m$-approximation is NP-hard for every fixed $\varepsilon>0$ shows that no polynomial-time algorithm achieves any constant factor unless $\Ptime=\NP$. We use only this last, weakest consequence.
+
+Given a \SetCover{} instance $\cI$ and an amplification parameter $M\ge 1$, Construction~\ref{con:source} builds a CRS $\cQ_M(\cI)$ from two reaction families. A chain of $m$ \emph{gate} reactions $g_0,\dots,g_{m-1}$ represents the universe: $g_0$ consumes the single food molecule $f$ and produces $y_0$, and $g_i$ consumes $f$ and $y_{i-1}$ and produces $y_i$. Each set $A_j$ is represented by a \emph{block} of $M$ chained reactions $b_{j,0},\dots,b_{j,M-1}$ that starts from $y_{m-1}$ and produces $z_{j,0},\dots,z_{j,M-1}$ in turn. The final product $h_j=z_{j,M-1}$ of block $j$ is its \emph{hub}: it catalyses every reaction of block $j$, and it catalyses exactly those gates $g_i$ with $i\in A_j$. Nothing else catalyses anything.
+
+The construction is governed by an exact structural theorem rather than by inequalities. Write $\cR(D)$ for the set consisting of all $m$ gates together with the complete blocks of the sets indexed by $D\subseteq\{0,\dots,n-1\}$.
+
+\begin{theorem}[Exact correspondence, Theorem~\ref{thm:iff} below]
+Let $m,M\ge 1$. A set $S$ of reactions of $\cQ_M(\cI)$ is a RAF if and only if $S=\cR(D)$ for a set cover $D$ of $\cI$. Moreover $|\cR(D)|=m+M|D|$.
+\end{theorem}
+
+The two directions have different flavours. If $D$ is a cover then $\cR(D)$ can be built from $f$ in $m+M$ closure stages, its block reactions are catalysed by their own hubs, and its gates are catalysed by the hubs of the covering sets. Conversely, let $S$ be a RAF. Every catalyst in $\cQ_M(\cI)$ is a hub $h_j$, and the only reaction producing $h_j$ is $b_{j,M-1}$; so any block reaction in $S$ forces the last reaction of its block into $S$, and food generation together with the uniqueness of the reaction producing each molecule then forces the whole block and, through $y_{m-1}$, the whole gate chain. Finally, a gate $g_i\in S$ must be catalysed by a hub $h_j\in\cl_S(\{f\})$ with $i\in A_j$, which says exactly that the selected blocks cover $i$.
+
+Consequently $\optraf(\cQ_M(\cI))=m+M\,\tauI$, where $\tauI$ is the minimum cover size, and minimum covers correspond exactly to minimum RAFs. The additive term $m$ is the price of representing the universe; the amplification $M$ makes the variable term dominate. With $M\ge m$ a RAF $S$ with $|S|\le c\cdot\optraf$ decodes, by reading off which final block reactions it contains, to a cover $D$ with $|D|\le(2c-1)\tauI$ (Theorem~\ref{thm:decode}). The reduction is therefore an approximation-preserving reduction in the sense of Crescenzi~\cite{crescenzi1997short} and Ausiello et al.~\cite{ausiello1999complexity}, with constant $\alpha=2$, and Theorem~\ref{thm:main-intro} follows.
+
+\subsection*{Why NP-hardness alone was not enough}
+
+The exact correspondence already holds for $M=1$, and it gives a short new proof of the NP-hardness of \MinRAF{} in a highly restricted class of systems (Corollary~\ref{cor:np-hard}). But with $M=1$ an approximate RAF of size $c(m+\tauI)$ decodes only to a cover of size at most $(c-1)m+c\,\tauI$, which is useless when $\tauI\ll m$. Constant-factor hardness needs a reduction that controls the ratio, not only the optimum, and this is what the amplification and the exact classification of \emph{all} RAFs, not just the optimal ones, provide.
+
+\subsection*{Further consequences}
+
+Three further results come out of the same construction.
+
+\begin{itemize}
+\item \emph{Value estimation.} The reduction is gap-preserving. Unless $\Ptime=\NP$, no polynomial-time algorithm outputs a number within a constant factor of the minimum RAF size, whether as an upper estimate, a lower estimate, or a two-sided estimate, even without producing a RAF (Proposition~\ref{prop:gap}).
+\item \emph{Irreducible RAFs.} The iRAFs of $\cQ_M(\cI)$ are exactly the sets $\cR(D)$ with $D$ an inclusion-minimal cover (Proposition~\ref{prop:irraf}). Taking $M=1$ and the incidence instance of a hypergraph, iRAFs are exactly minimal transversals, so enumerating the iRAFs of a CRS is at least as hard as hypergraph dualization~\cite{eiter1995identifying,fredman1996complexity}.
+\item \emph{No universal iRAF size ratio.} For every $c$ there is a CRS with two iRAFs whose sizes differ by a factor greater than $c$ (Proposition~\ref{prop:unbounded}). In particular, no procedure that merely returns \emph{some} iRAF, such as the random reaction-deletion heuristic of~\cite{hordijk2015algorithms}, can be a constant-factor approximation algorithm for \MinRAF.
+\end{itemize}
+
+\subsection*{Formal verification}
+
+The exact correspondence, the cardinality identity, the optimum correspondence, the decoding arithmetic, the encoding-size bounds, the gap arithmetic, the iRAF results and the conditional hardness transfer have been formalized in Lean~4~\cite{demoura2021lean4} on top of Mathlib~\cite{mathlib2020} and compiled with warnings promoted to errors; details are in Section~\ref{sec:verification}. The formalization treats polynomial time abstractly, as a predicate on algorithms closed under the explicit construction and decoder, and takes \SetCover{} inapproximability as a hypothesis; Section~\ref{sec:encoding} supplies the routine encoding argument. The proofs in this paper are complete and self-contained, and the formalization is an additional guarantee rather than a substitute for them. Before the formalization, the construction was tested exhaustively on all coverable instances with at most three elements and three sets and $M\le 3$, comparing the literal RAF semantics with the predicted normal form on $1{,}747{,}004$ reaction subsets without a discrepancy; those computations are reported in Section~\ref{sec:verification} for reproducibility and play no role in the proofs.
+
+\subsection*{Organization}
+
+Section~\ref{sec:prelim} fixes definitions and the hardness premise. Section~\ref{sec:construction} gives the construction and its provenance lemmas. Section~\ref{sec:iff} proves the exact correspondence. Section~\ref{sec:transfer} proves the objective identity and the decoding theorem. Section~\ref{sec:encoding} handles encoding size and proves the main theorem. Section~\ref{sec:gap} treats value estimation. Section~\ref{sec:irraf} treats irreducible RAFs. Section~\ref{sec:earlier} relates the results to the bounds of~\cite{steel2013minimal}. Section~\ref{sec:verification} describes the Lean formalization and the computational checks, and Section~\ref{sec:discussion} lists open problems.
+
+\section{Preliminaries}\label{sec:prelim}
+
+All sets are finite. For a finite set $X$ we write $\pw{X}$ for its power set and $[k]=\{0,1,\dots,k-1\}$.
+
+\subsection{Catalytic reaction systems and RAFs}\label{sec:crs}
+
+\begin{definition}[CRS]\label{def:crs}
+A \emph{catalytic reaction system} (CRS) is a tuple $\cQ=(X,R,\rho,\pi,F,C)$ where $X$ is a finite set of \emph{molecule types}, $R$ is a finite set of \emph{reactions}, $\rho,\pi\colon R\to\pw{X}$ assign to each reaction its finite sets of \emph{reactants} and \emph{products}, $F\subseteq X$ is the \emph{food set}, and $C\subseteq X\times R$ is the \emph{catalysis relation}; $(x,r)\in C$ is read ``$x$ catalyses $r$''. For $S\subseteq R$ we write $\pi(S)=\bigcup_{r\in S}\pi(r)$.
+\end{definition}
+
+Multiplicities of reactants and products play no role in what follows and are ignored. We use the closure-based semantics of food generation and catalysis; Lemma~\ref{lem:provenance} shows that it agrees with the ordering-based definitions of~\cite{hordijk2004detecting,steel2013minimal}.
+
+\begin{definition}[Closure]\label{def:closure}
+Let $\cQ$ be a CRS and $S\subseteq R$. Define $W_0(S)=F$ and, for $i\ge 0$,
+\[
+W_{i+1}(S)=W_i(S)\cup\bigcup\{\pi(r): r\in S,\ \rho(r)\subseteq W_i(S)\}.
+\]
+The sequence is increasing and stabilizes after at most $|X|$ steps; its union is the \emph{closure} $\cl_S(F)$. A reaction $r$ is \emph{enabled} at stage $i$ if $\rho(r)\subseteq W_i(S)$.
+\end{definition}
+
+\begin{definition}[Food-generated sets and RAFs]\label{def:raf}
+Let $\cQ$ be a CRS and $S\subseteq R$.
+\begin{enumerate}[label=(\roman*)]
+\item $S$ is \emph{food-generated} if $\rho(r)\subseteq\cl_S(F)$ for every $r\in S$.
+\item $S$ is \emph{reflexively autocatalytic} if for every $r\in S$ there is $x\in\cl_S(F)$ with $(x,r)\in C$.
+\item $S$ is a \emph{RAF} if it is nonempty, food-generated and reflexively autocatalytic.
+\end{enumerate}
+An \emph{irreducible RAF} (iRAF) is a RAF that contains no RAF as a proper subset. When $\cQ$ has a RAF, $\optraf(\cQ)$ denotes the minimum cardinality of a RAF of $\cQ$.
+\end{definition}
+
+The optimization problem \MinRAF{} is: given a CRS that contains a RAF, find a RAF of minimum cardinality~\cite{steel2013minimal}. The existence of a RAF can be decided in polynomial time by the RAF algorithm~\cite{hordijk2004detecting}, so the promise is harmless.
+
+\begin{lemma}[Provenance]\label{lem:provenance}
+Let $\cQ$ be a CRS and $S\subseteq R$.
+\begin{enumerate}[label=(\roman*)]
+\item Every $x\in\cl_S(F)$ is a food molecule or a product of some reaction in $S$.
+\item If $S$ is food-generated then $\cl_S(F)=F\cup\pi(S)$. Consequently a food-generated set $S$ is reflexively autocatalytic if and only if every $r\in S$ is catalysed by a food molecule or by a product of some reaction in $S$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) is immediate by induction on the stage at which $x$ enters the closure. For (ii), the inclusion $\subseteq$ is (i). Conversely $F=W_0(S)\subseteq\cl_S(F)$, and if $r\in S$ then $\rho(r)\subseteq\cl_S(F)$, so $r$ is enabled at some stage $i$ and $\pi(r)\subseteq W_{i+1}(S)$. The last sentence follows by substituting $F\cup\pi(S)$ for the closure in Definition~\ref{def:raf}(ii).
+\end{proof}
+
+Hordijk and Steel~\cite{hordijk2004detecting} define $S$ to be food-generated when its reactions admit an ordering $r_1,\dots,r_k$ with $\rho(r_j)\subseteq F\cup\pi(\{r_1,\dots,r_{j-1}\})$, and reflexively autocatalytic when every $r\in S$ has a catalyst in $F\cup\pi(S)$. Ordering the reactions of $S$ by the stage at which they are first enabled shows that the ordering condition is equivalent to Definition~\ref{def:raf}(i), and Lemma~\ref{lem:provenance}(ii) shows that the two catalysis conditions agree on food-generated sets. The RAFs of Definition~\ref{def:raf} are therefore exactly the RAFs of~\cite{hordijk2004detecting,steel2013minimal}. The Lean development proves the second half of Lemma~\ref{lem:provenance}(ii) in the form \lean{isRAF\_iff\_foodGenerated\_and\_productGraph} and uses it throughout.
+
+\subsection{Set cover and the hardness premise}\label{sec:setcover}
+
+\begin{definition}[\SetCover]\label{def:setcover}
+A \emph{\SetCover{} instance} is a pair $\cI=(m,(A_j)_{j\in[n]})$ with $m\ge 1$ and $A_j\subseteq[m]$ for each $j\in[n]$, subject to the promise $\bigcup_{j\in[n]}A_j=[m]$. A \emph{cover} is a set $D\subseteq[n]$ with $\bigcup_{j\in D}A_j=[m]$, and $\tauI$ denotes the minimum cardinality of a cover. The \emph{incidence count} is $L(\cI)=\sum_{j\in[n]}|A_j|$, and the \emph{size} of $\cI$ is $m+n+L(\cI)$.
+\end{definition}
+
+Sets may be empty or repeated; this only makes the hardness statements stronger. Since $m\ge 1$ every cover is nonempty, so $\tauI\ge 1$.
+
+\begin{definition}[Solution approximation]\label{def:approx}
+Let $\alpha\ge 1$. A \emph{factor-$\alpha$ solution approximation} for a minimization problem is an algorithm that, on every instance, returns a feasible solution of cost at most $\alpha$ times the optimum. For \SetCover{} the feasible solutions are covers with their cardinality; for \MinRAF{} they are RAFs with their cardinality.
+\end{definition}
+
+\begin{hypothesis}[\SetCover{} inapproximability]\label{hyp:setcover}
+If $\Ptime\ne\NP$ then for no constant $\beta\ge 1$ does \SetCover{} have a polynomial-time factor-$\beta$ solution approximation.
+\end{hypothesis}
+
+Hypothesis~\ref{hyp:setcover} is a theorem. Lund and Yannakakis~\cite{lund1994hardness} proved $\Omega(\log m)$ hardness under the assumption that $\NP$ has no quasi-polynomial-time algorithms; Raz and Safra~\cite{razsafra1997subconstant} obtained $c\log m$ hardness for some $c>0$ under $\Ptime\ne\NP$; Feige~\cite{feige1998threshold} established the sharp threshold $(1-\varepsilon)\ln m$ under the assumption $\NP\not\subseteq\mathsf{DTIME}(n^{O(\log\log n)})$; Alon, Moshkovitz and Safra~\cite{alon2006algorithmic} and Moshkovitz~\cite{moshkovitz2015projection} narrowed the gap; and Dinur and Steurer~\cite{dinur2014analytical} proved that $(1-\varepsilon)\ln m$-approximation is NP-hard for every fixed $\varepsilon>0$. Any of the statements under $\Ptime\ne\NP$ implies the hypothesis, since $\log m$ exceeds every constant on all but finitely many instances, and those finitely many can be solved exactly. We isolate the hypothesis because it is the only complexity-theoretic input to the paper and because the Lean formalization takes it as a named premise.
+
+\begin{definition}[AP-reductions~\cite{crescenzi1997short,ausiello1999complexity}]\label{def:ap}
+Let $\mathsf{A}$ and $\mathsf{B}$ be minimization problems. An \emph{AP-reduction} from $\mathsf{A}$ to $\mathsf{B}$ with constant $\alpha\ge 1$ consists of polynomial-time computable maps $f$, taking instances $x$ of $\mathsf{A}$ to instances $f(x)$ of $\mathsf{B}$, and $g$, taking a pair $(x,y)$ with $y$ a feasible solution of $f(x)$ to a feasible solution $g(x,y)$ of $x$, such that for every $c\ge 1$: if $y$ is within factor $c$ of optimal for $f(x)$ then $g(x,y)$ is within factor $1+\alpha(c-1)$ of optimal for $x$.
+\end{definition}
+
+If $\mathsf{A}$ AP-reduces to $\mathsf{B}$ and $\mathsf{B}$ has a polynomial-time factor-$c$ solution approximation, then $\mathsf{A}$ has one with factor $1+\alpha(c-1)$. The reduction of this paper is an AP-reduction from \SetCover{} to \MinRAF{} with $\alpha=2$, since $1+2(c-1)=2c-1$.
+
+\section{The amplified construction}\label{sec:construction}
+
+Throughout, $\cI=(m,(A_j)_{j\in[n]})$ is a \SetCover{} instance with $m\ge 1$ and $M\ge 1$ is an integer, the \emph{block length} or \emph{amplification}.
+
+\begin{construction}[The source $\cQ_M(\cI)$]\label{con:source}
+The CRS $\cQ_M(\cI)=(X,R,\rho,\pi,F,C)$ has
+\begin{itemize}
+\item molecule types $X=\{f\}\cup\{y_i:i\in[m]\}\cup\{z_{j,k}:j\in[n],k\in[M]\}$ and food set $F=\{f\}$;
+\item reactions $R=\{g_i:i\in[m]\}\cup\{b_{j,k}:j\in[n],\,k\in[M]\}$, the \emph{gates} and the \emph{block reactions}, with reactants and products as in Table~\ref{tab:construction};
+\item catalysis relation $C$ consisting of the pairs $(h_j,b_{j,k})$ for all $j\in[n]$ and $k\in[M]$, and the pairs $(h_j,g_i)$ for all $j\in[n]$ and $i\in A_j$, where $h_j$ abbreviates the \emph{hub} $z_{j,M-1}$ of block $j$.
+\end{itemize}
+For $D\subseteq[n]$ the \emph{canonical reaction set} of $D$ is
+\[
+\cR(D)=\{g_i:i\in[m]\}\cup\{b_{j,k}:j\in D,\ k\in[M]\}.
+\]
+\end{construction}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+Reaction & Reactants $\rho$ & Product $\pi$ & Catalysts \\
+\midrule
+$g_0$ & $\{f\}$ & $y_0$ & $h_j$ for every $j$ with $0\in A_j$ \\
+$g_i$, $1\le i<m$ & $\{f,\,y_{i-1}\}$ & $y_i$ & $h_j$ for every $j$ with $i\in A_j$ \\
+$b_{j,0}$ & $\{f,\,y_{m-1}\}$ & $z_{j,0}$ & $h_j$ \\
+$b_{j,k}$, $1\le k<M$ & $\{f,\,z_{j,k-1}\}$ & $z_{j,k}$ & $h_j$ \\
+\bottomrule
+\end{tabular}
+\caption{The reactions of $\cQ_M(\cI)$. The hub of block $j$ is $h_j=z_{j,M-1}$. When $M=1$ the hub is $z_{j,0}$ and the last row is empty.}
+\label{tab:construction}
+\end{table}
+
+The system has $m+nM$ reactions and $1+m+nM$ molecule types. Every reaction has at most two reactants and exactly one product, and distinct reactions have distinct products. The only catalysts are hubs, and no food molecule catalyses anything. The reactions form a single chain $g_0,\dots,g_{m-1}$ from which $n$ chains of length $M$ branch off; the hub of each branch catalyses the whole branch and points back to the gates of the elements its set covers. Figure~\ref{fig:example} shows a small example.
+
+\begin{figure}[ht]
+\centering
+\begin{tabular}{@{}l@{}}
+Instance: $m=3$, $A_0=\{0,1\}$, $A_1=\{1,2\}$, $A_2=\{2\}$; block length $M=2$.\\[4pt]
+Gates: \quad $g_0\colon f\to y_0$ \quad $g_1\colon f+y_0\to y_1$ \quad $g_2\colon f+y_1\to y_2$\\[2pt]
+Blocks: \quad $b_{j,0}\colon f+y_2\to z_{j,0}$, \quad $b_{j,1}\colon f+z_{j,0}\to z_{j,1}=h_j$ \quad ($j=0,1,2$)\\[2pt]
+Catalysis: \quad $h_0\to\{g_0,g_1,b_{0,0},b_{0,1}\}$, \quad $h_1\to\{g_1,g_2,b_{1,0},b_{1,1}\}$, \quad $h_2\to\{g_2,b_{2,0},b_{2,1}\}$\\[4pt]
+Covers: $\{0,1\}$, $\{0,2\}$, $\{0,1,2\}$. \quad RAFs: $\cR(\{0,1\})$, $\cR(\{0,2\})$, $\cR(\{0,1,2\})$, of sizes $7$, $7$, $9$.
+\end{tabular}
+\caption{A small instance of Construction~\ref{con:source}. The nine reactions have exactly three RAFs, one for each cover, and $\optraf=3+2\cdot 2=7$.}
+\label{fig:example}
+\end{figure}
+
+The next lemma records the unique-provenance property that drives the reverse direction of the correspondence. We write $\cl_S$ for $\cl_S(\{f\})$ in $\cQ_M(\cI)$.
+
+\begin{lemma}[Unique provenance]\label{lem:origin}
+Let $S\subseteq R$ be any set of reactions of $\cQ_M(\cI)$.
+\begin{enumerate}[label=(\roman*)]
+\item If $y_i\in\cl_S$ then $g_i\in S$.
+\item If $z_{j,k}\in\cl_S$ then $b_{j,k}\in S$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:provenance}(i), a molecule in $\cl_S$ other than $f$ is a product of a reaction in $S$. The only reaction with product $y_i$ is $g_i$, and the only reaction with product $z_{j,k}$ is $b_{j,k}$.
+\end{proof}
+
+\section{Exact characterization of the RAFs}\label{sec:iff}
+
+We first show that a food-generated set is closed under predecessors along the chains.
+
+\begin{lemma}[Prefix closure]\label{lem:prefix}
+Let $S$ be a food-generated set of reactions of $\cQ_M(\cI)$.
+\begin{enumerate}[label=(\roman*)]
+\item If $g_i\in S$ then $g_q\in S$ for every $q\le i$.
+\item If $b_{j,k}\in S$ then $b_{j,l}\in S$ for every $l\le k$.
+\item If $b_{j,0}\in S$ then $g_i\in S$ for every $i\in[m]$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) By downward induction on $i$. If $g_i\in S$ with $i\ge 1$ then $y_{i-1}\in\rho(g_i)\subseteq\cl_S$ because $S$ is food-generated, so $g_{i-1}\in S$ by Lemma~\ref{lem:origin}(i). (ii) Identically, using $z_{j,k-1}\in\rho(b_{j,k})$ and Lemma~\ref{lem:origin}(ii). (iii) If $b_{j,0}\in S$ then $y_{m-1}\in\rho(b_{j,0})\subseteq\cl_S$, so $g_{m-1}\in S$ by Lemma~\ref{lem:origin}(i), and (i) gives all gates.
+\end{proof}
+
+Next, the catalysis condition forces the hubs.
+
+\begin{lemma}[Forced hubs]\label{lem:hub}
+Let $S$ be a RAF of $\cQ_M(\cI)$.
+\begin{enumerate}[label=(\roman*)]
+\item If $b_{j,k}\in S$ then $b_{j,M-1}\in S$, and hence, by Lemma~\ref{lem:prefix}(ii), the whole block $\{b_{j,l}:l\in[M]\}$ is contained in $S$.
+\item If $g_i\in S$ then there is $j$ with $i\in A_j$ and $b_{j,M-1}\in S$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) The reaction $b_{j,k}$ has a catalyst in $\cl_S$. Its only catalyst is $h_j=z_{j,M-1}$, so $z_{j,M-1}\in\cl_S$ and $b_{j,M-1}\in S$ by Lemma~\ref{lem:origin}(ii). (ii) The gate $g_i$ has a catalyst in $\cl_S$. Its catalysts are the hubs $h_j$ with $i\in A_j$, so some $z_{j,M-1}$ with $i\in A_j$ lies in $\cl_S$, and $b_{j,M-1}\in S$ by Lemma~\ref{lem:origin}(ii).
+\end{proof}
+
+For the forward direction we need explicit closure stages.
+
+\begin{lemma}[Reachability]\label{lem:reach}
+Let $D\subseteq[n]$ and $S=\cR(D)$. Then $y_i\in W_{i+1}(S)$ for every $i\in[m]$, and $z_{j,k}\in W_{m+k+1}(S)$ for every $j\in D$ and $k\in[M]$. In particular $S$ is food-generated.
+\end{lemma}
+
+\begin{proof}
+By induction on $i$: $g_0\in S$ is enabled at stage $0$ since $\rho(g_0)=\{f\}=W_0(S)$, so $y_0\in W_1(S)$; and if $y_{i-1}\in W_i(S)$ then $g_i\in S$ is enabled at stage $i$, so $y_i\in W_{i+1}(S)$. Now let $j\in D$. Since $y_{m-1}\in W_m(S)$, the reaction $b_{j,0}\in S$ is enabled at stage $m$ and $z_{j,0}\in W_{m+1}(S)$; and if $z_{j,k-1}\in W_{m+k}(S)$ then $b_{j,k}\in S$ is enabled at stage $m+k$, so $z_{j,k}\in W_{m+k+1}(S)$. Every reactant of every reaction in $S$ is $f$ or one of these molecules, so $S$ is food-generated.
+\end{proof}
+
+\begin{theorem}[RAF--cover correspondence]\label{thm:iff}
+Let $\cI$ be a \SetCover{} instance with $m\ge 1$ and let $M\ge 1$. A set $S$ of reactions of $\cQ_M(\cI)$ is a RAF if and only if there is a cover $D$ of $\cI$ with $S=\cR(D)$. The cover is unique, namely $D=\{j\in[n]: b_{j,M-1}\in S\}$.
+\end{theorem}
+
+\begin{proof}
+Suppose $S$ is a RAF and put $D=\{j: b_{j,M-1}\in S\}$. By Lemma~\ref{lem:hub}(i) and Lemma~\ref{lem:prefix}(ii), a block reaction $b_{j,k}$ lies in $S$ if and only if $j\in D$, and in that case $S$ contains the whole block $j$. Since $S$ is nonempty it contains either a block reaction or a gate; in the latter case Lemma~\ref{lem:hub}(ii) supplies a block reaction in $S$ anyway. So $D\ne\emptyset$, and $b_{j,0}\in S$ for some $j$, whence $S$ contains every gate by Lemma~\ref{lem:prefix}(iii). Thus $S=\cR(D)$. Finally, for every $i\in[m]$ the gate $g_i$ lies in $S$, so by Lemma~\ref{lem:hub}(ii) there is $j\in D$ with $i\in A_j$; that is, $D$ is a cover.
+
+Conversely, let $D$ be a cover and $S=\cR(D)$. Then $S$ is nonempty since $m\ge 1$, and food-generated by Lemma~\ref{lem:reach}. For catalysis, each $b_{j,k}\in S$ has $j\in D$, and its catalyst $h_j=z_{j,M-1}$ lies in $W_{m+M}(S)\subseteq\cl_S$ by Lemma~\ref{lem:reach}. Each gate $g_i$ has, because $D$ is a cover, some $j\in D$ with $i\in A_j$, and $h_j\in\cl_S$ catalyses $g_i$. Hence $S$ is a RAF. Uniqueness of $D$ is clear from the definition of $\cR(D)$, since $M\ge 1$.
+\end{proof}
+
+\begin{remark}\label{rem:structure}
+Theorem~\ref{thm:iff} classifies every RAF, not only the optimal ones, and it does so for every $M\ge 1$. The map $D\mapsto\cR(D)$ is an isomorphism from the poset of covers of $\cI$, ordered by inclusion, onto the poset of RAFs of $\cQ_M(\cI)$ (Lemma~\ref{lem:subset} below). Since $[n]$ itself is a cover, the whole reaction set $R=\cR([n])$ is a RAF: the maxRAF of $\cQ_M(\cI)$ is $R$, and the RAF algorithm of~\cite{hordijk2004detecting} returns all of $R$ on every instance of the family.
+\end{remark}
+
+\begin{corollary}[NP-hardness in a restricted class]\label{cor:np-hard}
+\MinRAF{} is NP-hard, and remains so on CRSs with a single food molecule, at most two reactants and exactly one product per reaction, no food catalysis, and in which the entire reaction set is a RAF.
+\end{corollary}
+
+\begin{proof}
+Take $M=1$. By Theorem~\ref{thm:iff} and Lemma~\ref{lem:card} below, $\optraf(\cQ_1(\cI))=m+\tauI$, and a minimum RAF yields a minimum cover by reading off its block reactions. The construction is computable in polynomial time (Lemma~\ref{lem:size}).
+\end{proof}
+
+Corollary~\ref{cor:np-hard} recovers the NP-hardness theorem of~\cite{steel2013minimal} by a different reduction. Its interest here is that it shows the two ingredients that the approximation result adds: the amplification $M$, and the fact that the classification in Theorem~\ref{thm:iff} covers every RAF.
+
+\section{Objective identity and approximation transfer}\label{sec:transfer}
+
+\begin{lemma}[Affine cardinality]\label{lem:card}
+For every $D\subseteq[n]$, $|\cR(D)|=m+M|D|$.
+\end{lemma}
+
+\begin{proof}
+The map sending $g_i$ to $i$ and $b_{j,k}$ to $(j,k)$ is a bijection from $\cR(D)$ onto the disjoint union $[m]\sqcup(D\times[M])$.
+\end{proof}
+
+\begin{corollary}[Optimum correspondence]\label{cor:opt}
+Let $m,M\ge 1$. Then $\optraf(\cQ_M(\cI))=m+M\,\tauI$, and a cover $D$ has minimum cardinality among covers if and only if $\cR(D)$ has minimum cardinality among RAFs.
+\end{corollary}
+
+\begin{proof}
+By Theorem~\ref{thm:iff} the RAFs are exactly the sets $\cR(D)$ with $D$ a cover, and by Lemma~\ref{lem:card} the map $D\mapsto|\cR(D)|=m+M|D|$ is strictly increasing in $|D|$.
+\end{proof}
+
+\begin{theorem}[Decoding]\label{thm:decode}
+Let $\cI$ be a \SetCover{} instance with $m\ge 1$, let $M\ge m$, and let $c\ge 1$ be real. If $S$ is a RAF of $\cQ_M(\cI)$ with
+\[
+|S|\le c\cdot\optraf(\cQ_M(\cI)),
+\]
+then $D=\{j\in[n]:b_{j,M-1}\in S\}$ is a cover of $\cI$ with $|D|\le(2c-1)\,\tauI$.
+\end{theorem}
+
+\begin{proof}
+By Theorem~\ref{thm:iff}, $D$ is a cover and $S=\cR(D)$. Write $\tau=\tauI$ and $d=|D|$. By Lemma~\ref{lem:card} and Corollary~\ref{cor:opt} the hypothesis reads
+\[
+m+Md\le c\,(m+M\tau).
+\]
+Subtracting $m$ and using $m\le M$ and $c-1\ge 0$,
+\[
+Md\le (c-1)m+cM\tau\le (c-1)M+cM\tau=M\bigl(c\tau+(c-1)\bigr),
+\]
+and dividing by $M>0$ gives $d\le c\tau+(c-1)$. Since $\tau\ge 1$ we have $c-1\le(c-1)\tau$, so $d\le c\tau+(c-1)\tau=(2c-1)\tau$.
+\end{proof}
+
+\begin{remark}\label{rem:ap}
+Together with Lemma~\ref{lem:size} below, Theorem~\ref{thm:decode} says that $f(\cI)=\cQ_{\max\{2,m\}}(\cI)$ and $g(\cI,S)=\{j:b_{j,M-1}\in S\}$ form an AP-reduction from \SetCover{} to \MinRAF{} with constant $\alpha=2$ (Definition~\ref{def:ap}). Any $M\ge m$ would do; the Lean formalization fixes $M=\max\{2,m\}$. The reduction is not an L-reduction in the sense of Papadimitriou and Yannakakis~\cite{papadimitriou1991optimization}, because $\optraf=m+M\tau$ is not bounded by a constant multiple of $\tau$; it is the ratio, not the optimum, that is preserved. The bound $2c-1$ is not claimed to be tight; the value of the constant does not matter for the main theorem.
+\end{remark}
+
+\section{Encoding size and the main theorem}\label{sec:encoding}
+
+A CRS is encoded in the natural sparse way: a list of molecule identifiers, a list of food identifiers, for each reaction the lists of its reactants and products, and the list of catalysis pairs. Its \emph{encoding size} is the total number of identifiers in these lists; the bit length is larger by a logarithmic factor, which is irrelevant to polynomiality.
+
+\begin{lemma}[Encoding size]\label{lem:size}
+Let $\cI$ be a \SetCover{} instance with $m\ge 1$ and let $M\ge 1$. The CRS $\cQ_M(\cI)$ has $m+nM$ reactions and $1+m+nM$ molecule types, and its encoding size is
+\[
+1+5(m+nM)+nM+L(\cI)\ \le\ 1+6(m+nM)+nm .
+\]
+It can be written down in time polynomial in $m$, $n$, $M$ and $L(\cI)$. With $M=\max\{2,m\}$ the encoding size is at most $1+6\bigl(m+n(m+1)\bigr)+nm$, which is polynomial in the size $m+n+L(\cI)$ of $\cI$. The decoder $S\mapsto\{j:b_{j,M-1}\in S\}$ runs in time linear in the encoding of $S$.
+\end{lemma}
+
+\begin{proof}
+The reaction and molecule counts are read off from Construction~\ref{con:source}. The lists contain $1+m+nM$ molecule identifiers, one food identifier, $m+nM$ reaction identifiers, $2(m+nM)-1$ reactant identifiers ($g_0$ has one reactant and every other reaction has two), $m+nM$ product identifiers, and $nM+L(\cI)$ catalysis pairs, each counted as one identifier pair; summing gives the stated expression, and $L(\cI)\le nm$ gives the bound. For $M=\max\{2,m\}\le m+1$ substitute $nM\le n(m+1)$. Each entry is produced by a constant number of arithmetic operations on indices, and the decoder scans the $n$ reactions $b_{j,M-1}$.
+\end{proof}
+
+\begin{theorem}[Main theorem]\label{thm:main}
+Assume $\Ptime\ne\NP$. Then for no constant $\alpha\ge 1$ is there a polynomial-time factor-$\alpha$ solution approximation for \MinRAF. The conclusion holds already for \MinRAF{} restricted to the CRSs $\cQ_{\max\{2,m\}}(\cI)$, all of which have a single food molecule, at most two reactants and exactly one product per reaction, no food catalysis, and reaction set equal to their maxRAF.
+\end{theorem}
+
+\begin{proof}
+Suppose $\mathcal{A}$ is a polynomial-time algorithm that, on every CRS containing a RAF, returns a RAF of size at most $\alpha$ times the minimum. Consider the following algorithm for \SetCover. Given an instance $\cI$ with $m\ge 1$, construct $\cQ=\cQ_{\max\{2,m\}}(\cI)$, which contains a RAF by Remark~\ref{rem:structure}; run $\mathcal{A}$ on $\cQ$ to obtain a RAF $S$ with $|S|\le\alpha\,\optraf(\cQ)$; and return $D=\{j:b_{j,M-1}\in S\}$. By Lemma~\ref{lem:size} the whole procedure runs in polynomial time, and by Theorem~\ref{thm:decode} with $M=\max\{2,m\}\ge m$ and $c=\alpha$, the set $D$ is a cover with $|D|\le(2\alpha-1)\,\tauI$. This is a polynomial-time factor-$(2\alpha-1)$ solution approximation for \SetCover, contradicting Hypothesis~\ref{hyp:setcover}. The restriction to the family $\cQ_{\max\{2,m\}}(\cI)$ is built into the argument, and the listed syntactic properties are those noted after Construction~\ref{con:source} and in Remark~\ref{rem:structure}.
+\end{proof}
+
+\begin{remark}\label{rem:realc}
+Theorem~\ref{thm:decode} is stated for real $c\ge 1$. The Lean formalization proves it for natural numbers $c$ in natural-number arithmetic, without division; for the main theorem this loses nothing, since a factor-$\alpha$ guarantee is a factor-$\lceil\alpha\rceil$ guarantee.
+\end{remark}
+
+\section{Estimating the minimum without producing a RAF}\label{sec:gap}
+
+Theorem~\ref{thm:main} concerns algorithms that return a RAF. A weaker task is to output a number that estimates $\optraf$. Three conventions are in use: a \emph{factor-$c$ upper estimate} is a number $V$ with $\optraf\le V\le c\,\optraf$; a \emph{factor-$c$ lower estimate} is $V$ with $V\le\optraf\le c\,V$; and a \emph{two-sided factor-$c$ estimate} is $V$ with $\optraf\le cV$ and $V\le c\,\optraf$. The construction transfers gaps as well as ratios, so all three are hard. This uses the gap form of the \SetCover{} hardness theorems, which is what~\cite{razsafra1997subconstant,feige1998threshold,dinur2014analytical} actually prove.
+
+\begin{hypothesis}[Gap \SetCover]\label{hyp:gap}
+If $\Ptime\ne\NP$ then for every constant $\kappa>1$ the following promise problem is not solvable in polynomial time: given a \SetCover{} instance $\cI$ and an integer $a\ge 1$ with the promise that either $\tauI\le a$ or $\tauI>\kappa a$, decide which.
+\end{hypothesis}
+
+\begin{lemma}[Gap arithmetic]\label{lem:gaparith}
+Let $m\ge 1$, $M\ge m$, $a\ge 1$ and $c\ge 1$, and let $\kappa>2c-1$. Then
+\[
+c\,(m+Ma)\ <\ m+M\kappa a .
+\]
+If moreover $\kappa>2c^2-1$ then $c^2(m+Ma)<m+M\kappa a$.
+\end{lemma}
+
+\begin{proof}
+We have $c(m+Ma)-m=(c-1)m+cMa\le (c-1)M+cMa\le (c-1)Ma+cMa=(2c-1)Ma<\kappa Ma$, using $m\le M$, $a\ge 1$ and $c-1\ge 0$. The second statement is the first with $c^2$ in place of $c$.
+\end{proof}
+
+\begin{proposition}[Value estimation is hard]\label{prop:gap}
+Assume $\Ptime\ne\NP$ and Hypothesis~\ref{hyp:gap}. Then for no constant $c\ge 1$ is there a polynomial-time algorithm that, on every CRS containing a RAF, outputs a factor-$c$ upper estimate of $\optraf$; nor one that outputs a factor-$c$ lower estimate; nor one that outputs a two-sided factor-$c$ estimate.
+\end{proposition}
+
+\begin{proof}
+Fix $c\ge 1$ and put $\kappa=2c^2$, so that $\kappa>2c-1$ and $\kappa>2c^2-1$. Given $(\cI,a)$ as in Hypothesis~\ref{hyp:gap}, build $\cQ=\cQ_{\max\{2,m\}}(\cI)$ in polynomial time (Lemma~\ref{lem:size}) and put $M=\max\{2,m\}\ge m$. By Corollary~\ref{cor:opt}, $\optraf(\cQ)=m+M\tauI$. In the YES case $\optraf(\cQ)\le m+Ma$; in the NO case $\optraf(\cQ)>m+M\kappa a$. By Lemma~\ref{lem:gaparith},
+\[
+c^2\,(m+Ma)\ <\ m+M\kappa a. \tag{$\ast$}
+\]
+Let $V$ be the output of a putative estimator on $\cQ$.
+
+\emph{Upper estimate.} In the YES case $V\le c\,\optraf\le c(m+Ma)$; in the NO case $V\ge\optraf>m+M\kappa a$. By $(\ast)$ the two ranges are disjoint, so comparing $V$ with $c(m+Ma)$ decides the promise problem.
+
+\emph{Lower estimate.} In the YES case $V\le\optraf\le m+Ma$; in the NO case $V\ge\optraf/c>(m+M\kappa a)/c>m+Ma$ by $(\ast)$. Compare $V$ with $m+Ma$.
+
+\emph{Two-sided estimate.} In the YES case $V\le c\,\optraf\le c(m+Ma)$; in the NO case $V\ge\optraf/c>(m+M\kappa a)/c>c(m+Ma)$ by $(\ast)$. Compare $V$ with $c(m+Ma)$.
+
+In each case a polynomial-time estimator would solve the promise problem with $\kappa=2c^2$, contradicting Hypothesis~\ref{hyp:gap}.
+\end{proof}
+
+\begin{remark}
+The proof shows that the one-sided estimates need only the linear gap $\kappa>2c-1$, while the two-sided estimate needs the quadratic gap $\kappa>2c^2-1$; the Lean development records both inequalities and the resulting separation statements (Section~\ref{sec:verification}). Hypothesis~\ref{hyp:gap} is, like Hypothesis~\ref{hyp:setcover}, a consequence of~\cite{razsafra1997subconstant} or~\cite{dinur2014analytical}: those results exhibit polynomial-time reductions from an NP-complete problem to gap instances with $\kappa=\Omega(\log m)$, which exceeds any constant on all but finitely many instances.
+\end{remark}
+
+\section{Irreducible RAFs}\label{sec:irraf}
+
+Irreducible RAFs, the inclusion-minimal RAFs of a CRS, are the objects studied in~\cite{steel2013minimal}, where it is shown that their number can be exponential and that finding a smallest one is NP-hard. The construction of this paper describes them exactly.
+
+\begin{lemma}\label{lem:subset}
+Let $M\ge 1$ and $C,D\subseteq[n]$. Then $\cR(D)\subseteq\cR(C)$ if and only if $D\subseteq C$.
+\end{lemma}
+
+\begin{proof}
+If $D\subseteq C$ the inclusion is immediate from the definition of $\cR$. Conversely if $j\in D$ then $b_{j,M-1}\in\cR(D)\subseteq\cR(C)$, so $j\in C$.
+\end{proof}
+
+\begin{proposition}[iRAFs are inclusion-minimal covers]\label{prop:irraf}
+Let $m,M\ge 1$ and $C\subseteq[n]$. Then $\cR(C)$ is an irreducible RAF of $\cQ_M(\cI)$ if and only if $C$ is an inclusion-minimal cover of $\cI$, that is, a cover none of whose proper subsets is a cover. Every iRAF of $\cQ_M(\cI)$ is of this form.
+\end{proposition}
+
+\begin{proof}
+By Theorem~\ref{thm:iff} every RAF is $\cR(D)$ for a cover $D$, and by Lemma~\ref{lem:subset} the map $D\mapsto\cR(D)$ is an order isomorphism from the covers onto the RAFs. Minimal elements correspond under an order isomorphism.
+\end{proof}
+
+\begin{corollary}[Minimal transversals]\label{cor:transversal}
+Let $\cH$ be a hypergraph with vertex set $[v]$ and nonempty edges $E_0,\dots,E_{e-1}$, $e\ge 1$. Let $\cI_\cH$ be the \SetCover{} instance with universe $[e]$ and sets $A_x=\{t: x\in E_t\}$ for $x\in[v]$. Then the iRAFs of $\cQ_1(\cI_\cH)$ are exactly the sets $\cR(T)$ with $T$ a minimal transversal of $\cH$. In particular, enumerating the iRAFs of a CRS is at least as hard as enumerating the minimal transversals of a hypergraph.
+\end{corollary}
+
+\begin{proof}
+A set $T\subseteq[v]$ covers $\cI_\cH$ if and only if every edge meets $T$, that is, if and only if $T$ is a transversal. Apply Proposition~\ref{prop:irraf} with $M=1$. The CRS $\cQ_1(\cI_\cH)$ has $e+v$ reactions and is computable in polynomial time from $\cH$, and the bijection $T\mapsto\cR(T)$ and its inverse are computable in linear time, so an enumeration algorithm for iRAFs yields one for minimal transversals with the same delay up to a polynomial factor.
+\end{proof}
+
+Enumerating minimal transversals is the hypergraph dualization problem~\cite{eiter1995identifying}. Whether it can be solved in time polynomial in the combined input and output size is a well-known open problem; the algorithm of Fredman and Khachiyan~\cite{fredman1996complexity} runs in quasi-polynomial time $N^{o(\log N)}$ in that measure. Corollary~\ref{cor:transversal} places iRAF enumeration at or above this level of difficulty.
+
+\begin{proposition}[No universal iRAF size ratio]\label{prop:unbounded}
+For every $c\ge 1$ there is a CRS with two irreducible RAFs $S_1,S_2$ such that $|S_2|>c\,|S_1|$. Explicitly, let $q\ge 2c$ be an integer, let $\cI_q$ have universe $[q]$ and sets $A_0=[q]$ and $A_{i+1}=\{i\}$ for $i\in[q]$, and let $M=q$. Then $\cR(\{0\})$ and $\cR(\{1,\dots,q\})$ are iRAFs of $\cQ_q(\cI_q)$ of sizes $2q$ and $q(q+1)$.
+\end{proposition}
+
+\begin{proof}
+Both $\{0\}$ and $\{1,\dots,q\}$ are covers, and each is inclusion-minimal: removing $0$ from the first leaves nothing, and removing $i+1$ from the second uncovers $i$. By Proposition~\ref{prop:irraf} both canonical sets are iRAFs, and by Lemma~\ref{lem:card} their sizes are $q+q\cdot 1=2q$ and $q+q\cdot q=q(q+1)$. Finally $q(q+1)>c\cdot 2q$ if and only if $q+1>2c$, which holds for $q\ge 2c$.
+\end{proof}
+
+\begin{remark}
+Proposition~\ref{prop:unbounded} has an algorithmic reading. Several procedures return an iRAF: for instance, repeatedly deleting a reaction and recomputing the maxRAF until no deletion preserves the RAF property~\cite{hordijk2015algorithms}. Any such procedure, however it chooses deletion order, may return either of the two iRAFs in Proposition~\ref{prop:unbounded}, so producing an iRAF is not by itself an approximation guarantee. Theorem~\ref{thm:main} shows that the failure is not an artefact of the deletion heuristic but is inherent in the problem.
+\end{remark}
+
+\section{Relation to the earlier bounds}\label{sec:earlier}
+
+Steel, Hordijk and Smith~\cite{steel2013minimal} proved that \MinRAF{} is NP-hard and, in the absence of an approximation algorithm, gave two polynomial-time lower bounds on $\optraf$. The \emph{mandatory-reaction bound} counts the reactions that lie in every RAF, that is, the reactions whose deletion destroys every RAF. The \emph{cycle bound} applies when no reaction of the RAF under consideration is catalysed by a food molecule, and bounds its size below by the length of a shortest directed cycle in a graph that records which reactions produce catalysts of which other reactions. They also gave, for fixed $k$, a polynomial-time test of whether a given list of $k$ iRAFs exhausts all iRAFs, with an exponent that depends on $k$. These are certification and lower-bound results, not worst-case multiplicative guarantees, and in their concluding remarks the authors asked explicitly whether a constant-factor approximation of the smallest RAF is possible~\cite{steel2013minimal}. Theorem~\ref{thm:main} answers that question negatively.
+
+The construction also shows concretely why the two lower bounds cannot supply a ratio. In $\cQ_M(\cI)$ the RAFs are the sets $\cR(D)$ with $D$ a cover, so by Theorem~\ref{thm:iff} a gate is mandatory always, and a block reaction $b_{j,k}$ is mandatory if and only if $j$ lies in every cover, that is, if and only if some element of $[m]$ lies in $A_j$ and in no other set. The mandatory-reaction bound therefore equals $m+M\,|\{j: A_j\text{ contains a privately covered element}\}|$, which equals $m$ on every instance without privately covered elements, while $\optraf=m+M\tauI$; for $M=m$ the ratio between the optimum and the bound is then $1+\tauI$, which is unbounded. The cycle bound is applicable, since no reaction of $\cQ_M(\cI)$ is food-catalysed, but each hub $h_j$ is produced by the reaction $b_{j,M-1}$ that it catalyses, so the catalyst graph has a loop at every block and the bound is trivial.
+
+\section{Formal verification and computation}\label{sec:verification}
+
+\subsection{Lean formalization}
+
+The definitions and results of Sections~\ref{sec:prelim}--\ref{sec:irraf} have been formalized in Lean~4 (toolchain \lean{v4.30.0}) against a pinned version of Mathlib (tag \lean{v4.30.0}, commit \lean{c5ea003}). The formalization follows the closure semantics of Definitions~\ref{def:closure} and~\ref{def:raf} verbatim: a CRS is a structure with fields \lean{inputs}, \lean{outputs} and \lean{food}, the closure $W_i(S)$ is \lean{closureAt Q S i}, defined by recursion on $i$, and \lean{FoodGenerated}, \lean{ReflexivelyAutocatalytic} and \lean{IsRAF} are the predicates of Definition~\ref{def:raf}. A \SetCover{} instance is a structure \lean{SetCoverInstance (Fin m) (Fin n)} consisting of the map $j\mapsto A_j$ and a proof of the coverability promise. Reactions of the source are the inductive type with constructors \lean{gate i} and \lean{block j k}, molecules are \lean{food}, \lean{y i} and \lean{z j k}, and Construction~\ref{con:source} is the pair \lean{crs m n M}, \lean{catalysis I}. The canonical set $\cR(D)$ is \lean{canonicalRAF D}. Theorem~\ref{thm:iff} is, in ASCII rendering,
+\begin{quote}\small
+\begin{verbatim}
+theorem MinRAFApprox.SetCoverSource.setCoverSource_raf_iff
+    (I : SetCoverInstance (Fin m) (Fin n)) (hm : 0 < m) (hM : 0 < M)
+    (S : Finset (Reaction (Fin m) (Fin n) (Fin M))) :
+    IsRAF (crs m n M) (catalysis I) S <->
+      exists C : Finset (Fin n), I.Covers C /\ S = canonicalRAF C
+\end{verbatim}
+\end{quote}
+and Lemma~\ref{lem:card} is \lean{canonicalRAF\_card}, which states
+\begin{center}\small\lean{(canonicalRAF C).card = m + M * C.card}\end{center}
+and is proved through an explicit equivalence with the type $[m]\sqcup(C\times[M])$ rather than by enumeration. Corollary~\ref{cor:opt} is \lean{minimumCover\_iff\_minimumRAF}. Theorem~\ref{thm:decode} is \lean{approximation\_decode}, whose arithmetic core \lean{approximation\_decode\_arithmetic} is the natural-number inequality
+\[
+1\le c,\ 1\le\tau,\ 0<M,\ m\le M,\ m+Mk\le c(m+M\tau)\ \Longrightarrow\ k\le(2c-1)\tau .
+\]
+
+The complexity-theoretic conclusion is formalized relative to abstract predicates. A \lean{CoverAlgorithm} is a function from instances to index sets, a \lean{SourceRAFAlgorithm} is a function from instances and block lengths to reaction sets, \lean{IsCoverApprox c A} and \lean{IsSourceRAFApprox c A} are the factor-$c$ solution-approximation properties of Definition~\ref{def:approx} on the respective families, and \lean{inducedCover A} composes a source RAF algorithm with the decoder $S\mapsto\{j:b_{j,M-1}\in S\}$ at $M=\max\{2,m\}$. The theorem \lean{sourceRAF\_approx\_implies\_cover\_approx} states that \lean{IsSourceRAFApprox c A} implies \lean{IsCoverApprox (2*c-1) (inducedCover A)}, and the publication entry point is
+\begin{quote}\small
+\begin{verbatim}
+theorem MinRAFApprox.SetCoverSource.publication_constant_factor_resolution
+    (P_eq_NP : Prop)
+    (PolynomialCover : CoverAlgorithm -> Prop)
+    (PolynomialRAF : SourceRAFAlgorithm -> Prop)
+    (setCoverHardness :
+      Not P_eq_NP -> NoPolynomialCoverConstApprox PolynomialCover)
+    (reductionPolynomial :
+      forall A, PolynomialRAF A -> PolynomialCover (inducedCover A)) :
+    Not P_eq_NP -> NoPolynomialSourceRAFConstApprox PolynomialRAF
+\end{verbatim}
+\end{quote}
+Here \lean{NoPolynomialCoverConstApprox P} says that no algorithm satisfying \lean{P} is a factor-$c$ solution approximation for any $c\ge 1$, and similarly for RAFs. The premise \lean{setCoverHardness} is Hypothesis~\ref{hyp:setcover}; the premise \lean{reductionPolynomial} is the closure of the polynomial-time predicate under the construction and decoder, which Lemma~\ref{lem:size} establishes for the ordinary encoding. Polynomial time is thus treated as a parameter rather than through a formalized machine model, which is the honest scope of the formal result. The formal statement is restricted to the source family, as Theorem~\ref{thm:main} permits.
+
+The remaining results are formalized as the following declarations.
+\begin{itemize}\raggedright
+\item Lemma~\ref{lem:size}: \lean{source\_reaction\_count} (the reaction count), \lean{activeMolecules\_card} (the molecule count $1+m+nM$, together with a proof that every closure stage stays inside this finite carrier), and \lean{sourceEncodingSize\_le} and \lean{amplified\_sourceEncodingSize\_le} (the encoding bounds).
+\item The syntactic restrictions of Theorem~\ref{thm:main}: \lean{source\_input\_card\_le\_two}, \lean{source\_output\_card\_eq\_one} and \lean{source\_food\_card\_eq\_one}.
+\item Lemma~\ref{lem:gaparith}: \lean{linear\_gap\_condition} and \lean{squared\_gap\_condition}. The three separation arguments in the proof of Proposition~\ref{prop:gap}: \lean{no\_common\_lower\_estimate}, \lean{no\_common\_upper\_estimate} and \lean{no\_common\_symmetric\_estimate}.
+\item Proposition~\ref{prop:irraf}: \lean{irreducibleRAF\_iff\_inclusionMinimalCover}. Corollary~\ref{cor:transversal}: \lean{irreducibleRAF\_iff\_minimalTransversal}. Proposition~\ref{prop:unbounded}: \lean{irreducibleRAF\_size\_ratio\_unbounded}, with $q=2c+2$.
+\end{itemize}
+Table~\ref{tab:modules} lists the modules. Not formalized are Hypotheses~\ref{hyp:setcover} and~\ref{hyp:gap} themselves, the polynomial-time model, and the equivalence with the ordering-based definitions of~\cite{hordijk2004detecting} discussed after Lemma~\ref{lem:provenance}.
+
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.44\textwidth}>{\raggedright\arraybackslash}p{0.52\textwidth}@{}}
+\toprule
+Lean module & Content \\
+\midrule
+\lean{RAF/Core/CRS.lean}, \lean{RAF/Core/Closure.lean}, \lean{RAF/Core/RAF.lean} & CRS, closure, food generation, RAFs (Section~\ref{sec:crs}) \\
+\lean{RAF/Frankl/Antimatroid.lean} & Lemma~\ref{lem:provenance} \\
+\lean{Basic.lean} & \SetCover{} instances, covers, reaction labels \\
+\lean{Gadgets/SetCoverSource.lean} & Construction~\ref{con:source}, Lemma~\ref{lem:origin} \\
+\lean{Gadgets/BlockCoverNormalForm.lean} & abstract block--cover normal form and its equivalence with covers \\
+\lean{Gadgets/SetCoverProvenance.lean} & Lemmas~\ref{lem:prefix} and~\ref{lem:hub} \\
+\lean{Gadgets/SetCoverReachability.lean} & Lemma~\ref{lem:reach} \\
+\lean{Gadgets/SetCoverBijection.lean} & Theorem~\ref{thm:iff} \\
+\lean{Gadgets/SetCoverCardinality.lean} & Lemma~\ref{lem:card} \\
+\lean{Gadgets/FiniteSupport.lean} & finite molecule carrier, molecule count (Lemma~\ref{lem:size}) \\
+\lean{ApproximationTransfer.lean} & Corollary~\ref{cor:opt}, Theorem~\ref{thm:decode} \\
+\lean{ComplexityTransfer.lean} & reaction count, decoder, AP transfer, conditional hardness (Theorem~\ref{thm:main}) \\
+\lean{EncodingSize.lean} & encoding bounds (Lemma~\ref{lem:size}) \\
+\lean{NumericalEstimates.lean} & Lemma~\ref{lem:gaparith}, separations for Proposition~\ref{prop:gap} \\
+\lean{Irreducible.lean}, \lean{UnboundedIrreducible.lean} & Propositions~\ref{prop:irraf} and~\ref{prop:unbounded}, Corollary~\ref{cor:transversal} \\
+\lean{Resolution.lean}, \lean{PublicationResolution.lean} & syntactic restrictions; terminal and aggregate statements \\
+\bottomrule
+\end{tabular}
+\caption{Correspondence between the paper and the Lean development. Modules are in the directory \lean{proofs/MinRAFApprox} unless a path is indicated, in which case they are relative to \lean{proofs/}.}
+\label{tab:modules}
+\end{table}
+
+The aggregate module \lean{PublicationResolution.lean}, which imports every module in Table~\ref{tab:modules}, was compiled with the option \lean{-DwarningAsError=true}, which promotes warnings to errors. The build reports exit code~0, empty standard output and standard error, and no use of \lean{sorry}. The axioms on which \lean{publication\_constant\_factor\_resolution} depends are exactly \lean{propext}, \lean{Classical.choice} and \lean{Quot.sound}, the standard axioms of Lean's classical logic. The verified source of the aggregate module has SHA-256 hash
+\begin{center}\small\texttt{2c9960b72523aa7f8d589edd945a8bf1ad721fcdc455b3aa672ba78e6dcc5060},\end{center}
+and the hash of its elaborated declaration interface is
+\begin{center}\small\texttt{de349b3a9325bfff505978f9c8e0cc8a981a9ef5619b18958b32d7691bc01572}.\end{center}
+The terminal module \lean{Resolution.lean}, containing the three syntactic-restriction theorems and the resolution theorem, was verified separately in the same way with the same axiom set; its source hash is \texttt{2a812b14\ldots{}b1413} and its interface hash is \texttt{104f88bc\ldots{}8730}, recorded in full in the repository receipts.
+
+\subsection{Exhaustive finite checks}
+
+Before the formalization, Construction~\ref{con:source} was tested exhaustively by a short program that implements Definitions~\ref{def:closure} and~\ref{def:raf} literally. For every $m,n\in\{1,2,3\}$, every ordered family of $n$ subsets of $[m]$ whose union is $[m]$ (empty and repeated sets allowed), and every $M\in\{1,2,3\}$, the program built $\cQ_M(\cI)$, and for every one of the $2^{m+nM}$ reaction subsets $S$ it computed the closure $\cl_S(\{f\})$ by iteration, tested the RAF conditions, and compared the outcome with the normal form predicted by Theorem~\ref{thm:iff}, namely ``$S=\cR(D)$ for a cover $D$''. It also compared the minimum RAF size found by enumeration with $m+M\tauI$. This covered $1{,}323$ systems and $1{,}747{,}004$ reaction subsets, of which $4{,}485$ were RAFs, with no discrepancy in either comparison. An earlier variant of the construction, in which the block catalysts formed a directed cycle rather than pointing to a single hub, passed the same test on $882$ systems and $1{,}722{,}312$ subsets before being simplified to the present form. These computations informed the proofs and are reported for reproducibility; they are not used as evidence in any proof.
+
+\section{Discussion}\label{sec:discussion}
+
+The smallest RAF is not merely hard to compute exactly. In unrestricted finite catalytic reaction systems it cannot, unless $\Ptime=\NP$, be approximated in polynomial time within any fixed constant factor, and the obstruction already appears in systems with a single food molecule, at most two reactants and one product per reaction, and no food catalysis. The mechanism is an exact structural correspondence: in the constructed systems, RAFs \emph{are} set covers, and reaction counts are an affine image of cover sizes in which the variable part has been amplified past the fixed scaffold. Several questions remain.
+
+\begin{question}
+What is the approximation threshold of \MinRAF? Theorem~\ref{thm:decode} transfers a factor-$c$ guarantee for \MinRAF{} to a factor-$(2c-1)$ guarantee for \SetCover, so any logarithmic hardness for \SetCover{} yields logarithmic hardness for \MinRAF{} measured in the universe size $m$; the constant obtained in terms of the number of reactions depends on the relation between $m$ and $n$ in the hardness instances and we have not pursued it. On the positive side we know of no polynomial-time $O(\log|R|)$-approximation for \MinRAF, nor of any nontrivial approximation at all. Is \MinRAF{} in $\mathsf{Log}$-$\mathsf{APX}$, or is it harder, for instance polylogarithmically hard like label cover?
+\end{question}
+
+\begin{question}
+Which structured classes of CRSs admit constant-factor approximation of the smallest RAF? The binary polymer model of~\cite{kauffman1986autocatalytic,hordijk2004detecting,mossel2005random,hordijk2011required} is the natural test case. The systems $\cQ_M(\cI)$ are far from that model: their reaction graph is a tree of chains and their catalysis is concentrated on $n$ hub molecules. It is open whether the hardness persists under the arity and catalysis-density constraints of the polymer model, or whether those constraints admit good approximations.
+\end{question}
+
+\begin{question}
+Is there a polynomial-time algorithm that computes a factor-$c$ lower estimate of $\optraf$ for structured classes, or that certifies optimality of a given RAF in interesting cases? The lower bounds of~\cite{steel2013minimal} are of this kind; Section~\ref{sec:earlier} shows exactly where they lose on the present family, and Proposition~\ref{prop:gap} shows that no universal constant-factor estimator exists.
+\end{question}
+
+\begin{question}
+Corollary~\ref{cor:transversal} shows that enumerating iRAFs is at least as hard as hypergraph dualization. Is it equivalent to it? An output-polynomial or quasi-polynomial enumeration algorithm for iRAFs would be of practical interest, since iRAFs are the units of analysis in much of the applied RAF literature~\cite{hordijk2012structure,hordijk2015algorithms,steel2020structure}.
+\end{question}
+
+Finally, the results concern the combinatorial RAF model only. They say nothing about the kinetic or thermodynamic feasibility of the constructed systems, nor about variants of RAF theory with inhibition or with the interior-operator viewpoint of~\cite{steel2023interior}; in the latter setting the family of RAFs of $\cQ_M(\cI)$ is the union-closed family of covers of $\cI$ together with the empty set, which may be of independent interest.
+
+\subsection*{Availability}
+
+The Lean sources, the verification receipts recording the hashes and axioms quoted in Section~\ref{sec:verification}, and the enumeration program are available in the repository \url{https://github.com/mmislan/Erdos}, in the directories \url{proofs/MinRAFApprox} and \url{problem_workspaces/RAF_minRAF_const_factor_approx}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

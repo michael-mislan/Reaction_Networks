@@ -1,0 +1,107 @@
+\section{\texorpdfstring{Certificates for the $N$-site source}%
+                        {Certificates for the N-site source}}
+\label{app:certs}
+
+This appendix states how the certificates of Section~\ref{sec:memory} were
+produced and verified, and displays the one that carries the paper's negative
+conclusion. All vectors, all slacks and the reconstruction of the source
+matrices are in the data file \texttt{site\_certificates.json}; the source
+module is \texttt{site\_source.py}, the driver that produces the certificates
+is \texttt{make\_certificates.py}, and \texttt{verify\_certificates.py} replays
+every check listed below. Every displayed inequality is checked
+with \texttt{fractions.Fraction} arithmetic against a source matrix
+reconstructed from \eqref{eq:chem}, the binomial allocation law and the death
+rule, never against stored matrix entries. Floating computation is used only to
+propose candidate vectors.
+
+\subsection{Reconstruction and state order}
+
+States are generated as $(a,r)$ with $a$ increasing outermost and $r$
+increasing innermost, subject to $a+r\le N$, which reproduces
+$(UU,UR,RR,AU,AR,AA)$ at $N=2$. The chemical generator uses \eqref{eq:chem}
+with rational $e$; the single-daughter marginal is
+$\Lambda_{(a,r),(a',r')}=2^{-(a+r)}\binom a{a'}\binom r{r'}$; the first-moment
+matrix is \eqref{eq:meanmatrix} with $L=2\Lambda$; and the joint daughter law
+pairs $(a',r')$ with $(a-a',r-r')$ at the same probability, so sibling
+correlation is retained in $\Phi$ and only the mean operator uses $\Lambda$.
+
+\subsection{Three kinds of certificate}
+
+\paragraph{Spectral sign (Table~\ref{tab:sites}, first column).}
+For each rational $e$ the matrix $M=-A_e$ is a $Z$-matrix, and all its leading
+principal minors are computed by exact elimination. By \eqref{eq:mtest} their
+positivity is equivalent to $\spb(A_e)<0$. Bisection on $e$ at denominator
+$10^6$ gives the brackets; the sign at each endpoint is additionally confirmed
+by a positive rational vector and \eqref{eq:cw}. At $e=3/10$ the resulting
+two-sided brackets are
+\[
+ \spb(A_{.3})\in\Bigl[-\tfrac7{500},-\tfrac{139}{10000}\Bigr]\ (N=4),
+ \qquad
+ \spb(A_{.3})\in\Bigl[\tfrac{239}{10000},\tfrac3{125}\Bigr]\ (N=6),
+\]
+with the $15$- and $28$-dimensional witnesses recorded in the data file.
+
+\paragraph{Contraction weights (Table~\ref{tab:sites}, last two columns).}
+The Perron vector of $A_{1/2}$ is computed in floating arithmetic, rounded to a
+positive rational vector $w$, and the inequalities $A_{1/2}w\le-\gamma w$ are
+then verified exactly for a rational $\gamma$ rounded down from
+$\min_i(-(A_{1/2}w)_i/w_i)$. Only the verified inequality is used;
+no eigenvalue rounded to a favourable sign enters a proof.
+
+\paragraph{Amplitude floors (Table~\ref{tab:amp}).}
+The required object is a single $q$ with $\PhiB(q)\le0$ and
+$\Phi_{v_{\max}}(q)\le0$. The minimal such $q$ is the least fixed point of the
+componentwise maximum
+\[
+ \mathcal M(q)_i=\max\bigl\{\PhiB(q)_i,\ \Phi_{v_{\max}}(q)_i\bigr\},
+\]
+which is reached by monotone iteration from $0$ and polished by Newton's method
+on the active selection. Rounding that fixed point is delicate because the
+inequalities are tight there, so instead of rounding we retract along the
+segment of Lemma~\ref{lem:segment}: with $h=1-q$ and $a=99/100$, the vector
+$1-ah$ satisfies
+\[
+ \Phi_v(1-ah)\le a\Phi_v(q)-a(1-a)\,b\odot D(h,h)\le-\tfrac{99}{10000}\,b\odot D(h,h)<0
+\]
+for every admitted $v$, with a strictly positive margin that dominates the
+rounding perturbation. The retracted vector is then written with denominator
+$10^8$ (or $10^{10}$ where the margin is smaller) and both inequality systems
+are verified exactly. The cost is a $1\%$ reduction of $\eta$, which is included
+in every value reported in Table~\ref{tab:amp}.
+
+\subsection{The six-site amplitude floor}
+
+At $N=6$ with baseline $e=.01$ and eraser amplitude $v_{\max}=.29$, the vector
+$q=10^{-8}\cdot Q$ with
+\[
+\begin{array}{r@{\;}l}
+Q=(&94286500,\ 98272968,\ 99056686,\ 99331683,\ 99457438,\ 99525067,\ 99565657,\\
+   &70705469,\ 86090037,\ 93106756,\ 96203017,\ 97651735,\ 98389280,\\
+   &61949773,\ 75113027,\ 85816369,\ 91719992,\ 94863984,\\
+   &58024251,\ 68295718,\ 77595263,\ 86256272,\\
+   &55984798,\ 63905275,\ 71672698,\\
+   &54795331,\ 60968199,\\
+   &54037279\,)
+\end{array}
+\]
+in the state order $(0,0),(0,1),\dots,(0,6),(1,0),\dots,(1,5),\dots,(6,0)$
+satisfies $\Phi_{.01}(q)\le0$ and $\Phi_{.3}(q)\le0$ in exact rational
+arithmetic, with largest coordinate slacks $-6.47\cdot10^{-8}$ and
+$-3.30\cdot10^{-6}$ respectively. By Theorem~\ref{thm:amp}, every predictable
+policy with eraser amplitude at most $.29$ --- including cell-specific policies,
+at unbounded budget and unbounded horizon --- leaves the six-site population
+alive with probability at least $1-(1-\eta)^n$ from $n$ founders of type
+$(6,0)$, where $\eta=1-54037279/10^8=.45962721$.
+
+\subsection{Reproduction}
+
+The single command \texttt{python verify\_certificates.py} replays every exact
+check reported in Section~\ref{sec:memory}: it reconstructs the source at each
+$N$, re-verifies the $M$-matrix brackets, the Collatz--Wielandt witnesses, the
+contraction weights, the baseline exposure certificates, the amplitude floors
+and the added-death thresholds, and prints each verdict. The two-site checks of
+Section~\ref{sec:source} and the enclosure \eqref{eq:validated} are replayed by
+the scripts inherited from the two-site study. No floating optimizer and no
+Monte Carlo simulation is needed to check any claim; floating computation
+appears only in the candidate search and in the clearly labelled diagnostics of
+Remark~\ref{rem:bigN} and Figure~\ref{fig:policy}.

@@ -1,0 +1,80 @@
+\section{Copying events, offspring kernels and repeated copying}\label{sec:events}
+
+\subsection{States, labels and admitted regions}
+A compartment state consists of the integer count vector $n$ of its resident species, a volume-like variable (a membrane or marker count $m$ in the growth protocols, a fixed volume $V$ in the split--refill protocol), and whatever protocol variables affect the future law (an event counter, a feed inventory). A \emph{label} $\ell$ ranges over a finite set; for $k$ binary modules it is a word $\sigma\in\{0,1\}^k$. Each label has an \emph{admitted region} $B_\ell$, a set of restart states. A \emph{decoder} is a fixed map from states to labels that never inspects the true label; in every protocol below it is a coordinate threshold. Membership in $B_\ell$ is strictly stronger than decoder correctness: $B_\ell$ is the set on which the one-cycle theorem is proved uniformly, and a state that decodes correctly but lies outside $B_\ell$ carries no guarantee for the next cycle.
+
+Which quantity a label measures is part of the statement. In Section~\ref{sec:constructed} the admitted regions are boxes of resident \emph{counts} at a prescribed volume, so the stored quantity is a concentration state (Proposition~\ref{prop:ratio} shows that normalized composition alone does not separate the regions). In Sections~\ref{sec:redundancy} and~\ref{sec:semenov} the regions additionally admit a relative-composition readout.
+
+\subsection{The copying cycle}
+\begin{definition}[One copying cycle]\label{def:cycle}
+Fix a protocol and a label $\ell$. Starting from an admitted parent $n\in B_\ell$, the cycle \emph{succeeds} when, in chronological order,
+\begin{enumerate}[label=(\roman*)]
+\item the parent reaches the protocol's division event within the allowed time, without triggering any failure monitor the protocol prescribes (resource quota, domain exit, forbidden event);
+\item the resident molecules are assigned to two daughters by the protocol's partition law, and the daughters' volumes and any refill are set as prescribed;
+\item both daughters complete the prescribed recovery, if any, and lie in $B_\ell$ at the protocol's inspection time;
+\item the state variables needed to run the protocol again are restored by the protocol's label-blind reset, so that daughter A's inspected state is again an admitted parent.
+\end{enumerate}
+\end{definition}
+
+Two inspection conventions occur. In the growth--division protocols of Sections~\ref{sec:constructed} and~\ref{sec:redundancy}, daughters are inspected \emph{at birth}, immediately after allocation, and the next cycle starts from the birth state; nothing after birth is required. In the split--refill--recovery protocol of Section~\ref{sec:semenov}, daughters are inspected at the end of a fixed recovery interval, and daughter A's terminal state is the next parent. In both cases the inspected state is exactly the state from which the next cycle is run, so no additional residence estimate is needed. Figure~\ref{fig:cycle} shows the cycle.
+
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[>=Stealth,font=\small,
+  box/.style={draw,rounded corners=2pt,align=center,inner sep=4pt,minimum height=9mm},
+  reg/.style={draw,thick,rounded corners=3pt,fill=blue!6,align=center,inner sep=4pt,minimum height=9mm},
+  lab/.style={font=\footnotesize,align=center}]
+\node[reg] (parent) {admitted parent\\ $n\in B_\ell$};
+\node[box,right=9mm of parent] (growth) {growth to the\\ division threshold\\ {\footnotesize(deadline, quota, monitors)}};
+\node[box,right=9mm of growth] (div) {division:\\ $D_i\sim\Bin(n_i,\tfrac12)$\\ daughters $D$ and $n-D$};
+\node[box,above right=2mm and 9mm of div,yshift=4mm] (recA) {daughter A:\\ reset or refill,\\ recovery if prescribed};
+\node[box,below right=2mm and 9mm of div,yshift=-4mm] (recB) {daughter B:\\ reset or refill,\\ recovery if prescribed};
+\node[reg,right=9mm of recA] (inA) {$n_A\in B_\ell$?};
+\node[reg,right=9mm of recB] (inB) {$n_B\in B_\ell$?};
+\draw[->] (parent) -- (growth);
+\draw[->] (growth) -- (div);
+\draw[->] (div) -- (recA);
+\draw[->] (div) -- (recB);
+\draw[->] (recA) -- (inA);
+\draw[->] (recB) -- (inB);
+\draw[->,dashed] (inA.north) |- ++(0,7mm) -| node[pos=0.25,above,lab]{success only if both hold; daughter A restarts the cycle} (parent.north);
+\node[lab,below=3mm of div,text width=6.2cm] {The two daughters are complementary: their allocation deviations $\pm(D-n/2)$ have opposite signs. Correct decoder output at inspection is necessary but not sufficient; the restart state must lie in $B_\ell$.};
+\end{tikzpicture}}
+\caption{One copying cycle. Uniform return to $B_\ell$ is proved for every parent in $B_\ell$; a success at daughter A therefore restarts the same guarantee.}\label{fig:cycle}
+\end{figure}
+
+\subsection{Offspring kernels and repeated copying}
+Let $S_\ell$ denote the set of possible restart states of daughter A (a finite set in all protocols below). One cycle defines a substochastic \emph{offspring kernel}
+\[
+ K_\ell(n,n')=\PP_n\bigl(\text{cycle succeeds, daughter A's inspected state is }n'\bigr),\qquad n\in B_\ell,\ n'\in S_\ell,
+\]
+whose missing mass $1-K_\ell(n,S_\ell)$ is the failure probability from $n$. Success forces $n'\in B_\ell$, so $K_\ell(n,S_\ell)=K_\ell(n,B_\ell)$. Because the protocol's reset is label-blind and restores every non-resident variable to its prescribed value, the law of the next cycle depends on the past only through $n'$.
+
+\begin{lemma}[Uniform return implies repeated copying]\label{lem:iteration}
+If $K_\ell(n,B_\ell)\ge p$ for every $n\in B_\ell$, then for every $n\in B_\ell$ and $G\ge0$ the probability that all $G$ inspected cycles along the designated daughter-A lineage succeed is at least $p^G$. Writing $p=1-\varepsilon$, it is also at least $\max\{0,1-G\varepsilon\}$.
+\end{lemma}
+\begin{proof}
+Let $S_0\equiv1$ on $B_\ell$ and $S_{g+1}(n)=\sum_{n'\in B_\ell}K_\ell(n,n')S_g(n')$, the probability of $g+1$ successive successes from $n$. If $S_g\ge p^g$ on $B_\ell$ then $S_{g+1}(n)\ge p^g K_\ell(n,B_\ell)\ge p^{g+1}$. The linear bound is Bernoulli's inequality, or a union bound over the $G$ conditional failure events. No independence between generations is used; the multiplication is valid because the conditional guarantee is uniform over the restart set.
+\end{proof}
+
+Lemma~\ref{lem:iteration} inspects both daughters at every counted division but follows only daughter A. It says nothing about the other daughter's descendants. For a complete family the number of inspected divisions grows exponentially with the depth.
+
+\begin{proposition}[A designated lineage and an entire family]\label{prop:family}
+Let $K_\ell(n,(n_A,n_B))$ be the joint law of both inspected daughter states on success, with $\sum_{(n_A,n_B)}K_\ell(n,(n_A,n_B))\ge p=1-\varepsilon$ for all $n\in B_\ell$. Let $F_G$ be the event that every division in the complete binary family through depth $G$ succeeds, the initial parent being at depth $0$. There are $D_G=2^G-1$ such divisions, and
+\[
+ \PP_n(F_G)\ge p^{2^G-1}\ge1-(2^G-1)\varepsilon .
+\]
+\end{proposition}
+\begin{proof}
+Define $f_0\equiv1$ and $f_{g+1}(n)=\sum_{(n_A,n_B)}K_\ell(n,(n_A,n_B))f_g(n_A)f_g(n_B)$. This is the probability that the family through depth $g+1$ succeeds, constructed with fresh compartment trajectories conditional on the \emph{joint} daughter state; it does not factor the distribution of the sibling compositions. If $f_g\ge p^{D_g}$ on $B_\ell$ then $f_{g+1}\ge p^{2D_g}\,p=p^{D_{g+1}}$, since $D_{g+1}=1+2D_g$. Equivalently, reveal divisions in breadth-first order while all earlier ones have succeeded; each next parent was born admitted, so its conditional success probability is at least $p$, and there are exactly $D_G$ opportunities.
+\end{proof}
+
+The terminal generation of the family is inspected with the same convention as in Definition~\ref{def:cycle}: at birth in the growth protocols, after recovery in the split--refill protocol. A one-cycle bound of $0.9901$ gives $0.9901^{10}>0.905$ along ten lineage divisions but only $0.9901^{1023}\approx3.8\times10^{-5}$ for a complete family of depth ten; the family bound is a lower bound and not evidence that most descendants fail.
+
+\subsection{Complementary allocation}\label{sec:partition}
+In every protocol below, division allocates each resident molecule independently and fairly to one of the two daughters. Conditional on the parent's count vector $n$, one draws $D_i\sim\Bin(n_i,1/2)$ independently across species and assigns $(D_i,n_i-D_i)$ to daughters A and B. The two daughter vectors are dependent: their deviations from $n/2$ are negatives of each other, and $\operatorname{Cov}(D_i,n_i-D_i)=-n_i/4$. Consequently the probability that both daughters return is \emph{not} the product of the two marginal return probabilities. Two devices replace that product. In Section~\ref{sec:constructed} the joint return probability is an exact finite binomial sum and is used as the terminal payoff. In Sections~\ref{sec:redundancy} and~\ref{sec:semenov} the daughters' deviations are bounded by a common event (a sup-norm tail, or a union bound over the two marginals); the reflection $d\mapsto n-d$ shows that daughter B has the same marginal law as daughter A, so one marginal estimate serves both.
+
+\begin{remark}[What uniformity must include]
+The restart set must contain every variable that can change the future law. In the constructed source the controller resets the food, waste and marker pools and the event counter at each division, without inspecting the label or touching the resident counts; in the Semenov protocol the feed quota is renewed each cycle. In both cases the restart state is the resident count vector alone, and the bounds of Theorems~\ref{thm:constructed} and~\ref{thm:semenov} are uniform over it. A bound uniform only in resident concentration would not justify another generation if a depleted reservoir or a controller phase were carried across cycles; we therefore charge the reservoir explicitly (Proposition~\ref{prop:capacity}) and state where fresh resources enter.
+\end{remark}

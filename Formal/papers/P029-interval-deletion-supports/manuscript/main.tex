@@ -1,0 +1,657 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% An intrinsic interval-deletion characterization of digraph support families.
+%
+% Author metadata is intentionally left blank.  Set the macros below before
+% submission if names and affiliations are to be printed.
+% ---------------------------------------------------------------------------
+\newcommand{\PaperAuthor}{}
+\newcommand{\PaperAffiliation}{}
+\newcommand{\PaperDate}{}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\hypersetup{pdftitle={An intrinsic interval-deletion characterization of digraph support families},
+ pdfauthor={},
+ pdfsubject={Set-theoretic characterization of the union-closed families supported by a directed graph, with applications to autocatalytic networks},
+ pdfkeywords={union-closed families, directed graphs, interior operators, definite Horn theories, single-head formulas, autocatalytic networks, RAF theory, formal verification}}
+
+\setlist{itemsep=2pt,topsep=3pt}
+\setlength{\emergencystretch}{1.5em}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.75}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{construction}[theorem]{Construction}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\DeclareUrlCommand\lean{\urlstyle{tt}}
+\providecommand{\doi}[1]{}
+\renewcommand{\doi}[1]{\href{https://doi.org/#1}{\nolinkurl{doi:#1}}}
+\newcommand{\Rec}{\textup{\textsc{Recognize}}}
+
+\newcommand{\cA}{\mathcal A}
+\newcommand{\cB}{\mathcal B}
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cK}{\mathcal K}
+\newcommand{\cQ}{\mathcal Q}
+\newcommand{\cR}{\mathcal R}
+\newcommand{\cU}{\mathcal U}
+\newcommand{\Mod}{\operatorname{Mod}}
+\newcommand{\cl}{\operatorname{cl}}
+\newcommand{\Heads}{\operatorname{Heads}}
+\newcommand{\Fix}{\operatorname{Fix}}
+\newcommand{\Int}{I_{\cF}}
+\newcommand{\ivl}[2]{[\{#1\},#2]}
+\newcommand{\pw}[1]{2^{#1}}
+\newcommand{\NP}{\mathsf{NP}}
+\newcommand{\Ptime}{\mathsf{P}}
+
+\title{An intrinsic interval-deletion characterization\\of digraph support families}
+\author{\PaperAuthor}
+\date{\PaperDate}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $E$ be a finite set. A directed graph on $E$, with loops permitted, \emph{supports} the subsets of $E$ in which every vertex has an in-neighbour inside the subset. The supported subsets form a union-closed family containing the empty set, and Steel (\emph{Acta Biotheoretica}, 2023) asked for a set-theoretic characterization of the families that arise in this way. We give a recursive characterization that refers only to the given family $\cF$. Starting from the full power set, one repeatedly selects an inclusion-maximal set $S\notin\cF$, chooses a root $r\in S$ that lies in no member of $\cF$ contained in $S$ and has not been used before, and deletes the interval $\{X: r\in X\subseteq S\}$. The family $\cF$ is the support family of a digraph on $E$ if and only if some legal sequence of deletions ends exactly at $\cF$. The residual set may be chosen by any fixed rule; only the root requires branching. Every sequence has at most $|E|$ steps, and a successful sequence reconstructs a realizing digraph on the original ground set by the predecessor rows $P(r_i)=E\setminus S_i$. The proof passes through complementation to single-head definite Horn theories, where the key step is a normalization lemma replacing one rule of a hypothetical single-head completion while preserving its models and all previously accepted rules. We derive the exact root set and length of every successful sequence, a finite recognizer whose rejections are proofs of non-realizability, membership in $\NP$ for explicitly listed families, closure of the class under coordinate projection (elimination of hidden vertices), induced deletion and disjoint products, a Hall-type necessary condition, and a three-element family showing that the class is not closed under intersection on a shared ground set, so that no collection of closure axioms can characterize it. For catalytic reaction systems we obtain that a family is the fixed family of an elementary system if and only if it passes the interval-deletion test, and that same-ground RAF families are exactly intersections of an antimatroid with a family passing that test. The characterization, its consequences and an executable trace checker are verified in Lean~4.
+\end{abstract}
+
+\noindent\textbf{Keywords.} union-closed families; directed graphs; interior operators; definite Horn theories; single-head formulas; autocatalytic sets; RAF theory; formal verification.
+
+\medskip
+\noindent\textbf{MSC 2020.} 05C20, 06A15, 05D05, 68R05, 68T27, 92E20, 68V20.
+
+\section{Introduction}\label{sec:intro}
+
+\subsection{The question}
+
+Let $E$ be a finite set and let $D$ be a directed graph on the vertex set $E$; loops are permitted. Following Steel~\cite[Section~2.1]{steel2023interior}, the \emph{support family} of $D$ is
+\begin{equation}\label{eq:support}
+ \cC(D)=\{S\subseteq E:\ \forall r\in S\ \exists u\in S\text{ with }u\to r\}.
+\end{equation}
+Thus $S\in\cC(D)$ exactly when every vertex of the induced subgraph $D|_S$ has in-degree at least one. The empty set belongs to $\cC(D)$, and $\cC(D)$ is closed under unions~\cite[Proposition~2]{steel2023interior}: a vertex of $S\cup T$ lies in $S$ or in $T$, where it already has an in-neighbour. Consequently $\cC(D)$ is the family of fixed sets of an interior operator on the Boolean lattice $\pw{E}$, namely the operator sending $X$ to the largest supported subset of $X$.
+
+Support families arise in the theory of autocatalytic networks. A reflexively autocatalytic and food-generated set (RAF) is a set of reactions that can be built up from a food set and in which every reaction is catalysed by a food molecule or by a product of the set~\cite{kauffman1986autocatalytic,hordijk2004detecting,steel2019autocatalytic}. When every reactant is food, food generation is automatic and the RAFs are exactly the nonempty supported sets of the digraph on the reactions whose arcs record which reaction's product catalyses which reaction, with a loop recording catalysis by food~\cite[Section~3.2]{steel2023interior}. Steel showed that many generic facts about RAFs follow from the interior-operator property alone, and in his concluding section asked two questions: to characterize in set-theoretic terms the union-closed families of the form $\cC(D)$, and, ``more difficult'', to characterize the families realizable as the RAFs of an arbitrary catalytic reaction system~\cite[Section~4]{steel2023interior}. A companion paper~\cite{companion2026antimatroid} answers the second question for realizations on the given ground set: the fixed family of such a system is exactly an intersection $\cA\cap\cC(D)$ of an antimatroid $\cA$ (recording food generation) with a digraph support family (recording catalysis). That result leaves the first question open, and it is the subject of the present paper. We stress that the question concerns a digraph on the \emph{original} ground set $E$, with loops allowed; no auxiliary vertices are permitted.
+
+\subsection{The answer}
+
+The characterization is recursive. For a family $\cF\subseteq\pw{E}$ and a set $S\subseteq E$ write
+\begin{equation}\label{eq:interior}
+ \Int(S)=\bigcup\{T\in\cF: T\subseteq S\}
+\end{equation}
+for the union of the members of $\cF$ below $S$; when $\cF$ is union-closed and contains the empty set, $\Int(S)$ is the largest member of $\cF$ contained in $S$, that is, the interior of $S$. For $r\in S$ the \emph{rooted interval} beneath $S$ is $\ivl{r}{S}=\{X\subseteq E: r\in X\subseteq S\}$.
+
+Starting from $\cU_0=\pw{E}$ with no roots used, a \emph{legal step} selects an inclusion-maximal set $S$ of the residual family $\cU_i\setminus\cF$, then a root $r\in S\setminus\Int(S)$ that has not been used before, and passes to $\cU_{i+1}=\cU_i\setminus\ivl{r}{S}$. The sequence \emph{succeeds} if it reaches $\cU_m=\cF$. Our main result (Theorem~\ref{thm:main}) states that $\cF=\cC(D)$ for some digraph $D$ on $E$ if and only if some legal sequence succeeds; that for \emph{every} fixed rule selecting the maximal residual set there is a successful sequence following that rule, so the only branching needed is over roots; that every legal sequence has at most $|E|$ steps; and that a successful sequence $(S_i,r_i)_{i<m}$ reconstructs a realizing digraph on exactly $E$ through the predecessor rows
+\[
+ P(r_i)=E\setminus S_i,\qquad P(v)=\{v\}\ \text{for every unused vertex }v .
+\]
+Each step therefore commits to one row of the graph, and the residual set fixes the entire row.
+
+The proof complements every set. The complements of the supported sets are the models of the definite Horn rules $P(r)\to r$, one rule per head $r$, so realizability becomes the question whether the complementary family $\cK=\{E\setminus S:S\in\cF\}$ is the model class of a \emph{single-head} definite Horn theory. Soundness is a direct computation. Completeness rests on Lemma~\ref{lem:normalization}: if a partial theory $G$ extends to some single-head theory $L$ with $\Mod(L)=\cK$, and $B$ is a minimal model of $G$ outside $\cK$, then some rule $A\to r$ of $L$ violated by $B$ has $\cl_G(A)=B$, and replacing $A\to r$ by $B\to r$ yields a single-head theory with the same models that still contains $G$. The invariant is closure equality, not equality of the original body with the residual, and it is precisely this invariant that survives an arbitrary choice of the residual set.
+
+\subsection{Contributions}
+
+Beyond the characterization itself we establish the following.
+\begin{itemize}
+\item \emph{Exact trace information} (Section~\ref{sec:traces}). Every successful sequence uses exactly the roots $r$ with $\{r\}\notin\cF$, each once; its length is therefore determined by $\cF$, and $\cF$ determines the loops of every realizing digraph although not its other arcs.
+\item \emph{A complete finite recognizer} (Section~\ref{sec:search}). Under a fixed residual-selection rule the search tree over roots has at most $b!\sum_{k\le b}1/k!$ nodes, where $b$ is the number of excluded singletons, and exhausting it is a proof of non-realizability. For a family given as an explicit list the recognition problem is in $\NP$, with the digraph as certificate (Proposition~\ref{prop:np}).
+\item \emph{Why the criterion is dynamic} (Section~\ref{sec:dynamic}). Two realizable families on three elements have a non-realizable intersection, so no collection of closure axioms characterizes the class (Corollary~\ref{cor:noclosure}). A Hall-type condition on maximal non-members is necessary (Proposition~\ref{prop:hall}) but not sufficient (Example~\ref{ex:sixhall}).
+\item \emph{Composition} (Section~\ref{sec:projection}). The class is closed under coordinate projection, by an explicit vertex-elimination formula (Theorem~\ref{thm:elimination}), so hidden vertices cannot rescue a non-realizable family; it is also closed under induced deletion and disjoint products.
+\item \emph{Autocatalytic networks} (Section~\ref{sec:raf}). A family is the fixed family of an elementary catalytic reaction system if and only if it passes the interval-deletion test, and same-ground RAF families are exactly intersections of an antimatroid with a family passing the test. The non-realizable three-element family above is the fixed family of a three-reaction system, which separates elementary from general systems.
+\item \emph{Formal verification} (Section~\ref{sec:verification}). The characterization, the trace checker and the consequences are formalized in Lean~4~\cite{demoura2021lean4} over Mathlib~\cite{mathlib2020}; the few statements proved only by hand are listed explicitly.
+\end{itemize}
+Three worked examples (Section~\ref{sec:examples}) exhibit a successful trace, a root choice that fails on a realizable family, a family with two realizations, and a family rejected by every branch.
+
+\subsection{Relation to single-head Horn theory}
+
+The complementary formulation belongs to established theory. Definite Horn theories, their least models and their closure systems are classical~\cite{dowling1984linear,wild2017joy}; a single-head theory is one in which no two rules share a head. Liberatore~\cite{liberatore2023reconstructing} studies single-head formulas in connection with logical forgetting and gives a complete algorithm for reconstructing a single-head formula equivalent to a given definite Horn formula~\cite[Theorem~4.1]{liberatore2023reconstructing}; unit clauses are handled by propagation and reinsertion in the paragraph following that theorem. Our treatment allows empty bodies directly, which is a convenience rather than a capability absent from that work. Elimination of variables from single-head formulas is polynomial~\cite[Section~5.7]{liberatore2020common}, which is the logical counterpart of the projection theorem of Section~\ref{sec:projection}. The contribution of this paper is the direct interval-deletion formulation on the original family, the completion-preserving normalization proof that makes the residual choice free, the exact reconstruction on the original ground set, the consequences listed above, and the machine-checked connection to digraph support and RAF semantics. No priority claim for general single-head reconstruction is made.
+
+\subsection{Organization}
+
+Section~\ref{sec:criterion} states the criterion and the main theorem. Section~\ref{sec:examples} works three examples. Section~\ref{sec:horn} proves the normalization lemma and Section~\ref{sec:proof} the theorem. Sections~\ref{sec:traces}--\ref{sec:raf} develop the consequences, Section~\ref{sec:verification} describes the formalization, and Section~\ref{sec:discussion} lists open problems.
+
+\section{The intrinsic criterion}\label{sec:criterion}
+
+Throughout, $E$ is a finite set with $n=|E|$, and a \emph{family} is a subset $\cF\subseteq\pw{E}$. A \emph{predecessor map} is a function $P:E\to\pw{E}$; it encodes the digraph with an arc $u\to r$ whenever $u\in P(r)$, and a loop at $r$ whenever $r\in P(r)$. A set $S$ is \emph{$P$-supported} if $S\cap P(r)\neq\varnothing$ for every $r\in S$, and $\cC(P)$ denotes the family of $P$-supported sets, which is~\eqref{eq:support} for the digraph encoded by $P$. The family $\cF$ is \emph{digraph-realizable} (on $E$) if $\cF=\cC(P)$ for some predecessor map $P$ on $E$.
+
+Two conventions deserve mention. A vertex with an empty row, $P(r)=\varnothing$, belongs to no supported set. A loop at $r$ makes the support condition at $r$ automatic. Neither $E\in\cF$ nor $\bigcup\cF=E$ is assumed anywhere.
+
+\begin{definition}[Legal interval deletion]\label{def:legal}
+Let $\cF\subseteq\pw{E}$. A \emph{state} is a pair $(\cU,H)$ with $\cU\subseteq\pw{E}$ and $H\subseteq E$; the initial state is $(\pw{E},\varnothing)$. A \emph{legal step} from a state $(\cU,H)$ with $\cU\neq\cF$ consists of
+\begin{enumerate}[label=(\roman*)]
+\item an inclusion-maximal member $S$ of $\cU\setminus\cF$, called the \emph{residual set}, and
+\item a \emph{root} $r\in S\setminus\Int(S)$ with $r\notin H$,
+\end{enumerate}
+and leads to the state $(\cU\setminus\ivl{r}{S},\,H\cup\{r\})$. A \emph{legal sequence} is a sequence of states $(\cU_i,H_i)_{i\le m}$ starting at the initial state in which each state is obtained from its predecessor by a legal step; we record it as $(S_i,r_i)_{i<m}$. It \emph{succeeds} if $\cU_m=\cF$. A state with $\cU\neq\cF$ from which no legal step exists is a \emph{dead end}. A \emph{residual policy} is a function $\pi$ assigning to every family $\cU$ with $\cF\subsetneq\cU$ an inclusion-maximal member of $\cU\setminus\cF$; a legal sequence \emph{follows} $\pi$ if $S_i=\pi(\cU_i)$ for every $i<m$.
+\end{definition}
+
+The root condition is a condition on $\cF$ alone. Unwinding~\eqref{eq:interior},
+\begin{equation}\label{eq:eligible}
+ r\notin\Int(S)\quad\Longleftrightarrow\quad\forall T\in\cF:\ T\subseteq S\ \Rightarrow\ r\notin T .
+\end{equation}
+Hence a legal step never deletes a member of $\cF$: a member $T\in\cF$ lies in $\ivl{r}{S}$ only if $T\subseteq S$ and $r\in T$, which~\eqref{eq:eligible} excludes. Since $S\in\ivl{r}{S}$ is deleted, $\cF\subseteq\cU_{i+1}\subsetneq\cU_i$ along every legal sequence. In particular a family that does not contain the empty set, or is not union-closed, admits no successful sequence, in the first case because no rooted interval contains $\varnothing$, and in the second case by Theorem~\ref{thm:main}, since a successful sequence produces a realizing digraph.
+
+\begin{theorem}[Intrinsic characterization]\label{thm:main}
+For every finite set $E$ and every family $\cF\subseteq\pw{E}$ the following are equivalent.
+\begin{enumerate}[label=(\arabic*)]
+\item $\cF$ is digraph-realizable on $E$: there is a directed graph $D$ on exactly the vertex set $E$, loops permitted, with $\cF=\cC(D)$.
+\item Some legal sequence for $\cF$ succeeds.
+\item For every residual policy $\pi$ there is a successful legal sequence following $\pi$.
+\end{enumerate}
+Every legal sequence has at most $|E|$ steps. If $(S_i,r_i)_{i<m}$ is successful, then the predecessor map
+\begin{equation}\label{eq:reconstruct}
+ P(r_i)=E\setminus S_i\quad(i<m),\qquad P(v)=\{v\}\quad(v\notin\{r_0,\dots,r_{m-1}\})
+\end{equation}
+satisfies $\cC(P)=\cF$.
+\end{theorem}
+
+\begin{remark}
+(a) The theorem is stated for arbitrary families. Its restriction to union-closed families containing the empty set answers Steel's question, and the procedure itself certifies those two properties on success.
+
+(b) A policy fixes residual sets, not roots. Statement~(3) asserts that a successful branch exists whichever maximal residual set is selected at each stage; it does not assert that every eligible root leads to success. Example~\ref{ex:chain} shows a realizable family with a dead-end root choice. Consequently a recognizer may select residual sets deterministically and must branch only over roots (Section~\ref{sec:search}).
+
+(c) The reconstruction~\eqref{eq:reconstruct} is exact on every subset of $E$, not only on maximal or minimal members of $\cF$. It need not be the only realization: Example~\ref{ex:chain} has four realizations, Example~\ref{ex:cycle} has two.
+
+(d) Boundary cases: for $E=\varnothing$ the only realizable family is $\{\varnothing\}$; for $\cF=\pw{E}$ the empty sequence succeeds and the reconstruction places a loop at every vertex; for $\cF=\{\varnothing\}$ the edgeless graph is a realization, and a successful sequence has exactly $n$ steps.
+\end{remark}
+
+\section{Three worked examples}\label{sec:examples}
+
+Let $E=\{a,b,c\}$. In the tables below a trace is listed as its residual sets and roots, followed by the rows reconstructed by~\eqref{eq:reconstruct}. All three examples were also checked by exhaustive enumeration of the $2^{9}$ predecessor maps on three vertices.
+
+\begin{example}[A chain with a loop]\label{ex:chain}
+Let $D$ have a loop at $a$ and arcs $a\to b$, $b\to c$, so $P(a)=\{a\}$, $P(b)=\{a\}$, $P(c)=\{b\}$. Its support family is the chain
+\[
+ \cF=\{\varnothing,\{a\},\{a,b\},\{a,b,c\}\},
+\]
+and the complementary family is $\cK=\{\varnothing,\{c\},\{b,c\},\{a,b,c\}\}$, the models of the rules $a\to b$ and $b\to c$ (the loop at $a$ is the tautology $a\to a$). The residual family $\pw{E}\setminus\cF=\{\{b\},\{c\},\{a,c\},\{b,c\}\}$ has two maximal members, $\{a,c\}$ and $\{b,c\}$, and $\Int(\{a,c\})=\{a\}$, $\Int(\{b,c\})=\varnothing$.
+
+\emph{Policy 1: select $\{a,c\}$ first.} The only eligible root is $c$. Deleting $\ivl{c}{\{a,c\}}=\{\{c\},\{a,c\}\}$ leaves the residual family $\{\{b\},\{b,c\}\}$, whose maximal member is $\{b,c\}$; the eligible roots are $b$ and $c$, but $c$ is used, so $r_1=b$. Deleting $\{\{b\},\{b,c\}\}$ reaches $\cF$. The trace $(\{a,c\},c),(\{b,c\},b)$ reconstructs $P(c)=E\setminus\{a,c\}=\{b\}$, $P(b)=E\setminus\{b,c\}=\{a\}$, $P(a)=\{a\}$: the original digraph.
+
+\emph{Policy 2: select $\{b,c\}$ first.} Now both $b$ and $c$ are eligible.
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+root at $\{b,c\}$ & next residual sets & eligible unused roots & outcome\\
+\midrule
+$b$ & $\{a,c\}$ & $c$ & success\\
+$c$ & $\{a,c\}$, $\{b\}$ & none at $\{a,c\}$ & dead end\\
+\bottomrule
+\end{tabular}
+\end{center}
+The successful branch reconstructs the same rows as Policy~1. Choosing $c$ at $\{b,c\}$ commits to the row $P(c)=\{a\}$; together with the loop at $a$ this would support $\{a,c\}\notin\cF$, and indeed the residual set $\{a,c\}$ then has $c$ as its only eligible root, which is already used. Thus the same realizable family succeeds or fails depending on the root, while the residual choice is immaterial, exactly as Theorem~\ref{thm:main}(3) predicts.
+
+The family has four realizations: $P(b)=\{a\}$ and $P(c)=\{b\}$ are forced, and $P(a)$ may be any set containing $a$, because arcs into a looped vertex change no support condition. The reconstruction returns the sparsest of them. Two singletons are excluded from $\cF$, and both traces have length two (Proposition~\ref{prop:roots}).
+\end{example}
+
+\begin{example}[The directed three-cycle]\label{ex:cycle}
+Let $\cF=\{\varnothing,E\}$. The six proper nonempty subsets are residual and the three pairs are maximal; every interior $\Int(S)$ with $S\neq E$ is empty, so every element of a pair is eligible. Select $\{b,c\}$, then $\{a,c\}$, then $\{a,b\}$ whenever available.
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+trace & outcome & reconstructed rows\\
+\midrule
+$(\{b,c\},b),\ (\{a,c\},c),\ (\{a,b\},a)$ & success & $P(b)=\{a\},\ P(c)=\{b\},\ P(a)=\{c\}$\\
+$(\{b,c\},c),\ (\{a,c\},a),\ (\{a,b\},b)$ & success & $P(c)=\{a\},\ P(a)=\{b\},\ P(b)=\{c\}$\\
+$(\{b,c\},b),\ (\{a,c\},a),\ (\{a,b\},-)$ & dead end & \\
+\bottomrule
+\end{tabular}
+\end{center}
+The dead end is the greedy failure of the complementary formulation: accepting $a\to b$ and then $b\to a$ closes a two-cycle on $\{a,b\}$ whose two heads are then unavailable for the residual set $\{a,b\}$: the only member of $\cF$ below it is $\varnothing$, so its eligible roots are $a$ and $b$, and both are used. A short closed cycle can consume heads that the rest of the closure class requires. The two successful traces reconstruct the two orientations $a\to b\to c\to a$ and $a\to c\to b\to a$ of the three-cycle, and these are the only realizations of $\cF$. At each head, both other singletons are minimal sets whose complementary closure contains the head, so a single-head realization can coexist with several minimal ``triggers'' per head.
+\end{example}
+
+\begin{example}[A family rejected by every branch]\label{ex:conj}
+Let
+\[
+ \cF_\wedge=\{\varnothing,\{a\},\{b\},\{a,b\},\{a,b,c\}\}.
+\]
+The residual family is $\{\{c\},\{a,c\},\{b,c\}\}$ with maximal members $\{a,c\}$ and $\{b,c\}$, and $\Int(\{a,c\})=\{a\}$, $\Int(\{b,c\})=\{b\}$, so $c$ is the only eligible root at either. Selecting $\{a,c\}$ and deleting $\{\{c\},\{a,c\}\}$ leaves the residual set $\{b,c\}$, whose only eligible root $c$ is used: a dead end. Selecting $\{b,c\}$ first fails symmetrically. Under either policy the whole search tree has three nodes and no success, so by Theorem~\ref{thm:main}(3) the family is not digraph-realizable. Directly: $\{a\},\{b\}\in\cF_\wedge$ force loops at $a$ and $b$, $\{c\}\notin\cF_\wedge$ forbids a loop at $c$, and supporting $c$ inside $E$ then needs $a\in P(c)$ or $b\in P(c)$, which would support $\{a,c\}$ or $\{b,c\}$. The family asks for a \emph{conjunction}, $c$ requires both $a$ and $b$, whereas a predecessor row offers \emph{alternatives}. This family recurs in Sections~\ref{sec:dynamic} and~\ref{sec:raf}.
+\end{example}
+
+\section{Definite Horn theories and the normalization lemma}\label{sec:horn}
+
+\subsection{Rules, models and least models}
+
+A \emph{definite Horn rule} on $E$ is a pair $A\to r$ with $A\subseteq E$ (the body) and $r\in E$ (the head). A set $X\subseteq E$ \emph{models} the rule if $A\subseteq X$ implies $r\in X$. For a set $G$ of rules, $\Mod(G)$ denotes the family of sets modelling every rule of $G$, and $\Heads(G)$ the set of heads occurring in $G$. The theory $G$ is \emph{single-head} if any two rules of $G$ with the same head are identical. A rule with $r\in A$ is tautological and may be omitted; empty bodies are allowed and act as unit clauses $\varnothing\to r$, forcing $r$ into every model.
+
+For $A\subseteq E$ let
+\begin{equation}\label{eq:closure}
+ \cl_G(A)=\bigcap\{X\subseteq E: A\subseteq X,\ X\in\Mod(G)\}.
+\end{equation}
+The indexing family contains $E$. An intersection of models is a model, because a body contained in the intersection is contained in each model, whose head then lies in each of them. Hence $\cl_G(A)$ is a model, contains $A$, and is contained in every model containing $A$; it is the least model above $A$, computable by forward chaining in linear time~\cite{dowling1984linear}. In particular $A\mapsto\cl_G(A)$ is a closure operator whose closed sets are exactly $\Mod(G)$.
+
+\subsection{Residual normalization}
+
+\begin{lemma}[Residual normalization and replacement]\label{lem:normalization}
+Let $G\subseteq L$ be sets of rules with $L$ single-head, and let $B$ be inclusion-minimal in $\Mod(G)\setminus\Mod(L)$. Then there is a rule $A\to r\in L$ with
+\begin{equation}\label{eq:normal}
+ A\subseteq B,\qquad r\notin B,\qquad r\notin\Heads(G),\qquad \cl_G(A)=B .
+\end{equation}
+Moreover $L'=(L\setminus\{A\to r\})\cup\{B\to r\}$ is single-head, contains $G\cup\{B\to r\}$, and $\Mod(L')=\Mod(L)$.
+\end{lemma}
+
+\begin{proof}
+Since $B\notin\Mod(L)$, some rule $A\to r$ of $L$ is violated by $B$: $A\subseteq B$ and $r\notin B$. If $r$ were a head of $G$, then since $L$ is single-head and $G\subseteq L$, the rule of $G$ with head $r$ would be this same rule, contradicting $B\in\Mod(G)$. So $r$ is fresh.
+
+Put $T=\cl_G(A)$. Because $B$ is a $G$-model containing $A$, $T\subseteq B$, hence $r\notin T$, while $A\subseteq T$. So $T$ violates $A\to r$ and lies in $\Mod(G)\setminus\Mod(L)$. Minimality of $B$ gives $T=B$, which is~\eqref{eq:normal}.
+
+The removed rule is not in $G$ because its head is fresh, so $L'\supseteq G$; and $B\to r$ replaces the unique rule of $L$ with head $r$, so $L'$ is single-head and contains $G\cup\{B\to r\}$.
+
+If $X\in\Mod(L)$ and $B\subseteq X$, then $A\subseteq X$, so $r\in X$; thus every $L$-model satisfies $B\to r$ and is an $L'$-model. Conversely let $X\in\Mod(L')$. All rules of $L$ other than $A\to r$ belong to $L'$. If $A\subseteq X$, then $X$ models $G\subseteq L'$, so $B=\cl_G(A)\subseteq X$, and the rule $B\to r$ gives $r\in X$. Thus $X$ also satisfies $A\to r$, and $X\in\Mod(L)$.
+\end{proof}
+
+The equality in~\eqref{eq:normal} concerns the closure of the original body under the \emph{accepted} rules $G$, not the body itself; the accepted rules are exactly what makes the replacement model-preserving. The following example shows that the distinction is real.
+
+\begin{example}[The body genuinely changes]\label{ex:fixture}
+On $E=\{a,b,c\}$ let $G=\{a\to b\}$, $L=\{a\to b,\ a\to c\}$ and $B=\{a,b\}$. Then $B$ models $G$ but not $L$, and it is minimal with this property since $\varnothing$, $\{a\}$ and $\{b\}$ model $L$ or fail $G$. The violated rule $a\to c$ has body $\{a\}\subsetneq B$, and $\cl_G(\{a\})=\{a,b\}=B$. Replacing it by $\{a,b\}\to c$ gives $L'=\{a\to b,\ \{a,b\}\to c\}$ with the same models $\{\varnothing,\{b\},\{c\},\{b,c\},\{a,b,c\}\}$, because the accepted rule $a\to b$ is retained. Replacing $a\to c$ by $\{a,b\}\to c$ in the \emph{absence} of $a\to b$ would admit the new model $\{a\}$.
+\end{example}
+
+\section{Proof of Theorem~\ref{thm:main}}\label{sec:proof}
+
+\subsection{Soundness and exact reconstruction}
+
+Let $(S_i,r_i)_{i<m}$ be a successful legal sequence and define $P$ by~\eqref{eq:reconstruct}; the roots are distinct, so $P$ is well defined. For a used root $r_i$, a set $X$ violates the support condition at $r_i$ exactly when $r_i\in X$ and $X\cap(E\setminus S_i)=\varnothing$, that is, when $r_i\in X\subseteq S_i$. So the row at $r_i$ excludes precisely the interval $\ivl{r_i}{S_i}$ deleted at step $i$, and the loop at an unused vertex excludes nothing. Intersecting the row conditions,
+\[
+ \cC(P)=\pw{E}\setminus\bigcup_{i<m}\ivl{r_i}{S_i}=\cU_m=\cF .
+\]
+This proves (2)$\Rightarrow$(1) together with the reconstruction statement. Since a legal step uses a fresh root, every legal sequence has at most $n$ steps.
+
+\subsection{Complementary semantics}\label{sec:complement}
+
+Let $\cK=\{E\setminus S:S\in\cF\}$. For a predecessor map $P$ and $X=E\setminus S$,
+\begin{equation}\label{eq:duality}
+ S\in\cC(P)
+ \iff \forall r\in S:\ S\cap P(r)\neq\varnothing
+ \iff \forall r\in E:\ P(r)\subseteq X\Rightarrow r\in X .
+\end{equation}
+Hence $\cC(P)$ is the complement family of $\Mod(G_P)$, where $G_P=\{P(r)\to r: r\in E\}$ is single-head. A loop gives a tautology; an empty row gives the unit clause $\varnothing\to r$. Conversely a single-head theory $L$ defines a predecessor map by taking the body of the rule with head $r$, or $\{r\}$ if no rule has head $r$, and~\eqref{eq:duality} shows that its support family is the complement family of $\Mod(L)$. Thus
+\begin{equation}\label{eq:horn-iff}
+ \cF\text{ is digraph-realizable}\iff\cK=\Mod(L)\text{ for some single-head }L .
+\end{equation}
+
+Along a legal sequence put $B_j=E\setminus S_j$ and $G_i=\{B_j\to r_j: j<i\}$. Deleting $\ivl{r_j}{S_j}$ from $\cU_j$ removes exactly the sets $X$ with $r_j\in X\subseteq S_j$, whose complements are the sets $Y$ with $B_j\subseteq Y$ and $r_j\notin Y$, that is, the violators of $B_j\to r_j$. By induction
+\begin{equation}\label{eq:current}
+ \{E\setminus X: X\in\cU_i\}=\Mod(G_i)\qquad(i\le m).
+\end{equation}
+Complementation reverses inclusion, so a maximal member $S_i$ of $\cU_i\setminus\cF$ corresponds to a minimal member $B_i$ of $\Mod(G_i)\setminus\cK$. Likewise, by~\eqref{eq:eligible}, $r\in S\setminus\Int(S)$ holds iff every member of $\cK$ containing $E\setminus S$ contains $r$, and $r\in S$ iff $r\notin E\setminus S$. So a legal step is, in complementary terms, the choice of a minimal residual model $B$ and a fresh head $r\notin B$ forced by $B$ in $\cK$.
+
+\subsection{Completeness for every residual policy}
+
+Assume (1), so by~\eqref{eq:horn-iff} there is a single-head $L_0$ with $\Mod(L_0)=\cK$; tautologies may be dropped. Fix a residual policy $\pi$. We construct a legal sequence following $\pi$ while maintaining a single-head theory $L_i$ with
+\begin{equation}\label{eq:invariant}
+ G_i\subseteq L_i,\qquad \Mod(L_i)=\cK .
+\end{equation}
+Initially $G_0=\varnothing\subseteq L_0$. Suppose $(\cU_i,H_i)$ has been reached with~\eqref{eq:invariant}, where $H_i=\{r_j:j<i\}=\Heads(G_i)$. If $\cU_i=\cF$ we are done. Otherwise $\cF\subsetneq\cU_i$, and $\pi$ selects a maximal $S_i\in\cU_i\setminus\cF$. By~\eqref{eq:current}, $B_i=E\setminus S_i$ is inclusion-minimal in $\Mod(G_i)\setminus\Mod(L_i)$. Lemma~\ref{lem:normalization} yields a head $r_i\notin B_i$ with $r_i\notin\Heads(G_i)=H_i$, and a single-head $L_{i+1}$ containing $G_{i+1}=G_i\cup\{B_i\to r_i\}$ with $\Mod(L_{i+1})=\Mod(L_i)=\cK$.
+
+It remains to check that $(S_i,r_i)$ is a legal step. We have $r_i\in S_i$ because $r_i\notin B_i$, and $r_i\notin H_i$. If $T\in\cF$ and $T\subseteq S_i$, then $E\setminus T\in\cK=\Mod(L_{i+1})$ contains $B_i$, so it contains $r_i$ by the rule $B_i\to r_i$; hence $r_i\notin T$. By~\eqref{eq:eligible}, $r_i\notin\Int(S_i)$. So the step is legal, and~\eqref{eq:invariant} holds at $i+1$.
+
+Each step uses a new element of $E$, so the construction cannot continue for more than $n$ steps; but it continues whenever $\cU_i\neq\cF$. Hence some $\cU_m=\cF$ with $m\le n$, and the sequence following $\pi$ succeeds. This proves (1)$\Rightarrow$(3). For (3)$\Rightarrow$(2) take any policy, for instance the one selecting the first maximal residual set in a fixed linear order of $\pw{E}$. \qed
+
+\begin{remark}
+The formal proof (Section~\ref{sec:verification}) runs the induction on the finite family $\cU_i$, which strictly shrinks at each step, rather than on a step counter, and therefore never assumes that a successful sequence exists. The Lean statement of the policy theorem quantifies over an arbitrary function $\pi$ subject only to the validity condition of Definition~\ref{def:legal}.
+\end{remark}
+
+\section{What a successful sequence knows}\label{sec:traces}
+
+\begin{proposition}[Exact roots and length]\label{prop:roots}
+Let $b_{\cF}=\{r\in E:\{r\}\notin\cF\}$. The roots of every successful legal sequence for $\cF$ are distinct and their set is exactly $b_{\cF}$; hence every successful sequence has length $|b_{\cF}|$.
+\end{proposition}
+
+\begin{proof}
+If $\{r\}\in\cF$ then $r$ is never eligible, because $\{r\}$ is a member of $\cF$ below any residual set containing $r$. Conversely, if $\{r\}\notin\cF$ then $\{r\}\in\cU_0$ must be deleted before success, and $\{r\}\in\ivl{s}{S}$ forces $s=r$; so $r$ occurs as a root. Freshness gives distinctness.
+\end{proof}
+
+\begin{corollary}[Loops are determined]\label{cor:loops}
+For every realization $P$ of $\cF$ and every $r\in E$, $r\in P(r)$ if and only if $\{r\}\in\cF$. Other arcs need not be determined: if every vertex has a loop, arbitrary additional arcs leave the support family equal to $\pw{E}$.
+\end{corollary}
+
+\begin{proof}
+$\{r\}$ is $P$-supported exactly when $\{r\}\cap P(r)\neq\varnothing$.
+\end{proof}
+
+Exact reconstruction also preserves every interior query. If $\cF$ is union-closed and contains $\varnothing$, its interior operator is $S\mapsto\Int(S)$, and any interior operator with fixed family $\cF$ coincides with it (a fixed set below $S$ lies below the interior of $S$, and the interior is itself fixed). Hence the interior operator of the reconstructed digraph, which sends $X$ to its largest $P$-supported subset, equals the interior operator of $\cF$. This is the statement formalized as \lean{reconstructed_interior_eq}.
+
+\section{Search and complexity}\label{sec:search}
+
+\subsection{A complete finite recognizer}
+
+Theorem~\ref{thm:main}(3) turns the criterion into a recognizer. Fix a residual policy $\pi$ and run the following recursion from $(\cF,\pw{E},\varnothing)$.
+
+\begin{center}
+\begin{minipage}{0.86\textwidth}
+\begin{tabbing}
+\quad\=\quad\=\quad\=\kill
+$\Rec(\cF,\cU,H)$:\\
+\>if $\cU=\cF$: return success with the empty suffix\\
+\>$S\leftarrow\pi(\cU)$\\
+\>for each $r\in S\setminus(\Int(S)\cup H)$:\\
+\>\>$\sigma\leftarrow\Rec(\cF,\ \cU\setminus\ivl{r}{S},\ H\cup\{r\})$\\
+\>\>if $\sigma$ succeeds: return $(S,r)$ followed by $\sigma$\\
+\>return failure
+\end{tabbing}
+\end{minipage}
+\end{center}
+
+\begin{proposition}\label{prop:recognizer}
+$\Rec$ returns a successful legal sequence if $\cF$ is digraph-realizable, and returns failure otherwise; a returned sequence reconstructs a realization by~\eqref{eq:reconstruct}. With $b=|b_{\cF}|$, the number of recursive calls is at most
+\begin{equation}\label{eq:treebound}
+ \sum_{j=0}^{b}\frac{b!}{(b-j)!}=b!\sum_{k=0}^{b}\frac{1}{k!}<e\cdot b!\,.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Every sequence explored is legal and follows $\pi$; success is sound by Theorem~\ref{thm:main}(2)$\Rightarrow$(1), and if $\cF$ is realizable then Theorem~\ref{thm:main}(3) guarantees a successful sequence following $\pi$, which the exhaustive loop over roots finds. Because $\pi$ is deterministic, a call is determined by its list of roots so far, which is a sequence of distinct elements of $b_{\cF}$ of length $j\le b$, because every root used is eligible when it is used and hence, by the first half of the proof of Proposition~\ref{prop:roots}, is an excluded singleton. There are $b!/(b-j)!$ such sequences at depth $j$.
+\end{proof}
+
+The bound counts calls, not elementary operations, and holds for any policy; a policy that tends to select large residual sets is natural because a large $S$ removes more sets and typically leaves fewer eligible roots. Note that a rejection by $\Rec$ is a proof of non-realizability under a single policy; there is no need to vary the residual selection. Example~\ref{ex:conj} was rejected by a three-node tree.
+
+\subsection{Representation and complexity}\label{sec:complexity}
+
+The cost of the recursion depends on how $\cF$ is presented. If $\cF$ is given as a truth table over $\pw{E}$, membership, interiors, maximal residual sets and interval deletions are all obtained by scans of the table, and the total running time is $2^{O(n)}$ times the bound~\eqref{eq:treebound}. If $\cF$ is given as an explicit list of $m$ subsets, membership costs $O(nm)$ and $\Int(S)$ costs $O(nm)$, but locating a maximal member of $\cU_i\setminus\cF$ is not a scan of the list. If $\cF$ is given succinctly, for instance by a Horn formula for $\cK$ or by a membership oracle, then a trace of $\le n$ steps is short, but verifying its maximality conditions is not obviously polynomial. The next statement identifies a certificate that avoids maximality altogether.
+
+\begin{proposition}[Explicit-list recognition is in $\NP$]\label{prop:np}
+Given $E$ with $|E|=n$ and a family $\cF$ listed explicitly as $m$ subsets, deciding whether $\cF$ is digraph-realizable is in $\NP$. A certificate is a predecessor map $P$ with $\cC(P)=\cF$, and it can be verified in time polynomial in $n+m$.
+\end{proposition}
+
+\begin{proof}
+A predecessor map has $n$ rows of $n$ bits. Checking $\cF\subseteq\cC(P)$ takes $O(n^{2}m)$ operations. For $\cC(P)\subseteq\cF$, recall from~\eqref{eq:duality} that $\cC(P)$ is the complement family of $\Mod(G_P)$, and that $\Mod(G_P)$ is the closed-set family of the closure operator $\cl_{G_P}$, computable by forward chaining in polynomial time~\cite{dowling1984linear}. Ganter's \textsc{NextClosure} algorithm enumerates the closed sets of a closure operator with polynomial delay, using $O(n)$ closure computations per closed set~\cite{ganter2010two}. Enumerate the models of $G_P$, testing for each whether its complement lies in $\cF$ (cost $O(nm)$), and stop at the first failure or after $m+1$ models have been produced. Since distinct models have distinct complements, at most $m$ models can pass the test, so the enumeration either reports a failure or terminates within $m+1$ steps. In the latter case $\cC(P)\subseteq\cF$, and together with the first check $\cC(P)=\cF$. The total time is polynomial in $n+m$.
+\end{proof}
+
+We do not know whether explicit-list recognition is in $\Ptime$. In the succinct setting Liberatore's algorithm decides whether a definite Horn formula is equivalent to a single-head one~\cite[Theorem~4.1]{liberatore2023reconstructing}, and general definite Horn theories are learnable in polynomial time from membership and equivalence queries~\cite{angluin1992learning}; whether the single-head restriction admits an efficient recognizer under some natural presentation of $\cF$ is a question we leave open (Section~\ref{sec:discussion}).
+
+\section{Why the criterion is dynamic}\label{sec:dynamic}
+
+A characterization of a class of set families is often expected to be static: a list of closure conditions, exchange axioms or forbidden configurations. Union-closed families, antimatroids and convex geometries are of this kind~\cite{korte1991greedoids,edelman1985theory}. Theorem~\ref{thm:main} is instead an elimination scheme, in the tradition of perfect elimination orderings for chordal graphs~\cite{fulkerson1965incidence} and shelling orders for antimatroids~\cite{korte1991greedoids}. This section explains why a purely closure-axiomatic description is impossible, records two natural static conditions that fail, and identifies the Hall-type condition that the procedure enforces dynamically.
+
+\subsection{No closure axioms suffice}
+
+\begin{proposition}[Intersection on a shared ground]\label{prop:intersection}
+Let $P_1$ and $P_2$ on $E=\{a,b,c\}$ both have loops at $a$ and $b$, with $P_1(c)=\{a\}$ and $P_2(c)=\{b\}$. Then $\cC(P_1)\cap\cC(P_2)=\cF_\wedge$, the family of Example~\ref{ex:conj}, which is not digraph-realizable.
+\end{proposition}
+
+\begin{proof}
+$\cC(P_1)=\cF_\wedge\cup\{\{a,c\}\}$ and $\cC(P_2)=\cF_\wedge\cup\{\{b,c\}\}$; the intersection is $\cF_\wedge$, and Example~\ref{ex:conj} shows that $\cF_\wedge$ is not realizable.
+\end{proof}
+
+Call a condition on families a \emph{closure rule} if it has the form ``for all $S_1,\dots,S_k\in\cF$, $\Phi(S_1,\dots,S_k)\in\cF$'', where $k\ge0$ and $\Phi:(\pw{E})^{k}\to\pw{E}$ is an arbitrary function. Union-closure ($\Phi(S,T)=S\cup T$) and $\varnothing\in\cF$ ($k=0$) are closure rules.
+
+\begin{corollary}\label{cor:noclosure}
+The class of digraph-realizable families on a fixed ground set with at least three elements is not the class of families satisfying a set of closure rules.
+\end{corollary}
+
+\begin{proof}
+If two families satisfy a closure rule, so does their intersection: the hypothesis $S_1,\dots,S_k\in\cF_1\cap\cF_2$ places $\Phi(S_1,\dots,S_k)$ in both. So the class defined by any set of closure rules is closed under intersection, while the realizable class is not, by Proposition~\ref{prop:intersection}. For a larger ground set give every additional vertex a loop in both digraphs; the intersection is then $\cF_\wedge\boxtimes\pw{E\setminus\{a,b,c\}}$, whose realizability would imply that of $\cF_\wedge$ by the induced-deletion identity~\eqref{eq:deletion} of Section~\ref{sec:projection}.
+\end{proof}
+
+The argument does not exclude characterizations with negative hypotheses, such as forbidden configurations; we do not know whether one exists.
+
+\subsection{Two static conditions that fail}
+
+\begin{example}[Interpolation]\label{ex:interp}
+Every support family satisfies the following: whenever $U\subsetneq W$ are members of $\cF$, either $W\setminus U\in\cF$ or $U\cup\{w\}\in\cF$ for some $w\in W\setminus U$. (If no $w\in W\setminus U$ is supported by $U\cup\{w\}$, then every such $w$ has all its in-neighbours in $W$ outside $U$, so $W\setminus U$ is supported.) The family $\cF_\wedge$ satisfies this condition: pairs inside $\{a,b\}$ are all in $\cF_\wedge$, and for $W=E$ the choices $U=\varnothing$, $U$ a singleton and $U=\{a,b\}$ give $E\in\cF_\wedge$, $\{a,b\}\in\cF_\wedge$ and $E\in\cF_\wedge$ respectively. Yet $\cF_\wedge$ is not realizable. The condition does not see that one row must serve all supersets at once.
+\end{example}
+
+\begin{example}[Locally admissible rows]\label{ex:local}
+Let $\cF_{\mathrm{loc}}=\{\varnothing,\{a\},E\}$. For each $r$ one can choose a row that is compatible with every member of $\cF_{\mathrm{loc}}$: the loop $\{a\}$ at $a$, and $\{c\}$ at $b$, $\{b\}$ at $c$ (each member containing $b$ or $c$ is $E$, which contains the other). But the rows jointly support $\{b,c\}\notin\cF_{\mathrm{loc}}$, and indeed the family is not realizable: the loop at $a$ is forced, loops at $b,c$ are forbidden, $\{a,b\},\{a,c\}\notin\cF_{\mathrm{loc}}$ forbid $a\in P(b)$ and $a\in P(c)$, so supporting $E$ forces $c\in P(b)$ and $b\in P(c)$, which supports $\{b,c\}$. Rows chosen separately can add an unwanted self-supporting component; the procedure avoids this by fixing rows one at a time against the current family.
+\end{example}
+
+\subsection{A Hall-type necessary condition}
+
+Lemma~\ref{lem:normalization} assigns to every minimal residual model a fresh forced head. These heads are distinct.
+
+\begin{proposition}[Residual matching]\label{prop:hall}
+Let $G\subseteq L$ with $L$ single-head, and let $\cB_G$ be the set of inclusion-minimal members of $\Mod(G)\setminus\Mod(L)$. There is an injective map $\rho:\cB_G\to E$ with
+\[
+ \rho(B)\in\cl_L(B)\setminus\bigl(B\cup\Heads(G)\bigr)\qquad(B\in\cB_G).
+\]
+Consequently $|\cQ|\le\bigl|\bigcup_{B\in\cQ}\cl_L(B)\setminus(B\cup\Heads(G))\bigr|$ for every $\cQ\subseteq\cB_G$.
+\end{proposition}
+
+\begin{proof}
+For $B\in\cB_G$ let $A_B\to r_B$ be the rule of $L$ supplied by Lemma~\ref{lem:normalization}, and put $\rho(B)=r_B$. Then $r_B\notin B\cup\Heads(G)$, and $r_B\in\cl_L(B)$ since every $L$-model containing $B\supseteq A_B$ contains $r_B$. If $r_B=r_C$ then, $L$ being single-head, $A_B\to r_B$ and $A_C\to r_C$ are the same rule, so $B=\cl_G(A_B)=\cl_G(A_C)=C$. The inequality is the cardinality of the injective image of $\cQ$.
+\end{proof}
+
+In the original family, with $G=\varnothing$, the minimal members of $\pw{E}\setminus\cK$ are the complements of the maximal members $S$ of $\pw{E}\setminus\cF$, and $\cl_L(E\setminus S)\setminus(E\setminus S)=S\setminus\Int(S)$ is the set of eligible roots at $S$. Hence:
+
+\begin{corollary}[Hall condition on maximal non-members]\label{cor:hall}
+If $\cF$ is digraph-realizable, then the inclusion-maximal members of $\pw{E}\setminus\cF$ admit distinct representatives $r(S)\in S\setminus\Int(S)$. More generally, at any state $(\cU_i,H_i)$ of a legal sequence that extends to a successful one, the maximal members of $\cU_i\setminus\cF$ admit distinct representatives in $S\setminus(\Int(S)\cup H_i)$.
+\end{corollary}
+
+For $\cF_\wedge$ the maximal non-members $\{a,c\}$ and $\{b,c\}$ both have $c$ as their only eligible root, so the Hall condition already rejects it. A violation at a later state rejects the current branch only. The condition is not sufficient.
+
+\begin{example}[Initial matching without a realization]\label{ex:sixhall}
+Let $E=A\sqcup B$ with $A=\{a,b,c\}$, $B=\{d,e,f\}$, and let $\cK$ consist of $E$ together with the sixteen sets meeting each of $A$ and $B$ in at most one element; $\cF$ is the complement family. The minimal non-members of $\cK$ are the six pairs inside $A$ or inside $B$, each of which is contained in no member of $\cK$ except $E$. Matching each pair to the third element of its own triple satisfies the Hall condition at the initial state, with room to spare.
+
+Suppose $L$ is single-head with $\Mod(L)=\cK$. From the pair $\{a,b\}$ forward chaining must reach $E$. The first rule fired has body contained in $\{a,b\}$; a proper subset of $\{a,b\}$ is a member of $\cK$ and cannot be the body of a non-tautological rule, since it would violate that rule itself. So $L$ contains a non-tautological rule with body exactly $\{a,b\}$, and similarly for each of the six pairs. Six distinct bodies give six rules with, by single-headedness, six distinct heads, so every element of $E$ is the head of a pair-bodied rule and $L$ has no other non-tautological rules. If the head of the rule with body $\{a,b\}$ lies in $B$, say $d$, then from $\{a,b,d\}$ no further rule fires (no other pair inside a triple is contained in $\{a,b,d\}$), so $\cl_L(\{a,b\})\neq E$. Hence each pair's head is the third element of its own triple, all six rules stay inside their triples, and $\cl_L(\{a,b\})=A\neq E$. Either way $\Mod(L)\neq\cK$, so $\cF$ is not realizable. The recognizer used for the checks of Section~\ref{sec:verification} rejects it after exploring $322$ memoized states.
+\end{example}
+
+The failure is one of connectivity: the heads matched to the pairs must also chain the two triples together, and a matching does not see that. The normalization lemma sees it because it carries a whole completion $L$ along.
+
+\section{Projection, deletion and products}\label{sec:projection}
+
+Which operations on families preserve realizability? This matters for composing and reducing networks. For $V\subseteq E$ define the \emph{coordinate projection} $\pi_V(\cF)=\{S\cap V:S\in\cF\}$: a set of visible coordinates is admitted if some assignment of the hidden coordinates $W=E\setminus V$ extends it to a member of $\cF$.
+
+\subsection{Elimination of one vertex}
+
+Let $P$ be a predecessor map on $E$ and $v\in E$. For $r\neq v$ define
+\begin{equation}\label{eq:elimination}
+ Q(r)=
+ \begin{cases}
+ P(r), & v\notin P(r),\\
+ \{r\}, & v\in P(r)\text{ and } v\in P(v),\\
+ (P(r)\setminus\{v\})\cup P(v), & v\in P(r)\text{ and } v\notin P(v),
+ \end{cases}
+\end{equation}
+and $Q(v)=\varnothing$. Every row $Q(r)$ with $r\neq v$ lies in $E\setminus\{v\}$, and $v$ belongs to no $Q$-supported set.
+
+\begin{theorem}[Single-vertex projection]\label{thm:elimination}
+$\cC(Q)=\{S\setminus\{v\}: S\in\cC(P)\}$.
+\end{theorem}
+
+\begin{proof}
+(The right side is contained in $\cC(Q)$.) Let $S\in\cC(P)$ and $T=S\setminus\{v\}$; take $r\in T$ and $u\in S\cap P(r)$. If $v\in P(r)$ and $v\in P(v)$, then $r\in Q(r)$ and $r$ supports itself in $T$. Otherwise, if $u\neq v$ then $u\in T\cap Q(r)$ in each remaining case of~\eqref{eq:elimination}. If $u=v$ then $v\in P(r)$ and $v\notin P(v)$; since $v\in S$ is $P$-supported there is $w\in S\cap P(v)$ with $w\neq v$, so $w\in T$ and $w\in Q(r)$ by the third case.
+
+($\cC(Q)$ is contained in the right side.) Let $T\in\cC(Q)$, so $v\notin T$. If $v\in P(v)$, put $S=T\cup\{v\}$: $v$ supports itself, a vertex $r$ with $v\in P(r)$ is supported by $v$, and a vertex with $v\notin P(r)$ keeps its $Q$-predecessor, which is a $P$-predecessor. If $v\notin P(v)$ and $T\cap P(v)\neq\varnothing$, again put $S=T\cup\{v\}$: $v$ is supported by $T\cap P(v)$, vertices with $v\in P(r)$ are supported by $v$, and the others as before. If $v\notin P(v)$ and $T\cap P(v)=\varnothing$, put $S=T$: for $r\in T$ with $v\in P(r)$ the $Q$-predecessor of $r$ in $T$ lies in $(P(r)\setminus\{v\})\cup P(v)$ but not in $P(v)$, hence in $P(r)$; for the other $r$ the $Q$-predecessor is a $P$-predecessor. In every case $S\in\cC(P)$ and $S\setminus\{v\}=T$.
+\end{proof}
+
+\begin{corollary}\label{cor:projection}
+Let $\cF$ be digraph-realizable on $E$ and $V\subseteq E$.
+\begin{enumerate}[label=(\roman*)]
+\item $\pi_V(\cF)$ is digraph-realizable, by a digraph on exactly the vertex set $V$.
+\item (Hidden vertices cannot rescue.) If a family $\cH\subseteq\pw{V}$ is not digraph-realizable on $V$, then there is no digraph on any $E\supseteq V$ whose support family projects onto $\cH$.
+\item For $X\subseteq V$, $I_{\pi_V(\cF)}(X)=\Int(X\cup(E\setminus V))\cap V$; this holds for every family $\cF$.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+(i) Eliminate the vertices of $E\setminus V$ one at a time by Theorem~\ref{thm:elimination}; successive set differences compose, and the final map has all rows inside $V$, so it restricts to $V$. (ii) is the contrapositive of (i). (iii) If $r\in S\cap V\subseteq X$ with $S\in\cF$, then $S\subseteq X\cup(E\setminus V)$ and $r\in\Int(X\cup(E\setminus V))\cap V$; conversely if $r\in V$ lies in $S\in\cF$ with $S\subseteq X\cup(E\setminus V)$, then $S\cap V\subseteq X$ is a member of $\pi_V(\cF)$ containing $r$.
+\end{proof}
+
+Formula~\eqref{eq:elimination} is the graph-level form of variable elimination in single-head Horn theories, for which polynomial forgetting algorithms are known~\cite[Section~5.7]{liberatore2020common}; the statement here adds the treatment of loops and the exact visible-ground conclusion.
+
+\subsection{Deletion, products, and the composition boundary}
+
+For $V\subseteq E$ the \emph{induced deletion} of $E\setminus V$ restricts rows: $P|_V(r)=P(r)\cap V$ for $r\in V$. A set already contained in $V$ has the same predecessors inside itself before and after the restriction, so
+\begin{equation}\label{eq:deletion}
+ \cC(P|_V)=\{S\in\cC(P): S\subseteq V\}.
+\end{equation}
+Projection and deletion differ. For the two-cycle $a\leftrightarrow h$, $\cC(P)=\{\varnothing,\{a,h\}\}$; projecting onto $\{a\}$ gives $\{\varnothing,\{a\}\}$, realized by a loop at $a$, while deleting $h$ leaves $\{\varnothing\}$. Projection retains support that was supplied by hidden vertices; deletion removes it. Neither is a dynamical statement about a physical intervention.
+
+For families on disjoint ground sets $E_1,E_2$, the \emph{independent product} is $\cF_1\boxtimes\cF_2=\{S_1\cup S_2:S_i\in\cF_i\}$. The disjoint union of realizing digraphs realizes it, because with no cross arcs a set is supported iff each part is supported in its own component.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Operation & Preserves realizability? & Reason\\
+\midrule
+Induced deletion & yes & \eqref{eq:deletion}\\
+Coordinate projection & yes & Theorem~\ref{thm:elimination}\\
+Independent product & yes & disjoint union of digraphs\\
+Intersection on a shared ground & no & Proposition~\ref{prop:intersection}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Combining Corollary~\ref{cor:projection}(ii) with Proposition~\ref{prop:intersection}: no digraph with hidden vertices implements the conjunction family $\cF_\wedge$ by coordinate projection. The next section shows that food generation does.
+
+\section{Autocatalytic networks}\label{sec:raf}
+
+\subsection{Catalytic reaction systems}
+
+A \emph{catalytic reaction system} (CRS) consists of a finite set $M$ of molecule types, a finite set $R$ of reactions, each with a set of reactants and a set of products in $M$, a food set $F\subseteq M$, and a catalysis relation between molecules and reactions~\cite{hordijk2004detecting,steel2019autocatalytic}. A set $S\subseteq R$ is \emph{food-generated} if its reactions can be ordered so that the reactants of each lie in $F$ or among the products of earlier reactions of $S$; equivalently, every reactant of $S$ lies in the closure of $F$ under $S$. A nonempty food-generated $S$ is a RAF if every reaction of $S$ is catalysed by a molecule of $F$ or by a product of a reaction of $S$. Unions of RAFs are RAFs, so the map sending $T\subseteq R$ to the largest RAF inside $T$ (or $\varnothing$) is an interior operator; its fixed family, the RAFs together with $\varnothing$, is the \emph{fixed family} of the system~\cite{steel2023interior}. A CRS is \emph{elementary} if every reactant of every reaction is food; then every subset of $R$ is food-generated. We use the definitions of~\cite{companion2026antimatroid}, whose closure-based food generation agrees with the ordering-based one of~\cite{hordijk2004detecting}.
+
+For an arbitrary CRS define the predecessor map on $R$ by
+\begin{equation}\label{eq:extracted}
+ P(r)=\{u\in R: \text{some product of }u\text{ catalyses }r\}\cup\{r:\ \text{some food molecule catalyses }r\},
+\end{equation}
+so a food catalyst appears as a loop. On a food-generated set the RAF condition is exactly $P$-support~\cite[Section~3.2]{steel2023interior}, and in an elementary system the fixed family is therefore $\cC(P)$~\cite{companion2026antimatroid}.
+
+\subsection{Elementary systems and the RAF factorization}
+
+\begin{theorem}[Elementary fixed families]\label{thm:elementary}
+A family $\cF\subseteq\pw{E}$ is the fixed family of an elementary CRS with reaction set $E$ if and only if $\cF$ admits a successful legal interval-deletion sequence.
+\end{theorem}
+
+\begin{proof}
+If $\cF$ is the fixed family of an elementary system, then $\cF=\cC(P)$ for the map~\eqref{eq:extracted}, and Theorem~\ref{thm:main} supplies a successful sequence. Conversely, given a successful sequence reconstruct $P$ by~\eqref{eq:reconstruct} and build the system with one food molecule $f$, one private product $c_v$ for each $v\in E$, reactions $r_v: f\to c_v$, and catalysis $c_u$ catalyses $r_v$ iff $u\in P(v)$, with no other catalysis. Every subset is food-generated because all reactants are food. The product $c_u$ is available exactly when $r_u$ is selected, so the RAF condition on $S$ is $P$-support of $S$, and the fixed family is $\cC(P)=\cF$.
+\end{proof}
+
+Note that a loop $v\in P(v)$ is implemented by self-catalysis of $r_v$ by its own product, and an empty row by a reaction with no catalyst, which then belongs to no RAF. The construction is structural: it asserts nothing about kinetics or thermodynamics.
+
+The companion paper proves that an interior operator $\psi$ on $E$ is the maxRAF operator of some CRS with reaction set $E$ (a \emph{same-ground realization}) if and only if $\Fix(\psi)=\cA\cap\cC(P)$ for an antimatroid $\cA$ on $E$ and a predecessor map $P$~\cite{companion2026antimatroid}; here an antimatroid is a union-closed family containing $\varnothing$ in which every nonempty member has an element whose removal leaves a member~\cite{korte1991greedoids}. Theorem~\ref{thm:main} removes the graph from that statement.
+
+\begin{corollary}[Intrinsic RAF factorization]\label{cor:factor}
+An interior operator $\psi$ on $E$ has a same-ground RAF realization if and only if $\Fix(\psi)=\cA\cap\cH$ for some antimatroid $\cA$ on $E$ and some family $\cH\subseteq\pw{E}$ admitting a successful legal interval-deletion sequence.
+\end{corollary}
+
+\begin{proof}
+Replace $\cC(P)$ by an intrinsically characterized $\cH$ using Theorem~\ref{thm:main} in both directions; the converse direction of the companion theorem supplies the CRS from $\cA$ and the reconstructed $P$.
+\end{proof}
+
+The corollary is a factorization statement; it asserts neither uniqueness of the factors nor an efficient way of finding them.
+
+\subsection{A conjunction that food generation supplies}
+
+\begin{proposition}\label{prop:conjunction-crs}
+The family $\cF_\wedge=\{\varnothing,\{a\},\{b\},\{a,b\},\{a,b,c\}\}$ of Example~\ref{ex:conj} is the fixed family of a CRS with reaction set $\{a,b,c\}$, but of no elementary CRS on that reaction set.
+\end{proposition}
+
+\begin{proof}
+Take food $\{f\}$, molecules $x,y,z$, reactions $a: f\to x$, $b: f\to y$, $c: x+y\to z$, and let $f$ catalyse all three. Catalysis is then automatic, and a set is food-generated iff it does not contain $c$ without both $a$ and $b$; the nonempty such sets are exactly the nonempty members of $\cF_\wedge$. The second claim is Theorem~\ref{thm:elementary} with Example~\ref{ex:conj}. Alternatively, $\cF_\wedge$ is an antimatroid (every nonempty member loses some element and stays a member), and the companion theorem with the loop digraph realizes it.
+\end{proof}
+
+Thus the difference between elementary and general systems is already visible on three reactions: predecessor rows encode alternatives, food generation encodes conjunctions, and by Corollary~\ref{cor:projection}(ii) no number of hidden elementary reactions can substitute for the latter under coordinate projection.
+
+\section{Formal verification and computational checks}\label{sec:verification}
+
+\subsection{The formal development}
+
+The results of this paper are formalized in Lean~4 (toolchain \lean{leanprover/lean4:v4.30.0}) over a pinned Mathlib~\cite{demoura2021lean4,mathlib2020}, in the namespace \lean{DigraphRealizability} spread over thirteen modules. Sets are finite sets over an arbitrary finite type with decidable equality. The support predicate is the existing predicate \lean{RAFInteriorRealizability.PredSupported} of the companion development~\cite{companion2026antimatroid}, so that the digraph and RAF results share one semantics. The interval-deletion procedure is the inductive predicate \lean{Peels}, whose constructors are exactly conditions (i)--(ii) of Definition~\ref{def:legal}, and \lean{IntrinsicPeelable F} states that a legal sequence from the full power set succeeds. The exported characterization
+\begin{center}
+\lean{digraphRealizable_iff_intrinsicPeeling}
+\end{center}
+assumes only a finite type, decidable equality and the target family. It has no hypothesis about normalizers, completions or supplied traces; those objects appear only inside the proof.
+
+Table~\ref{tab:concordance} lists the correspondence between the statements of this paper and the formal declarations. Every module compiles in a strict verification with warnings treated as errors, and the exported root declarations depend only on Lean's standard axioms (propositional extensionality, classical choice and quotient soundness). No \lean{sorry}, native computation, or finite case enumeration is used to discharge any universal statement.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.44\textwidth}>{\raggedright\arraybackslash}p{0.52\textwidth}@{}}
+\toprule
+Statement & Formal declaration (module)\\
+\midrule
+Least models: \eqref{eq:closure} is a model containing $A$, below every such model & \lean{subset_closure}, \lean{closure_le}, \lean{closure_models} (\lean{HornClosure})\\
+Lemma~\ref{lem:normalization}, existence of $A\to r$ with~\eqref{eq:normal} & \lean{normalize} (\lean{HornClosure})\\
+Lemma~\ref{lem:normalization}, replacement and completion extension & \lean{replacement}, \lean{extend_completion} (\lean{ResidualNormalization})\\
+Completeness and soundness in complementary form & \lean{elimination_complete}, \lean{elimination_sound}, \lean{singleHead_iff_eliminates} (\lean{HornElimination})\\
+Duality~\eqref{eq:duality} and reconstruction~\eqref{eq:reconstruct} & \lean{support_iff_models}, \lean{reconstruct_models}, \lean{reconstructed_support} (\lean{ComplementBridge})\\
+Translation between the direct and complementary procedures & \lean{Eliminates.toPeels}, \lean{Peels.toEliminates} (\lean{IntervalDeletion})\\
+Theorem~\ref{thm:main}, (1)$\Leftrightarrow$(2) & \lean{digraphRealizable_iff_intrinsicPeeling} (\lean{IntervalDeletion})\\
+Eligibility equals~\eqref{eq:eligible} for the interior of a union-closed family & \lean{eligible_iff_interior} (\lean{IntervalDeletion})\\
+Theorem~\ref{thm:main}, (1)$\Rightarrow$(3) for an arbitrary valid policy & \lean{policy_complete} (\lean{ResidualPolicy})\\
+Executable trace checker and its equivalence with the criterion & \lean{checkTrace}, \lean{digraphRealizable_iff_checked_trace} (\lean{TraceChecker})\\
+Proposition~\ref{prop:roots}, Corollary~\ref{cor:loops} & \lean{exact_trace_roots}, \lean{exact_trace_length}, \lean{realizing_loops} (\lean{TraceConsequences})\\
+Interior operator of the reconstruction equals that of $\cF$ & \lean{reconstructed_interior_eq} (\lean{RAFConsequences})\\
+Theorem~\ref{thm:elementary} & \lean{elementary_iff_peeling} (\lean{RAFConsequences})\\
+Corollary~\ref{cor:factor} & \lean{raf_iff_antimatroid_peeling} (\lean{RAFConsequences})\\
+Theorem~\ref{thm:elimination}; Corollary~\ref{cor:projection}(i)--(iii) & \lean{single_vertex_projection}, \lean{arbitrary_projection}, \lean{source_projection_on_visible}, \lean{hidden_vertices_cannot_rescue}, \lean{projected_interior} (\lean{Projection}, \lean{PublicationResolution})\\
+Equation~\eqref{eq:deletion}; independent products & \lean{induced_deletion}, \lean{independent_product} (\lean{Composition})\\
+Proposition~\ref{prop:intersection}; Proposition~\ref{prop:conjunction-crs}, existence part & \lean{conjunction_intersection}, \lean{conjunction_not_realizable}, \lean{conjunction_general_realizable} (\lean{Composition})\\
+Proposition~\ref{prop:hall}, the injection $\rho$ & \lean{residual_matching} (\lean{Obstructions})\\
+Aggregate export & \lean{publication_resolution} (\lean{PublicationResolution})\\
+\bottomrule
+\end{tabular}
+\caption{Concordance between the paper and the Lean development.}
+\label{tab:concordance}
+\end{table}
+
+\subsection{What is proved only on paper}
+
+The following statements are established by the ordinary proofs in this paper and are not separately compiled declarations: the node bound~\eqref{eq:treebound}; Proposition~\ref{prop:np}; Corollary~\ref{cor:noclosure}; the cardinality inequality in Proposition~\ref{prop:hall}, which is the immediate counting consequence of the compiled injection; the explicit three-reaction system in Proposition~\ref{prop:conjunction-crs}, whose formal counterpart is the existence statement via the antimatroid construction of~\cite{companion2026antimatroid}; Examples~\ref{ex:interp}, \ref{ex:local} and~\ref{ex:sixhall}; and the worked examples of Section~\ref{sec:examples}, which were checked by exhaustive enumeration.
+
+\subsection{Computational checks}
+
+Before the formalization, the criterion was compared with a brute-force oracle on every labelled digraph with at most four vertices, in both the direct and the complementary formulation.
+
+\begin{center}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+$n$ & labelled digraphs ($2^{n^{2}}$) & union-closed families containing $\varnothing$ & digraph-realizable families\\
+\midrule
+0 & 1 & 1 & 1\\
+1 & 2 & 2 & 2\\
+2 & 16 & 7 & 7\\
+3 & 512 & 61 & 55\\
+4 & 65\,536 & 2\,480 & 1\,359\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+There were no disagreements in classification, in reconstruction, or in the length of successful sequences. For $n=3$ the six non-realizable union-closed families are, up to relabelling, $\cF_\wedge$ (three labellings), $\cF_{\mathrm{loc}}$ (three labellings). Formula~\eqref{eq:elimination} was compared with direct projection on all $263\,714$ pairs (digraph, vertex) with at most four vertices, and the disjoint-union construction on all $256$ products of two two-vertex digraphs, without mismatch. These finite checks test conventions and implementations; the universal statements rest on the proofs and the formalization.
+
+\section{Discussion and open problems}\label{sec:discussion}
+
+Theorem~\ref{thm:main} answers Steel's first question with a criterion that uses only membership, inclusion, maximality and distinctness of roots, and it does so with an exact reconstruction on the original ground set. The residual set may be chosen freely; the price of that freedom is that the root must be searched, and Example~\ref{ex:chain} shows the search is genuinely needed. Section~\ref{sec:dynamic} explains why a static description by closure axioms is impossible, and Sections~\ref{sec:projection}--\ref{sec:raf} show that the class behaves well under projection, deletion and products, that the missing closure under intersection is exactly what food generation adds in a general catalytic reaction system, and that the graph factor of the same-ground RAF characterization is now intrinsic.
+
+Several questions remain.
+\begin{enumerate}
+\item \emph{Complexity.} Is digraph-realizability of an explicitly listed family decidable in polynomial time? Proposition~\ref{prop:np} places it in $\NP$; Proposition~\ref{prop:recognizer} gives a search exponential only in the number of excluded singletons.
+\item \emph{Static characterizations.} Corollary~\ref{cor:noclosure} rules out closure rules. Is there a characterization by forbidden configurations, or by a condition with negative hypotheses that is checkable locally?
+\item \emph{Identifiability.} The family determines all loops (Corollary~\ref{cor:loops}) and, in Examples~\ref{ex:chain} and~\ref{ex:cycle}, most arcs. Which arcs are determined by $\cF$ in general, and is there a canonical (for instance arc-minimal) realization computable from a successful trace?
+\item \emph{Obstructions.} The Hall condition of Corollary~\ref{cor:hall} is necessary and Example~\ref{ex:sixhall} shows it is not sufficient. Is there a complete and interpretable family of obstruction certificates, in the spirit of the derivation-connectivity argument of that example?
+\item \emph{Beyond elementary systems.} Corollary~\ref{cor:factor} is existential in the antimatroid factor. Given a same-ground RAF family, how can the antimatroid and the digraph factors be found, and when are they unique?
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

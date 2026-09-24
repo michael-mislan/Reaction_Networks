@@ -1,0 +1,669 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\rk}{\operatorname{rank}}
+\newcommand{\Sym}{\mathcal{M}}
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\Ecst}{E}
+\newcommand{\Fcst}{F}
+
+\title{An Exact Counterexample to the D-Unstable-Core Conjecture\\for Parameter-Rich Reaction Networks}
+\author{}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Vassena and Stadler introduced \emph{unstable cores}, minimal square child-selection submatrices of the stoichiometric matrix, and proved that a D-unstable core is sufficient for a reaction network with parameter-rich kinetics to admit an unstable positive equilibrium. They conjectured the converse: a network without D-unstable cores cannot have a Hurwitz-unstable Jacobian. We show that this conjecture is false. We exhibit a reaction network with four species and five reactions, no catalysts, and a strictly positive equilibrium flux, together with an admissible reactivity matrix for which the Jacobian $G=SR$ has the eigenvalue $\tfrac{1}{500}+\tfrac{51}{500}\,i$, while every one of its $24$ child-selection matrices is D-nonunstable, so that no D-unstable core exists. All data are rational, the eigenvector is a Gaussian-integer vector, and the child certificates are exact: three positive-semidefinite weighted symmetrizations, one exact cubic factorization $X(X+4d_0)(X+4d_1+2d_2)$, and two two-dimensional faces. An explicit generalized-mass-action realization of the unstable equilibrium is given. The complete argument, from the source network to the negation of the universal necessity statement, is verified in Lean~4 with Mathlib, with warnings treated as errors and no unproved placeholders. We also explain why the obstruction is genuinely collective, why the boundary-permitting definition of D-noninstability is essential, and which weaker localization statements survive.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+A recurring theme in chemical reaction network theory is that dynamical properties which depend on unknown kinetic parameters can sometimes be decided from stoichiometry alone. For the question of whether a network can have an unstable positive equilibrium, Vassena and Stadler \cite{VassenaStadler2024} gave a remarkably clean sufficient condition in the setting of \emph{parameter-rich} kinetics, a class that contains generalized mass action \cite{MullerRegensburger2012} and Michaelis--Menten kinetics. Their tool is the \emph{child selection}: an injective assignment $J$ of distinct reactions to a subset $\kappa$ of species such that each species is a reactant of its assigned reaction. The square submatrix $S[\kappa]$ of the stoichiometric matrix $S$ obtained by selecting the columns $J(\kappa)$ in the order of $\kappa$ is a \emph{child-selection matrix}. A child-selection matrix is \emph{D-unstable} if $S[\kappa]D$ has an eigenvalue with positive real part for some positive diagonal matrix $D$, and a \emph{D-unstable core} is a D-unstable child-selection matrix none of whose proper principal submatrices is D-unstable. Through a Cauchy--Binet expansion of the characteristic polynomial, Vassena and Stadler prove that a D-unstable core forces the existence of parameters at which the network has a positive equilibrium with a Hurwitz-unstable Jacobian \cite[Cor.~12, Cor.~13]{VassenaStadler2024}.
+
+The converse is the natural question, and it was raised explicitly. In the words of \cite[Conj.~17]{VassenaStadler2024}: \emph{``Suppose that the network does not possess any D-unstable core. Then $G(r')$ cannot be Hurwitz-unstable and thus the network $\Gamma$ does not admit instability.''} The conclusion of that paper restates the position: unstable cores ``provide a sufficient condition for network instability'', and ``we conjecture that the slightly more general D-unstable cores are even necessary''. If true, the conjecture would make instability of parameter-rich networks a purely stoichiometric, finitely checkable property.
+
+\subsection*{Main result}
+
+We show that the conjecture is false, already for four species.
+
+\begin{theorem}\label{thm:main}
+There is a reaction network $\Gamma$ with four species and five reactions, without catalysts, admitting a strictly positive equilibrium flux, and an admissible reactivity matrix $R$ (positive exactly on reactant incidences), such that
+\begin{enumerate}[label=(\roman*)]
+\item the Jacobian $G=SR$ has the eigenvalue $\lambda=\tfrac1{500}+\tfrac{51}{500}\,i$, so $G$ is Hurwitz-unstable;
+\item every child-selection matrix of $\Gamma$ is D-nonunstable: for every child selection $\kappa$ and every positive diagonal $D$, no eigenvalue of $S[\kappa]D$ has positive real part.
+\end{enumerate}
+Consequently $\Gamma$ possesses no D-unstable core, and $\Gamma$ endowed with generalized mass-action kinetics admits instability in the sense of \cite[Def.~2]{VassenaStadler2024}. Conjecture~17 of \cite{VassenaStadler2024} is false.
+\end{theorem}
+
+Every number in the construction is an explicit rational, the unstable eigenvector has Gaussian-integer entries, and every child certificate is a finite exact identity. The argument is therefore checkable by hand, by exact computer algebra, and by a proof assistant. We took the third route seriously: the complete chain from the literal network data to the negation of the universal necessity statement is verified in Lean~4 \cite{Lean4} on top of Mathlib \cite{Mathlib}, with warnings treated as errors and no \lean{sorry}. Section~\ref{sec:lean} describes the formalization and records the toolchain and content hashes needed to reproduce it.
+
+\subsection*{What the counterexample shows}
+
+Three features of the example are, in our view, more informative than the bare refutation.
+
+\emph{The obstruction is collective.} Every square child of $S$ is safe under every positive column scaling, yet a positive combination of whole reaction columns produces a complex eigenvalue in the open right half-plane. The instability is not stored in any single child selection; it is created by cross-terms between independently tunable derivatives that belong to different reactions and cannot be separated by choosing one reaction per species.
+
+\emph{Boundary spectra matter.} One maximal child of the example is not diagonally dissipative and its scaled characteristic polynomial factors as $X(X+4d_0)(X+4d_1+2d_2)$: it carries a permanent zero eigenvalue. Under the strict notion of D-stability it would not count as stable; under the boundary-permitting negation of D-instability, which is the notion the conjecture actually uses, it is harmless. Any argument that silently replaces ``not D-unstable'' by ``D-stable'' misclassifies this child.
+
+\emph{Consistency is not automatic.} The first source we found had a nonsingular $4\times4$ stoichiometric matrix and hence no positive equilibrium flux. It refutes a matrix-level statement but not the conjecture as posed, since parameter-rich models require a positive equilibrium. Appending one reactant-free inflow reaction repairs consistency without changing either the Jacobian or the lattice of child selections. This scope correction was found by a literature audit after the matrix-level result had already been formalized.
+
+\subsection*{Related work}
+
+Child selections were introduced by Vassena as the combinatorial carrier of the Cauchy--Binet expansion of characteristic-polynomial coefficients \cite{Vassena2023Symbolic,Vassena2023SaddleNode}. For instability through a positive \emph{real} eigenvalue the localization to child-selection determinant signs is exact: Vassena's sign-change results give sufficiency, and the necessity direction is established in the formal development accompanying this paper (Section~\ref{sec:discussion}). The failure exhibited here lives entirely in the complex (Hopf-type) branch. D-stability and its relatives have a long history in economics and matrix theory \cite{ArrowMcManus1958,Johnson1974,Cross1978,Hershkowitz1992,Kushel2019}; the gap between diagonal (Volterra--Lyapunov) stability, D-stability, and boundary-permitting D-noninstability is precisely the gap that our exceptional child occupies. Rank-one and non-square variants of D-stability are known to resist general theorems \cite{BierkensRan2014,Su2024}. Graph-theoretic and combinatorial approaches to Hopf bifurcations in reaction networks include \cite{MinchevaRoussel2007,AngeliBanajiPantea2014}; classical stability analysis of networks through Routh--Hurwitz conditions goes back to Clarke \cite{Clarke1980}. The autocatalytic-core notion of Blokhuis, Lacoste and Nghe \cite{BlokhuisLacosteNghe2020}, shown in \cite{VassenaStadler2024} to coincide with Metzler unstable-positive feedbacks, is not involved: no child-selection matrix of the network below is Hurwitz-unstable, so by \cite[Cor.~26]{VassenaStadler2024} the network is not autocatalytic, and its Jacobian instability is of complex-pair type with no positive real eigenvalue. Injectivity-type results that exclude multistationarity \cite{BanajiDonnellBaigent2007,BanajiCraciun2010,Feinberg2019} concern uniqueness of equilibria rather than their stability. A companion manuscript \cite{Companion2026} treats the classical fixed-exponent mass-action setting, where the same forgetting of kinetic order in child-selection data produces a separate counterexample.
+
+\subsection*{Organization}
+
+Section~\ref{sec:setting} fixes definitions and states the refuted implication precisely. Section~\ref{sec:example} presents the network, the reactivity, the unstable eigenpair, and the equilibrium realization. Section~\ref{sec:children} proves that every child-selection matrix is D-nonunstable and completes the proof of Theorem~\ref{thm:main}. Section~\ref{sec:discussion} discusses what fails and what survives. Section~\ref{sec:lean} documents the formal verification, Section~\ref{sec:discovery} the discovery process, and Section~\ref{sec:open} open problems. Appendix~\ref{app:certificates} lists all exact certificates.
+
+\section{Setting}\label{sec:setting}
+
+\subsection{Networks, reactivities, and Jacobians}
+
+A reaction network on species $\{X_0,\dots,X_{n-1}\}$ and reactions $\{r_0,\dots,r_{m-1}\}$ is given by reactant and product matrices $Y,P\in\N^{n\times m}$; the stoichiometric matrix is $S=P-Y\in\Z^{n\times m}$. Species $X_i$ is a \emph{reactant} of $r_j$ if $Y_{ij}>0$. We write $\supp(Y)=\{(i,j):Y_{ij}>0\}$ for the reactant incidence relation. Throughout we index species and reactions from $0$, matching the formal development.
+
+Following \cite[Def.~1, Def.~3]{VassenaStadler2024}, a kinetic model assigns to every reaction a nonnegative rate $r_j(x)$ that depends only on the concentrations of its reactants and increases in each of them. At a positive state $\bar x$ the \emph{reactivity matrix} is $R_{ji}=\partial r_j/\partial x_i(\bar x)$, and the Jacobian of $\dot x = S r(x)$ is $G=SR$. A kinetic model is \emph{parameter-rich} if, for every positive equilibrium $\bar x$ and every matrix $R$ with
+\begin{equation}\label{eq:admissible}
+R_{ji}>0 \iff Y_{ij}>0,\qquad R_{ji}=0 \iff Y_{ij}=0,
+\end{equation}
+there are parameters realizing $\bar x$ as an equilibrium with reactivity $R$. We call a matrix $R\in\R^{m\times n}$ satisfying \eqref{eq:admissible} an \emph{admissible reactivity} for the network. Generalized mass action (GMA), $r_j(x)=a_j\prod_i x_i^{c_{ji}}$ with $c_{ji}\ne0$ exactly on reactant incidences, is parameter-rich \cite[Lemma~6]{VassenaStadler2024}: for any $\bar x>0$, any positive flux $\bar r$ with $S\bar r=0$, and any admissible $R$, the choice $c_{ji}=\bar x_i R_{ji}/\bar r_j$, $a_j=\bar r_j\prod_i \bar x_i^{-c_{ji}}$ realizes both.
+
+The existence of a positive equilibrium requires a positive flux vector in the kernel of $S$. We isolate this standing hypothesis.
+
+\begin{definition}[Consistency]\label{def:consistent}
+A network is \emph{consistent} if there exists $f\in\R^m_{>0}$ with $Sf=0$.
+\end{definition}
+
+A network with a parameter-rich kinetic model \emph{admits instability} \cite[Def.~2]{VassenaStadler2024} if some choice of parameters gives a positive equilibrium whose Jacobian is Hurwitz-unstable, i.e.\ has an eigenvalue with strictly positive real part. By \cite[Obs.~4]{VassenaStadler2024}, for a consistent network with a parameter-rich model this holds if and only if $SR$ is Hurwitz-unstable for some admissible $R$.
+
+\subsection{Child selections and D-instability}
+
+\begin{definition}[Child selection, {\cite[Def.~7]{VassenaStadler2024}}]
+A \emph{child selection} is a pair $\kappa=(\kappa,J)$ with $\kappa$ a nonempty set of species and $J:\kappa\to\{r_0,\dots,r_{m-1}\}$ injective such that $X_i$ is a reactant of $J(i)$ for every $i\in\kappa$. Its \emph{child-selection matrix} is the $|\kappa|\times|\kappa|$ matrix
+\[
+S[\kappa]_{il}=S_{i,J(l)},\qquad i,l\in\kappa .
+\]
+A child selection $\kappa'$ is a \emph{restriction} of $\kappa$ if $\kappa'\subseteq\kappa$ and $J'=J|_{\kappa'}$; then $S[\kappa']$ is the principal submatrix of $S[\kappa]$ on the rows and columns of $\kappa'$ \cite[Obs.~9]{VassenaStadler2024}.
+\end{definition}
+
+Note that a child selection chooses a whole column of $S$ for each selected species. It cannot keep a favourable entry of a column while discarding other entries of the same column; this whole-column ownership will matter in Section~\ref{sec:discussion}.
+
+\begin{definition}[Spectral notions]\label{def:spectral}
+Let $A\in\R^{k\times k}$ and let $\mathcal D_k$ denote the set of positive diagonal $k\times k$ matrices.
+\begin{enumerate}[label=(\alph*)]
+\item $A$ is \emph{Hurwitz-unstable} if it has an eigenvalue $\lambda$ with $\re\lambda>0$.
+\item $A$ is \emph{D-unstable} if $AD$ is Hurwitz-unstable for some $D\in\mathcal D_k$.
+\item $A$ is \emph{D-nonunstable} if it is not D-unstable: for every $D\in\mathcal D_k$, every eigenvalue of $AD$ has real part $\le0$.
+\item $A$ is \emph{D-stable} if for every $D\in\mathcal D_k$, every eigenvalue of $AD$ has real part $<0$.
+\end{enumerate}
+\end{definition}
+
+D-stability implies D-noninstability, but not conversely: purely imaginary and zero eigenvalues are permitted by (c) and excluded by (d). The conjecture is a statement about (b) and its negation (c); D-stability plays no role in it. We keep the two notions rigorously apart.
+
+\begin{definition}[D-unstable core, {\cite[Def.~16]{VassenaStadler2024}}]\label{def:core}
+A child selection $\kappa$ is a \emph{D-unstable core} if $S[\kappa]$ is D-unstable and $S[\kappa']$ is not D-unstable for every proper restriction $\kappa'\subsetneq\kappa$.
+\end{definition}
+
+Since restrictions of child selections are again child selections, a finite descent shows that every D-unstable child selection contains a D-unstable core. Hence:
+
+\begin{lemma}\label{lem:core-iff-child}
+A network has a D-unstable core if and only if it has a D-unstable child-selection matrix. In particular, if every child-selection matrix is D-nonunstable, then the network has no D-unstable core.
+\end{lemma}
+
+\subsection{The refuted statement}
+
+We can now state the implication whose negation we prove. Fix $n=4$ species and $m=5$ reactions.
+
+\begin{quote}
+\textbf{(N)}\quad For every consistent network $\Gamma$ on $4$ species and $5$ reactions and every admissible reactivity $R$: if $SR$ is Hurwitz-unstable, then $\Gamma$ has a D-unstable core.
+\end{quote}
+
+Statement (N) is the restriction of \cite[Conj.~17]{VassenaStadler2024} to consistent networks of this size, with ``admits instability'' unfolded through \cite[Obs.~4]{VassenaStadler2024}. Its negation, which is the terminal theorem of the formal development, is exactly what Theorem~\ref{thm:main} provides. The universal conjecture for arbitrary networks fails a fortiori.
+
+\section{The counterexample}\label{sec:example}
+
+\subsection{The network}
+
+Let $\Gamma$ be the network on species $X_0,X_1,X_2,X_3$ with the five reactions
+\begin{equation}\label{eq:reactions}
+\begin{aligned}
+r_0&:\ X_0+2X_3\longrightarrow 4X_2, &
+r_1&:\ 4X_1+2X_2\longrightarrow\varnothing, &
+r_2&:\ 4X_2\longrightarrow 2X_3,\\
+r_3&:\ 2X_3\longrightarrow X_0+6X_1+X_2, &
+r_4&:\ \varnothing\longrightarrow 2X_2+2X_3 .
+\end{aligned}
+\end{equation}
+There are no catalysts: no species appears on both sides of a reaction. The reactant and stoichiometric matrices are
+\begin{equation}\label{eq:S}
+Y=\begin{pmatrix}
+1&0&0&0&0\\ 0&4&0&0&0\\ 0&2&4&0&0\\ 2&0&0&2&0
+\end{pmatrix},\qquad
+S=P-Y=\begin{pmatrix}
+-1&0&0&1&0\\ 0&-4&0&6&0\\ 4&-2&-4&1&2\\ -2&0&2&-2&2
+\end{pmatrix},
+\end{equation}
+with rows indexed by species and columns by reactions. Because there are no catalysts, the reactant incidences are exactly the negative entries of $S$:
+\begin{equation}\label{eq:support}
+\supp(Y)=\{(0,0),\,(1,1),\,(2,1),\,(2,2),\,(3,0),\,(3,3)\}.
+\end{equation}
+In words: $X_0$ reacts only in $r_0$; $X_1$ only in $r_1$; $X_2$ in $r_1$ and $r_2$; $X_3$ in $r_0$ and $r_3$. Reaction $r_4$ is a reactant-free inflow.
+
+\begin{proposition}[Consistency]\label{prop:consistent}
+$\Gamma$ is consistent: $f=(2,3,2,2,2)^{\top}$ is strictly positive and $Sf=0$.
+\end{proposition}
+
+\begin{proof}
+Row by row, $-2+2=0$; $-12+12=0$; $8-6-8+2+4=0$; $-4+4-4+4=0$.
+\end{proof}
+
+The role of $r_4$ is only to supply this flux. The first four columns form a nonsingular matrix ($\det S_{[0..3]}=48$), so without $r_4$ the network would have no positive equilibrium. Since $r_4$ has no reactants, the row of every admissible reactivity indexed by $r_4$ is identically zero, so $r_4$ contributes nothing to any Jacobian $SR$ and cannot be selected by any child selection. Thus $r_4$ changes neither the Jacobians nor the lattice of child selections of the four-reaction network; it only moves the example into the scope of the conjecture.
+
+\subsection{The reactivity and the Jacobian}
+
+Put
+\begin{equation}\label{eq:EF}
+\Ecst=\frac{5187522222797}{46658000000},\qquad
+\Fcst=\frac{28200219703}{46658000000},
+\end{equation}
+and define $R\in\Q^{5\times4}$ (rows indexed by reactions, columns by species) by
+\begin{equation}\label{eq:R}
+R=\begin{pmatrix}
+1&0&0&\Ecst\\
+0&\tfrac1{50}&\tfrac1{1000}&0\\
+0&0&\tfrac5{11}&0\\
+0&0&0&\Fcst\\
+0&0&0&0
+\end{pmatrix}.
+\end{equation}
+Comparing with \eqref{eq:support}, $R_{ji}>0$ exactly when $(i,j)\in\supp(Y)$, so $R$ is admissible. The Jacobian is
+\begin{equation}\label{eq:G}
+G=SR=\begin{pmatrix}
+-1&0&0&-\Ecst+\Fcst\\[2pt]
+0&-\tfrac{2}{25}&-\tfrac{1}{250}&6\Fcst\\[2pt]
+4&-\tfrac{1}{25}&-\tfrac{1}{500}-\tfrac{20}{11}&4\Ecst+\Fcst\\[2pt]
+-2&0&\tfrac{10}{11}&-2\Ecst-2\Fcst
+\end{pmatrix}.
+\end{equation}
+
+\begin{proposition}[Exact unstable eigenpair]\label{prop:eigenpair}
+Let $\lambda=\tfrac1{500}+\tfrac{51}{500}\,i$ and
+\[
+v=\begin{pmatrix}
+-152886431705+15563289455\,i\\
+23331004034-30699360512\,i\\
+7890610882+34396287629\,i\\
+1399740000
+\end{pmatrix}\in\Z[i]^4 .
+\]
+Then $Gv=\lambda v$. Hence $G$ is Hurwitz-unstable, with $\re\lambda=\tfrac1{500}>0$.
+\end{proposition}
+
+\begin{proof}
+Direct exact multiplication over $\Q(i)$; each of the four coordinate identities is a rational identity. The characteristic polynomial of $G$ factors over $\Q$ as
+\[
+\chi_G(X)=\frac{(125000X^2-500X+1301)\,(513238000X^2+116236430203X+13005481800)}{64154750000000},
+\]
+and the first quadratic factor has roots $\tfrac{1}{500}\pm\tfrac{51}{500}i$ since $500^2-4\cdot125000\cdot1301=-25500^2$. The remaining two eigenvalues are real and negative (approximately $-226.36$ and $-0.112$).
+\end{proof}
+
+Thus the unstable equilibrium is of oscillatory (complex-pair) type: $G$ has no positive real eigenvalue, $\det G>0$, and every coefficient of $\chi_G$ is positive. The instability is detected only by the third Hurwitz determinant of the quartic, which is negative. This is the branch of the problem that child-selection determinant signs cannot see.
+
+\subsection{An explicit generalized-mass-action realization}
+
+Theorem~\ref{thm:main} is stated at the level of the symbolic Jacobian, as is Conjecture~17. For concreteness we also give a kinetic model.
+
+\begin{proposition}[GMA realization]\label{prop:gma}
+Endow $\Gamma$ with the generalized mass-action rates
+\[
+r_0=2\,x_0^{1/2}x_3^{\Ecst/2},\quad
+r_1=3\,x_1^{1/150}x_2^{1/3000},\quad
+r_2=2\,x_2^{5/22},\quad
+r_3=2\,x_3^{\Fcst/2},\quad
+r_4=2 .
+\]
+Then $\bar x=(1,1,1,1)$ is a positive equilibrium of $\dot x=Sr(x)$ with flux $r(\bar x)=(2,3,2,2,2)$, and the Jacobian at $\bar x$ is exactly the matrix $G$ of \eqref{eq:G}. In particular, $\Gamma$ with GMA kinetics admits instability.
+\end{proposition}
+
+\begin{proof}
+At $\bar x=\mathbf 1$ the fluxes are the prefactors $(2,3,2,2,2)=f$, and $Sf=0$ by Proposition~\ref{prop:consistent}. For GMA, $\partial r_j/\partial x_i=c_{ji}r_j/x_i$, which at $\bar x$ equals $c_{ji}f_j$; the exponents were chosen as $c_{ji}=R_{ji}/f_j$, so the reactivity at $\bar x$ is $R$ and the Jacobian is $SR=G$. The exponents are nonzero exactly on reactant incidences, as GMA requires.
+\end{proof}
+
+The exponents are rational but not integers, so this is not classical mass action. Whether the same network admits an unstable equilibrium under fixed integer exponents is a different question, discussed in \cite{Companion2026}; the conjecture under refutation is about parameter-rich kinetics.
+
+\section{Every child-selection matrix is D-nonunstable}\label{sec:children}
+
+\subsection{The child-selection lattice}
+
+From \eqref{eq:support}, species $X_0$ and $X_1$ have a unique admissible reaction each ($r_0$ and $r_1$), while $X_2$ may choose $r_1$ or $r_2$ and $X_3$ may choose $r_0$ or $r_3$. Call $J(2)=r_1$ and $J(3)=r_0$ the \emph{exceptional edges}; the other choices form the \emph{diagonal} assignment $J(i)=r_i$. Reaction $r_4$ is never selectable. A direct enumeration gives $24$ child selections ($6$ singletons, $11$ pairs, $6$ triples, $1$ quadruple), and exactly four of them are maximal with respect to restriction:
+\begin{align}
+\kappa_{\mathrm{id}}&=\bigl(\{0,1,2,3\},\ i\mapsto r_i\bigr), &
+A_{\mathrm{id}}&=S[\kappa_{\mathrm{id}}]=\begin{pmatrix}-1&0&0&1\\0&-4&0&6\\4&-2&-4&1\\-2&0&2&-2\end{pmatrix},\label{eq:Aid}\\
+\kappa_{a}&=\bigl(\{0,2,3\},\ (0,2,3)\mapsto(r_0,r_1,r_3)\bigr), &
+A_{a}&=\begin{pmatrix}-1&0&1\\4&-2&1\\-2&0&-2\end{pmatrix},\label{eq:Aa}\\
+\kappa_{b}&=\bigl(\{1,2,3\},\ (1,2,3)\mapsto(r_1,r_2,r_0)\bigr), &
+A_{b}&=\begin{pmatrix}-4&0&0\\-2&-4&4\\0&2&-2\end{pmatrix},\label{eq:Ab}\\
+\kappa_{2}&=\bigl(\{2,3\},\ (2,3)\mapsto(r_1,r_0)\bigr), &
+A_{2}&=\begin{pmatrix}-2&4\\0&-2\end{pmatrix}.\label{eq:A2}
+\end{align}
+
+\begin{lemma}[Classification]\label{lem:classification}
+Every child selection of $\Gamma$ is a restriction of exactly one of $\kappa_{\mathrm{id}},\kappa_a,\kappa_b,\kappa_2$, according to which exceptional edges it uses:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+uses $J(2)=r_1$ & uses $J(3)=r_0$ & restriction of\\
+\midrule
+yes & yes & $\kappa_2$\\
+yes & no & $\kappa_a$\\
+no & yes & $\kappa_b$\\
+no & no & $\kappa_{\mathrm{id}}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{lemma}
+
+\begin{proof}
+Let $(\kappa,J)$ be a child selection. If $J(2)=r_1$ then $1\notin\kappa$, since $X_1$ can only select $r_1$ and $J$ is injective. If $J(3)=r_0$ then $0\notin\kappa$ for the same reason. In the first row of the table, $\kappa\subseteq\{2,3\}$ and $J$ agrees with $\kappa_2$. In the second row, $\kappa\subseteq\{0,2,3\}$ and $J(3)$, if defined, is $r_3$; so $J$ agrees with $\kappa_a$. In the third row, $\kappa\subseteq\{1,2,3\}$ and $J(2)$, if defined, is $r_2$; so $J$ agrees with $\kappa_b$. In the last row every selected species uses its diagonal reaction, so $J$ agrees with $\kappa_{\mathrm{id}}$. Uniqueness is clear because the four maximal selections disagree on the two exceptional edges.
+\end{proof}
+
+By Lemma~\ref{lem:classification}, it suffices to show that the four maximal child matrices and all their principal submatrices are D-nonunstable. For three of them a single hereditary certificate does this; the fourth needs a separate argument.
+
+\subsection{Weighted symmetrization certificates}
+
+\begin{definition}
+For $A\in\R^{k\times k}$ and a weight vector $p\in\R^k_{>0}$ with $P=\diag(p)$, the \emph{weighted symmetrization} is the symmetric matrix
+\[
+\Sym(A,p)=-(PA+A^{\top}P).
+\]
+\end{definition}
+
+\begin{lemma}[Dissipativity bridge]\label{lem:bridge}
+Let $A\in\R^{k\times k}$ and $p\in\R^k_{>0}$. If $\Sym(A,p)$ is positive semidefinite, then
+\begin{enumerate}[label=(\alph*)]
+\item $A$ is D-nonunstable;
+\item for every nonempty $I\subseteq\{1,\dots,k\}$, the principal submatrix $A[I]$ is D-nonunstable, with certificate $\Sym(A[I],p|_I)=\Sym(A,p)[I]$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) Let $D$ be positive diagonal and let $ADz=\lambda z$ with $z\in\C^k\setminus\{0\}$. Put $u=Dz\ne0$, so that $Au=\lambda D^{-1}u$. Multiplying on the left by $u^{*}P$ and taking real parts,
+\[
+\re\bigl(u^{*}PAu\bigr)=\tfrac12\,u^{*}\bigl(PA+A^{\top}P\bigr)u=-\tfrac12\,u^{*}\Sym(A,p)\,u\le0,
+\qquad
+u^{*}PD^{-1}u>0,
+\]
+because $PD^{-1}$ is positive diagonal. Hence $\re\lambda\le0$.
+(b) The matrix $\Sym(A,p)[I]$ equals $\Sym(A[I],p|_I)$ entrywise, and a principal submatrix of a positive semidefinite matrix is positive semidefinite; apply (a).
+\end{proof}
+
+We call a matrix with such a certificate \emph{diagonally dissipative}. Note that the certificate only yields $\re\lambda\le0$; it does not, and need not, exclude imaginary-axis eigenvalues.
+
+\begin{proposition}[Three PSD covers]\label{prop:psd}
+The following weighted symmetrizations are positive semidefinite (in fact positive definite):
+\begin{align*}
+\Sym(A_2,(1,2))&=\begin{pmatrix}4&-4\\-4&8\end{pmatrix},\\
+\Sym(A_a,(10,2,7))&=\begin{pmatrix}20&-8&4\\-8&8&-2\\4&-2&28\end{pmatrix},\\
+\Sym(A_{\mathrm{id}},(100,35,40,140))&=\begin{pmatrix}200&0&-160&180\\0&280&80&-210\\-160&80&320&-320\\180&-210&-320&560\end{pmatrix}.
+\end{align*}
+Consequently $A_2$, $A_a$, $A_{\mathrm{id}}$ and all their principal submatrices are D-nonunstable.
+\end{proposition}
+
+\begin{proof}
+The leading principal minors are, respectively,
+\[
+(4,\,16),\qquad (20,\,96,\,2608),\qquad (200,\,56000,\,9472000,\,1524480000),
+\]
+all positive, so each matrix is positive definite by Sylvester's criterion. Exact $LDL^{\top}$ factorizations, which are the sum-of-squares form used in the formal proof, are listed in Appendix~\ref{app:certificates}. Apply Lemma~\ref{lem:bridge}.
+\end{proof}
+
+\subsection{The exceptional child}
+
+The maximal child $\kappa_b$ is different. Its matrix $A_b$ in \eqref{eq:Ab} is singular ($\det A_b=0$), so no weighted symmetrization of $A_b$ can be positive definite, and a short computation shows that none is positive semidefinite either: the $(2,3)$ block $\bigl(\begin{smallmatrix}-4&4\\2&-2\end{smallmatrix}\bigr)$ forces $p_3=2p_2$ from the $2\times2$ minor and then the full $3\times3$ minor is negative. Thus $A_b$ is not diagonally dissipative and Lemma~\ref{lem:bridge} does not apply. Nevertheless:
+
+\begin{proposition}[Exact cubic factorization]\label{prop:cubic}
+For every positive diagonal $D=\diag(d_0,d_1,d_2)$,
+\[
+\det\bigl(XI-A_bD\bigr)=X\,(X+4d_0)\,(X+4d_1+2d_2).
+\]
+Hence the spectrum of $A_bD$ is $\{0,\,-4d_0,\,-(4d_1+2d_2)\}$, and $A_b$ is D-nonunstable but not D-stable.
+\end{proposition}
+
+\begin{proof}
+$A_bD=\begin{pmatrix}-4d_0&0&0\\-2d_0&-4d_1&4d_2\\0&2d_1&-2d_2\end{pmatrix}$ is block lower triangular with the $1\times1$ block $-4d_0$ and the $2\times2$ block $B=\bigl(\begin{smallmatrix}-4d_1&4d_2\\2d_1&-2d_2\end{smallmatrix}\bigr)$. Since $\det B=8d_1d_2-8d_1d_2=0$ and $\operatorname{tr}B=-(4d_1+2d_2)$, the characteristic polynomial of $B$ is $X(X+4d_1+2d_2)$.
+\end{proof}
+
+The zero eigenvalue is permanent: the second and third columns of $A_b$ are proportional, reflecting the fact that reactions $r_2$ and $r_0$ act on the pair $(X_2,X_3)$ through the same direction $(-4,2)$ and $(4,-2)$. This is a genuine boundary case of the conjecture's definitions. The formal proof establishes Proposition~\ref{prop:cubic} through the weak cubic Routh--Hurwitz criterion: the coefficients $a_1=4d_0+4d_1+2d_2$, $a_2=16d_0d_1+8d_0d_2$, $a_3=0$ are nonnegative and $a_1a_2-a_3\ge0$, which excludes open-right-half-plane roots of a real monic cubic.
+
+The proper restrictions of $\kappa_b$ are the three pairs and three singletons of $\{1,2,3\}$. The pair $\{1,2\}\mapsto(r_1,r_2)$ and all singletons use no exceptional edge, so they are restrictions of $\kappa_{\mathrm{id}}$ and are covered by Proposition~\ref{prop:psd}. The two remaining faces use the exceptional edge $J(3)=r_0$ and need their own certificates:
+\begin{equation}\label{eq:faces}
+A_{13}=S[\{1,3\}\mapsto(r_1,r_0)]=\begin{pmatrix}-4&0\\0&-2\end{pmatrix},\qquad
+A_{23}=S[\{2,3\}\mapsto(r_2,r_0)]=\begin{pmatrix}-4&4\\2&-2\end{pmatrix}.
+\end{equation}
+
+\begin{proposition}[Exceptional faces]\label{prop:faces}
+The matrices
+\[
+\Sym(A_{13},(1,2))=\begin{pmatrix}8&0\\0&8\end{pmatrix},\qquad
+\Sym(A_{23},(1,2))=\begin{pmatrix}8&-8\\-8&8\end{pmatrix}
+\]
+are positive semidefinite. Hence $A_{13}$ and $A_{23}$ are D-nonunstable.
+\end{proposition}
+
+\begin{proof}
+The first is diagonal with positive entries; the second is $8\,(1,-1)^{\top}(1,-1)$, a nonnegative rank-one matrix. Apply Lemma~\ref{lem:bridge}(a).
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:main}}
+
+\begin{theorem}\label{thm:allchildren}
+Every child-selection matrix of $\Gamma$ is D-nonunstable.
+\end{theorem}
+
+\begin{proof}
+Let $\kappa$ be a child selection. By Lemma~\ref{lem:classification} it is a restriction of one of the four maximal selections. If it restricts $\kappa_2$, $\kappa_a$ or $\kappa_{\mathrm{id}}$, Proposition~\ref{prop:psd} together with the heredity in Lemma~\ref{lem:bridge}(b) gives the claim. If it restricts $\kappa_b$, then either $\kappa=\kappa_b$ (Proposition~\ref{prop:cubic}), or $\kappa$ is one of the faces $A_{13}$, $A_{23}$ (Proposition~\ref{prop:faces}), or $\kappa$ uses no exceptional edge and is also a restriction of $\kappa_{\mathrm{id}}$ (Proposition~\ref{prop:psd}). Since $S[\kappa]$ is determined by $\kappa$ up to the simultaneous reindexing of rows and columns by the order of $\kappa$, and D-noninstability is invariant under such reindexing, the claim follows.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Consistency is Proposition~\ref{prop:consistent}; admissibility of $R$ was checked after \eqref{eq:R}; (i) is Proposition~\ref{prop:eigenpair}; (ii) is Theorem~\ref{thm:allchildren}. By Lemma~\ref{lem:core-iff-child}, (ii) implies that $\Gamma$ has no D-unstable core. Proposition~\ref{prop:gma} shows that $\Gamma$ with GMA kinetics has a positive equilibrium with Jacobian $G$, so $\Gamma$ admits instability in the sense of \cite[Def.~2]{VassenaStadler2024}. The hypotheses of \cite[Conj.~17]{VassenaStadler2024} hold and its conclusion fails.
+\end{proof}
+
+\begin{corollary}\label{cor:N}
+Statement \textup{(N)} of Section~\ref{sec:setting} is false. Equivalently: it is not the case that for every consistent network on $4$ species and $5$ reactions and every admissible reactivity $R$, Hurwitz-instability of $SR$ implies the existence of a D-unstable core.
+\end{corollary}
+
+\section{Discussion: what fails and what survives}\label{sec:discussion}
+
+\subsection{The obstruction is collective}
+
+Write $G=SR=\sum_{j}S_{\cdot j}R_{j\cdot}$ as a sum of rank-one contributions of the reactions. The Cauchy--Binet expansion \cite{Vassena2023Symbolic,VassenaStadler2024} expresses every coefficient of $\chi_G$ as a signed sum of terms $\det S[\kappa,E_\kappa]\det R[E_\kappa,\kappa]$ over sets of species and reactions of equal size, and for the \emph{elementary} components, those attached to a single child selection, the reactivity factor is a product of independent positive symbols. This is what makes a D-unstable core sufficient: one can inflate the reactivities of a single child to dominate the polynomial. The converse fails because the Hurwitz conditions for a nonreal eigenvalue are not linear in the coefficients. In our example every coefficient of $\chi_G$ is positive and every child-selection determinant has the ``safe'' sign, so no elementary component is unstable; the negative third Hurwitz determinant $\Delta_3=a_1a_2a_3-a_1^2a_4-a_3^2$ arises from products of contributions of different children. During the search that produced this example (Section~\ref{sec:discovery}), $22$ of $1297$ exactly certified four-species sources whose children were all coefficientwise safe nevertheless had a globally negative $\Delta_3$ for some admissible reactivity. Coefficientwise safety of children does not propagate to the quartic Hurwitz determinant.
+
+\subsection{Whole-column semantics}
+
+A child selection owns entire reaction columns. In $\Gamma$, species $X_2$ is a reactant of $r_1$ and $r_2$, and species $X_3$ of $r_0$ and $r_3$; the full Jacobian uses all four of these derivatives simultaneously, with column $r_1$ acting on $X_1$ and $X_2$ at once and column $r_0$ on $X_0$ and $X_3$ at once. No child can use $R_{1,2}$ and $R_{1,1}$ together with $R_{0,3}$ and $R_{0,0}$: injectivity forbids it. The unstable eigenvector of Proposition~\ref{prop:eigenpair} has all four coordinates nonzero. The classification in Lemma~\ref{lem:classification} respects this ownership exactly; the counterexample does not exploit any entrywise relaxation of the network.
+
+\subsection{Boundary spectra are decisive}
+
+The exceptional child $A_b$ has a permanent zero eigenvalue under every positive scaling, so it is D-nonunstable but not D-stable. Conjecture~17 is formulated with D-instability, whose negation permits imaginary-axis spectra; this is the correct formulation, since a child with a zero or purely imaginary eigenvalue cannot by itself produce a strictly unstable elementary component. Any attempt to prove the conjecture by showing that all children are \emph{D-stable} and then concluding stability of $G$ would misclassify $A_b$ and would be attacking a different, stronger statement. Conversely, the reader who wishes to check our claim (ii) should verify D-noninstability, not D-stability, of the exceptional child.
+
+\subsection{What survives}
+
+Several weaker localization statements remain true and were established, in the same formal development, before the counterexample was found.
+\begin{itemize}
+\item \emph{Positive real eigenvalues localize.} If $SR$ has a positive real eigenvalue for some admissible $R$, then some child-selection matrix is D-unstable; the argument goes through the sign of a characteristic coefficient, its Cauchy--Binet localization to a single injective supported term, and a block-triangular normalization. This is the direction already implicit in \cite{Vassena2023Symbolic}, and it is unaffected by our example, whose unstable eigenvalue is nonreal.
+\item \emph{Coefficient signs localize.} If every child-selection matrix is D-nonunstable, then every coefficient of $\chi_{SR}$ is nonnegative for every admissible $R$. The example shows that this is the most one can extract from the children coefficientwise.
+\item \emph{At most three species.} For networks with at most three species the necessity statement is true: under the hypothesis that all children are D-nonunstable, the cubic Routh--Hurwitz determinant is preserved under positive column mixtures within each species' reaction fibre, and the Jacobian is D-nonunstable. Four species is therefore the least possible number for a counterexample.
+\end{itemize}
+We do not claim that $\Gamma$ is minimal in any other sense (number of reactions, size of entries, or uniqueness).
+
+\section{Formal verification}\label{sec:lean}
+
+All statements of Sections~\ref{sec:example} and~\ref{sec:children} are verified in Lean~4 \cite{Lean4} against Mathlib \cite{Mathlib}. The proof file \lean{proofs/DUnstableCores/ParameterRichCounterexample.lean} is self-contained at the level of the counterexample and imports frozen interfaces for source networks, child selections, D-scaling, diagonal dissipativity, reindexing, and the cubic Routh--Hurwitz criterion from the same development. Its structure mirrors the mathematical argument (Table~\ref{tab:lean}).
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}p{0.27\textwidth}p{0.68\textwidth}@{}}
+\toprule
+Layer & Lean content\\
+\midrule
+Source contract & \lean{SourceNetwork (Fin 4) (Fin 5)} with the literal matrices $Y$, $P$ of \eqref{eq:S}; reactant relation \lean{Reactant s r} $:=Y_{sr}>0$; catalyst matrix $0$.\\
+Consistency & \lean{Consistent}: existence of a strictly positive flux in $\ker S$; witness \lean{![2,3,2,2,2]} and the four exact row identities.\\
+Reactivity contract & \lean{Reactivity}: nonnegative matrix, positive exactly on reactant incidences; the six rationals of \eqref{eq:R}.\\
+Spectral witness & \lean{HasEigenpair} over $\C$ for $\lambda$ and $v$ of Proposition~\ref{prop:eigenpair}; \lean{HurwitzUnstable (Q.jacobian R)}.\\
+Dissipativity bridge & \lean{weightedSymmetrization}; \lean{PosSemidef} $\Rightarrow$ \lean{WeightedDissipative} $\Rightarrow$ \lean{DNonUnstable}; heredity under \lean{submatrix}; transport along \lean{reindex}.\\
+Cover certificates & Exact sum-of-squares proofs of positive semidefiniteness for the five matrices of Propositions~\ref{prop:psd} and~\ref{prop:faces}.\\
+Exceptional child & Cubic coefficients of \lean{rightScale A\_b d}; weak Routh--Hurwitz theorem \lean{hurwitzNonpositive\_of\_cubic\_coeff\_nonneg\_delta\_nonneg}.\\
+Finite classification & Predicates \lean{Uses21}, \lean{Uses30}; case split into the four regimes of Lemma~\ref{lem:classification}; each child restricts an indexed matching.\\
+Terminal refutation & \lean{parameterRich\_consistent\_core\_necessity\_fin4\_fin5\_false}.\\
+\bottomrule
+\end{tabular}
+\caption{Architecture of the Lean proof.}\label{tab:lean}
+\end{table}
+
+The terminal declaration reads (in ASCII notation for the logical symbols),
+\begin{quote}\small
+\begin{verbatim}
+theorem parameterRich_consistent_core_necessity_fin4_fin5_false :
+    Not (forall (Q : SourceNetwork (Fin 4) (Fin 5)), Q.Consistent ->
+      forall R : Reactivity Q, HurwitzUnstable (Q.jacobian R) ->
+        exists core : ChildSelection Q, IsDUnstableCore core)
+\end{verbatim}
+\end{quote}
+\begingroup\sloppy where \lean{IsDUnstableCore} is Definition~\ref{def:core} (D-instability of the child matrix and D-noninstability of every proper restriction) and \lean{DNonUnstable A} unfolds to
+\[
+\forall d>0:\ \neg\,\lean{HurwitzUnstable}\,(A\,\diag d),
+\]
+the boundary-permitting notion of Definition~\ref{def:spectral}(c). The formal definitions of \lean{HurwitzUnstable}, \lean{DUnstable}, \lean{DStable} and \lean{DNonUnstable} are kept distinct, and the file proves explicitly that \lean{DNonUnstable A} is equivalent to $\neg$\lean{DUnstable A}.\par\endgroup
+
+\paragraph{Verification protocol.} The file was compiled with the Lean toolchain \path{leanprover/lean4:v4.30.0} against the pinned Mathlib revision \lean{v4.30.0}, with warnings promoted to errors (\lean{-DwarningAsError=true}), no \lean{sorry}, and exit code $0$; elaboration took about $503$ seconds including dependencies. The SHA-256 of the proof source is
+\begin{center}\scriptsize\texttt{387eabbde3ffba639cda9a573ff9f3043554dfb5028a294ad466616efce3d87f}\end{center}
+and the hash of the elaborated declaration interface is
+\begin{center}\scriptsize\texttt{c7f8cf2c2fa5941ad02f0dcbaeddabaa5deb3aff7c958c01f9bbc192d75c48dc}\end{center}
+Every matrix entry, eigenvector coordinate and case split in the proof is checked against the single definition of the source network; no numerical spectral computation enters the terminal theorem.
+
+\paragraph{A correction forced by the proof assistant.} A preliminary hand-made certificate table for the exceptional child contained the entry $1$ where the source matrix has $4$. With the erroneous entry the child appeared diagonally dissipative; with the correct entry the proposed PSD certificate is invalid, and Lean rejected it. The exact cubic factorization of Proposition~\ref{prop:cubic} and the two independently certified faces of Proposition~\ref{prop:faces} replaced it. We record this because it shows that the final all-children theorem is not a transcription of a numerical certificate list; it was reconstructed from the exact source definition under the discipline of the type checker.
+
+\section{How the example was found}\label{sec:discovery}
+
+The search that produced $\Gamma$ was theory-directed rather than random. An extended attempt to \emph{prove} the conjecture had already established the positive-real, coefficient-sign and three-species results of Section~\ref{sec:discussion} and had isolated the complex-pair branch as the only remaining obstruction. This suggested looking for small sources whose children all carry easy exact certificates while the global quartic has a negative $\Delta_3$.
+
+\begin{enumerate}[label=\arabic*.]
+\item \emph{Screen.} Among $20{,}000$ random four-species integer sources with reactant support equal to the negative stoichiometric entries, $5{,}205$ passed a coefficientwise safety screen for all children. Random admissible reactivities ($416{,}400$ trials) produced no unstable Jacobian; random search alone was too weak.
+\item \emph{Exact audit.} An exact expansion of the quartic for $5{,}000$ sources certified $1{,}297$ of them childwise, and found $22$ with a negative global $\Delta_3$ coefficient for some admissible reactivity. This refuted the working hypothesis that child safety implies safety of the global Hurwitz determinant.
+\item \emph{Witness optimization.} Optimizing the reactivity on the first obstructed source, restricted to the region where the exact coefficient geometry predicts a crossing, turned the negative $\Delta_3$ into a genuine positive-real-part eigenpair. A symbolic implementation of this step exceeded its time budget; a lambdified numerical implementation succeeded.
+\item \emph{Rational reconstruction.} A nearby integer simplification and exact rational reconstruction produced the four-reaction source (columns $r_0,\dots,r_3$ of \eqref{eq:S}) and the reactivity \eqref{eq:R}, with the eigenpair of Proposition~\ref{prop:eigenpair}.
+\item \emph{Consistency lift.} A scope audit against \cite{VassenaStadler2024} noted that the four-reaction source has $\det=48$ and hence no positive equilibrium flux. The reactant-free inflow $r_4$ was added; an exact preflight confirmed $Sf=0$ with $f=(2,3,2,2,2)$, the zero fifth reactivity row, and equality of the old and new Jacobians.
+\end{enumerate}
+The lesson we draw is methodological: the cheap numerical stages identified the right invariant ($\Delta_3$ of the full quartic) and the smallest obstruction, and exact and formal work was spent only on the resulting stable statements.
+
+\section{Open problems}\label{sec:open}
+
+\begin{question}
+Characterize the parameter-rich networks for which the necessity direction of Conjecture~17 holds. Natural candidate classes are networks in which every species has a unique admissible reaction (then the child lattice is trivial and the conjecture reduces to the D-stability of a single matrix), networks with at most three species (true, Section~\ref{sec:discussion}), and networks whose support graph excludes the two-exceptional-edge pattern of Lemma~\ref{lem:classification}.
+\end{question}
+
+\begin{question}
+Is there a corrected localization theorem for the complex branch? The example indicates that any such theorem must control cross-terms between children, for instance through a common-weight dissipativity certificate that all children share, or through a face-closed family of certificates on the reaction fibres. A statement of the form ``if all children admit a common diagonal weight, then the network is stable'' is true (Lemma~\ref{lem:bridge} applied to $S$), but it is far from a characterization.
+\end{question}
+
+\begin{question}
+Does $\Gamma$, or a related network, admit an unstable positive equilibrium under classical mass action with fixed integer exponents? Child-selection data do not record reactant multiplicities, and the companion manuscript \cite{Companion2026} shows that this lost coordinate can decide stability; whether it does so for $\Gamma$ itself is open.
+\end{question}
+
+\begin{question}
+Find the simplest counterexample. The example has four species, four active reactions, entries of absolute value at most $6$, and reactivity numerators with thirteen digits. Simpler witnesses with the same qualitative structure (two exceptional edges, one non-dissipative singular child) very likely exist; the all-children theorem gives an exact regression oracle for such a search.
+\end{question}
+
+\appendix
+
+\section{Exact certificates}\label{app:certificates}
+
+\subsection{Exact Jacobian}
+
+With $\Ecst,\Fcst$ as in \eqref{eq:EF}, the entries of $G$ in \eqref{eq:G} evaluate to
+\[
+G=\begin{pmatrix}
+-1&0&0&-\tfrac{2579661001547}{23329000000}\\[3pt]
+0&-\tfrac{2}{25}&-\tfrac{1}{250}&\tfrac{84600659109}{23329000000}\\[3pt]
+4&-\tfrac{1}{25}&-\tfrac{10011}{5500}&\tfrac{20778289110891}{46658000000}\\[3pt]
+-2&0&\tfrac{10}{11}&-\tfrac{50885097}{227600}
+\end{pmatrix}.
+\]
+The reader may verify $Gv=\lambda v$ coordinate by coordinate; for instance the last coordinate reads
+$-2v_0+\tfrac{10}{11}v_2-\tfrac{50885097}{227600}\cdot1399740000=\bigl(\tfrac1{500}+\tfrac{51}{500}i\bigr)\cdot1399740000$.
+
+\subsection{\texorpdfstring{$LDL^{\top}$}{LDL-transpose} factorizations of the PSD certificates}
+
+Each certificate $\Sym=LDL^{\top}$ with $L$ unit lower triangular and $D$ diagonal with nonnegative entries exhibits $x^{\top}\Sym x=\sum_i D_{ii}(L^{\top}x)_i^2$ as an explicit sum of squares.
+\begin{align*}
+\Sym(A_2,(1,2)) &: & L&=\begin{pmatrix}1&0\\-1&1\end{pmatrix}, & D&=\diag(4,4).\\[4pt]
+\Sym(A_a,(10,2,7)) &: & L&=\begin{pmatrix}1&0&0\\-\tfrac25&1&0\\ \tfrac15&-\tfrac1{12}&1\end{pmatrix}, & D&=\diag\bigl(20,\tfrac{24}{5},\tfrac{163}{6}\bigr).\\[4pt]
+\Sym(A_{\mathrm{id}},(100,35,40,140)) &: & L&=\begin{pmatrix}1&0&0&0\\0&1&0&0\\-\tfrac45&\tfrac27&1&0\\ \tfrac9{10}&-\tfrac34&-\tfrac{203}{296}&1\end{pmatrix}, & D&=\diag\bigl(200,280,\tfrac{1184}{7},\tfrac{5955}{37}\bigr).\\[4pt]
+\Sym(A_{13},(1,2)) &: & L&=I_2, & D&=\diag(8,8).\\[4pt]
+\Sym(A_{23},(1,2)) &: & L&=\begin{pmatrix}1&0\\-1&1\end{pmatrix}, & D&=\diag(8,0).
+\end{align*}
+
+\subsection{Why $A_b$ has no PSD certificate}
+
+For $p=(p_1,p_2,p_3)>0$,
+\[
+\Sym(A_b,p)=\begin{pmatrix}8p_1&2p_2&0\\2p_2&8p_2&-4p_2-2p_3\\0&-4p_2-2p_3&4p_3\end{pmatrix}.
+\]
+Positive semidefiniteness of the lower-right $2\times2$ block requires $32p_2p_3\ge(4p_2+2p_3)^2$, i.e.\ $(4p_2-2p_3)^2\le0$, forcing $p_3=2p_2$; then the block is singular with kernel $(1,1)^{\top}$ and the full determinant equals $-4p_2^2\cdot 8p_2<0$. Hence $A_b$ is not diagonally dissipative for any weight, and the cubic argument of Proposition~\ref{prop:cubic} is necessary.
+
+\subsection{Reproduction}
+
+From the repository root, the strict verification command is
+\begin{quote}\footnotesize
+\begin{verbatim}
+python scripts/verify_proof.py \
+  proofs/DUnstableCores/ParameterRichCounterexample.lean \
+  --declaration \
+  DUnstableCores.parameterRich_consistent_core_necessity_fin4_fin5_false
+\end{verbatim}
+\end{quote}
+It runs Lean from the pinned \lean{mathlib4\_project/} directory with the checked-in toolchain and manifest, materializes imports, and treats warnings as errors. An independent exact re-verification of Propositions~\ref{prop:consistent}--\ref{prop:faces} and of the count of $24$ child selections was performed in SymPy over $\Q(i)$ while preparing this article.
+
+\begin{thebibliography}{99}
+
+\bibitem{VassenaStadler2024}
+N.~Vassena and P.~F. Stadler,
+Unstable cores are the source of instability in chemical reaction networks,
+\emph{Proc.\ R.\ Soc.\ A} \textbf{480} (2024), 20230694.
+\href{https://doi.org/10.1098/rspa.2023.0694}{doi:10.1098/rspa.2023.0694}; arXiv:2308.11486.
+
+\bibitem{Vassena2023Symbolic}
+N.~Vassena,
+Symbolic hunt of instabilities and bifurcations in reaction networks,
+\emph{Discrete Contin.\ Dyn.\ Syst.\ Ser.\ B} (2023).
+\href{https://doi.org/10.3934/dcdsb.2023190}{doi:10.3934/dcdsb.2023190}; arXiv:2303.03089.
+
+\bibitem{Vassena2023SaddleNode}
+N.~Vassena,
+Structural conditions for saddle-node bifurcations in chemical reaction networks,
+\emph{SIAM J.\ Appl.\ Dyn.\ Syst.} \textbf{22} (2023), 1639--1672.
+
+\bibitem{MullerRegensburger2012}
+S.~M\"uller and G.~Regensburger,
+Generalized mass action systems: complex balancing equilibria and sign vectors of the stoichiometric and kinetic-order subspaces,
+\emph{SIAM J.\ Appl.\ Math.} \textbf{72} (2012), 1926--1947.
+
+\bibitem{ArrowMcManus1958}
+K.~J. Arrow and M.~McManus,
+A note on dynamic stability,
+\emph{Econometrica} \textbf{26} (1958), 448--454.
+
+\bibitem{Johnson1974}
+C.~R. Johnson,
+Sufficient conditions for D-stability,
+\emph{J.\ Econom.\ Theory} \textbf{9} (1974), 53--62.
+
+\bibitem{Cross1978}
+G.~W. Cross,
+Three types of matrix stability,
+\emph{Linear Algebra Appl.} \textbf{20} (1978), 253--263.
+
+\bibitem{Hershkowitz1992}
+D.~Hershkowitz,
+Recent directions in matrix stability,
+\emph{Linear Algebra Appl.} \textbf{171} (1992), 161--186.
+
+\bibitem{Kushel2019}
+O.~Y. Kushel,
+Unifying matrix stability concepts with a view to applications,
+\emph{SIAM Rev.} \textbf{61} (2019), 643--729.
+
+\bibitem{BierkensRan2014}
+J.~Bierkens and A.~Ran,
+A singular M-matrix perturbed by a nonnegative rank one matrix has positive principal minors; is it D-stable?,
+\emph{Linear Algebra Appl.} \textbf{457} (2014), 191--208.
+
+\bibitem{Su2024}
+S.~W. Su,
+Special stable matrices and their non-square counterpart,
+arXiv:2401.00367 (2024).
+
+\bibitem{MinchevaRoussel2007}
+M.~Mincheva and M.~R. Roussel,
+Graph-theoretic methods for the analysis of chemical and biochemical networks. I. Multistability and oscillations in ordinary differential equation models,
+\emph{J.\ Math.\ Biol.} \textbf{55} (2007), 61--86.
+
+\bibitem{AngeliBanajiPantea2014}
+D.~Angeli, M.~Banaji and C.~Pantea,
+Combinatorial approaches to Hopf bifurcations in systems of interacting elements,
+\emph{Commun.\ Math.\ Sci.} \textbf{12} (2014), 1101--1133.
+
+\bibitem{Clarke1980}
+B.~L. Clarke,
+Stability of complex reaction networks,
+\emph{Adv.\ Chem.\ Phys.} \textbf{43} (1980), 1--215.
+
+\bibitem{BlokhuisLacosteNghe2020}
+A.~Blokhuis, D.~Lacoste and P.~Nghe,
+Universal motifs and the diversity of autocatalytic systems,
+\emph{Proc.\ Natl.\ Acad.\ Sci.\ USA} \textbf{117} (2020), 25230--25236.
+
+\bibitem{BanajiDonnellBaigent2007}
+M.~Banaji, P.~Donnell and S.~Baigent,
+$P$ matrix properties, injectivity, and stability in chemical reaction systems,
+\emph{SIAM J.\ Appl.\ Math.} \textbf{67} (2007), 1523--1547.
+
+\bibitem{BanajiCraciun2010}
+M.~Banaji and G.~Craciun,
+Graph-theoretic criteria for injectivity and unique equilibria in general chemical reaction systems,
+\emph{Adv.\ Appl.\ Math.} \textbf{44} (2010), 168--184.
+
+\bibitem{Feinberg2019}
+M.~Feinberg,
+\emph{Foundations of Chemical Reaction Network Theory},
+Applied Mathematical Sciences 202, Springer, 2019.
+
+\bibitem{Lean4}
+L.~de~Moura and S.~Ullrich,
+The Lean 4 theorem prover and programming language,
+in: \emph{Automated Deduction -- CADE 28}, Lecture Notes in Computer Science 12699, Springer, 2021, pp.~625--635.
+
+\bibitem{Mathlib}
+The mathlib Community,
+The Lean mathematical library,
+in: \emph{Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020)}, ACM, 2020, pp.~367--381.
+
+\bibitem{Companion2026}
+Kinetic order is invisible to D-cores: a support-preserving mass-action lift and an exact counterexample,
+companion manuscript (2026).
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,723 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Kinetic order is invisible to D-cores: a support-preserving mass-action
+% lift and an exact four-species counterexample.
+%
+% Author metadata: set the three macros below before submission.
+% ---------------------------------------------------------------------------
+\newcommand{\PaperAuthor}{Anonymous manuscript}
+\newcommand{\PaperAffiliation}{}
+\newcommand{\PaperDate}{September 2026}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+
+\setlist{itemsep=2pt,topsep=3pt}
+\setlength{\emergencystretch}{1.5em}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{construction}[theorem]{Construction}
+\newtheorem{question}[theorem]{Question}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\Real}{\operatorname{Re}}
+\newcommand{\rank}{\operatorname{rank}}
+\DeclareUrlCommand\lean{\urlstyle{tt}}
+\newcommand{\Ytil}{\widetilde{Y}}
+\newcommand{\Ptil}{\widetilde{P}}
+\newcommand{\xbar}{\bar{x}}
+\newcommand{\LMA}{\mathcal{L}_{\mathrm{MA}}}
+\newcommand{\Nbig}{5187522222797}
+\newcommand{\Mbig}{28200219703}
+\newcommand{\Dbig}{46658000000}
+
+\title{Kinetic order is invisible to D-cores:\\ a support-preserving mass-action lift\\ and an exact counterexample}
+\author{\PaperAuthor\\ \PaperAffiliation}
+\date{\PaperDate}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Unstable-core methods explain the instability of a reaction-network equilibrium through a small child selection: a square submatrix of the stoichiometric matrix, chosen by assigning to each of a few species one reaction in which it is a reactant, that is unstable under some positive diagonal scaling. A child selection is built from the stoichiometric matrix $S$ and the reactant-incidence relation only; it does not record how many copies of a reactant a reaction consumes. We prove that this forgotten coordinate, the kinetic order, is decisive under classical fixed-exponent mass-action kinetics. First, for every finite network, every strictly positive rational flux in the kernel of $S$ and every rational reactivity matrix that is positive exactly on reactant incidences, there is an ordinary integer-exponent mass-action network with the same stoichiometric matrix and the same reactant incidences whose linearization at an explicit positive equilibrium is exactly the prescribed Jacobian. The construction adds the same nonnegative integer matrix to both sides of every reaction (stoichiometrically silent catalytic padding), which leaves every child-selection matrix unchanged. Second, we exhibit a four-species, five-reaction network that is Hurwitz stable at every positive mass-action equilibrium, together with a padding of it that has a positive equilibrium whose Jacobian has the eigenvalue $\tfrac{1}{500}+\tfrac{51}{500}i$, although the common child lattice contains no D-unstable core. Hence the classical mass-action analogue of D-unstable-core necessity is false, already in dimension four, and any corrected localization theorem for mass action must see kinetic order. We also give a compact witness with maximal exponent $200$. The general lifting theorem, the universal stability of the unpadded network, the padded instability, the absence of D-unstable cores, and the resulting refutation are verified in Lean~4 with Mathlib, with warnings treated as errors and no unproved placeholders.
+\end{abstract}
+
+\noindent\textbf{Keywords.} chemical reaction networks; mass-action kinetics; kinetic order; D-stability; unstable cores; child selections; Routh--Hurwitz criterion; formal verification.
+
+\medskip
+\noindent\textbf{MSC 2020.} 80A30, 92C42, 34D20, 15A18, 15B48, 68V20.
+
+\section{Introduction}\label{sec:intro}
+
+The equilibria of a chemical reaction network depend on rate constants that are rarely known, so a recurring goal of reaction network theory is to decide dynamical questions from the network structure alone~\cite{Feinberg2019,Clarke1980}. For the question of whether some positive equilibrium can be unstable, Vassena and Stadler~\cite{VassenaStadler2024} gave a clean structural sufficient condition. A \emph{child selection} assigns to each species in a subset a distinct reaction in which it is a reactant; the corresponding columns of the stoichiometric matrix $S$ form a square \emph{child-selection matrix}. If some child-selection matrix is \emph{D-unstable}, that is, has an eigenvalue with positive real part after multiplication by some positive diagonal matrix, then for every \emph{parameter-rich} kinetics (a class that contains generalized mass action~\cite{HornJackson1972,MullerRegensburger2012} and Michaelis--Menten kinetics) the network admits an unstable positive equilibrium. A minimal such child selection is a \emph{D-unstable core}. They conjectured the converse: a network without D-unstable cores admits no instability. The companion manuscript~\cite{Companion2026} refutes this conjecture with an exact four-species, five-reaction network.
+
+Classical mass action is more rigid than parameter-rich kinetics, and one may hope that the rigidity rescues localization. If reaction $j$ consumes the reactant complex encoded by the column $Y_{\cdot j}$ of the reactant matrix $Y$, its rate is $k_j x^{Y_{\cdot j}}$, and at a positive equilibrium $\xbar$ with flux $v_j$ the derivatives of that rate are
+\begin{equation}\label{eq:reactivity-intro}
+  R_{ji}=\frac{\partial r_j}{\partial x_i}(\xbar)=\frac{Y_{ij}\,v_j}{\xbar_i},\qquad J=SR .
+\end{equation}
+The entries of $R$ belonging to one reaction are tied together by the single number $v_j$, and the entries belonging to one species are tied together by the single number $\xbar_i$. A parameter-rich counterexample, in which each positive entry of $R$ is tuned independently, need not survive these constraints. Indeed, the reactivity of~\cite{Companion2026} cannot be realized by mass action on the network as written (Example~\ref{ex:obstruction} below). So the following question, which is logically independent of the parameter-rich conjecture, is genuinely open at that point:
+
+\begin{quote}
+\emph{Does every positive equilibrium of a classical mass-action system whose Jacobian has an eigenvalue in the open right half-plane contain a D-unstable core?}
+\end{quote}
+
+We answer this negatively, and we identify precisely why. A child selection is determined by the pair $(S,\supp Y)$: the stoichiometric matrix and the reactant-incidence relation. It does not see the positive values of $Y$. Under mass action those values are the kinetic orders in~\eqref{eq:reactivity-intro}, and they can be changed without touching $S$ or $\supp Y$ by \emph{catalytic padding}: adding the same nonnegative integer matrix $C$, supported on existing reactant incidences, to both the reactant and the product side of every reaction. This preserves $S=(P+C)-(Y+C)$ and $\supp Y$, hence every child selection and every child-selection matrix, while it changes the Jacobian family.
+
+\subsection*{Main results}
+
+\begin{theorem}[Support-preserving rational lift; Theorem~\ref{thm:lift}]\label{thm:lift-intro}
+Let $(Y,P)$ be a finite reaction network with $S=P-Y$, let $v\in\Q_{>0}^m$ satisfy $Sv=0$, and let $R\in\Q_{\ge0}^{m\times n}$ satisfy $R_{ji}>0\iff Y_{ij}>0$. Then there is a nonnegative integer matrix $C$ supported on $\supp Y$, a positive state $\xbar$ and positive rate constants $k$ such that the classical mass-action system with reactant matrix $Y+C$ and product matrix $P+C$ has $\xbar$ as an equilibrium with flux $v$ and reactivity exactly $R$. Its Jacobian at $\xbar$ is $SR$, and it has the same child selections and the same child-selection matrices as $(Y,P)$.
+\end{theorem}
+
+Combined with the counterexample of~\cite{Companion2026}, whose data are rational, this already transports the parameter-rich refutation into classical mass action. The stronger and more informative statement is that the same skeleton supports both behaviours.
+
+\begin{theorem}[Same skeleton, opposite stability; Theorem~\ref{thm:main}]\label{thm:main-intro}
+There are two classical mass-action networks on four species and five reactions with identical stoichiometric matrices and identical reactant-incidence relations such that
+\begin{enumerate}[label=(\roman*)]
+\item every positive equilibrium of the first network, for every choice of positive rate constants, is strictly Hurwitz stable;
+\item the second network has positive rate constants and a positive equilibrium whose Jacobian has the eigenvalue $\lambda=\frac{1}{500}+\frac{51}{500}i$; and
+\item their common child lattice contains no D-unstable core.
+\end{enumerate}
+\end{theorem}
+
+\begin{corollary}[Corollary~\ref{cor:refutation}]
+The statement ``every positive equilibrium of a classical mass-action system with a Hurwitz-unstable Jacobian contains a D-unstable core'' is false, already for four species and five reactions.
+\end{corollary}
+
+Theorem~\ref{thm:main-intro} says that the D-core representation is not merely missing a proof but missing information: two mass-action networks that it cannot distinguish differ maximally in stability. The unpadded network of~(i) is stable at \emph{every} positive equilibrium, not merely at one chosen point, so the lift genuinely creates an unstable regime rather than moving to a different point of an already unstable family.
+
+\subsection*{What the paper contains}
+
+Section~\ref{sec:setting} fixes the setting and states the refuted implication precisely, keeping the boundary-permitting notion of D-noninstability apart from D-stability. Section~\ref{sec:lift} analyses the rigidity of mass action at a fixed reactant matrix, introduces catalytic padding, and proves Theorem~\ref{thm:lift-intro}. Section~\ref{sec:skeleton} presents the four-species skeleton and proves that all its child-selection matrices are D-nonunstable; the certificates are short and are included so that the paper is self-contained. Section~\ref{sec:stable} proves universal stability of the unpadded network: its positive stationary fluxes form a single ray, its equilibrium Jacobians form the positive right-scaling family of one explicit matrix $B_0$, and an exact cubic Routh--Hurwitz computation shows that $B_0$ is D-stable in the strict sense. Section~\ref{sec:unstable} gives the padded network, its exact positive equilibrium with the eigenvalue $\lambda$, and a second, much smaller padded witness with maximal exponent $200$ certified by an exact quartic Routh--Hurwitz computation. Section~\ref{sec:main} assembles the main theorem. Section~\ref{sec:discussion} discusses the two distinct information losses in the D-core representation, the object that a corrected localization theorem must see, what survives, and what is not claimed. Section~\ref{sec:formal} documents the Lean~4 formalization and its verification receipts. Appendix~\ref{app:data} lists the exact numerical data.
+
+\subsection*{Related work}
+
+Child selections and the Cauchy--Binet expansion of characteristic-polynomial coefficients underlie a line of structural bifurcation results by Vassena~\cite{Vassena2023SaddleNode,Vassena2023Symbolic}; the D-unstable-core theorem and conjecture are in~\cite{VassenaStadler2024}. D-stability and its relatives originate in economics~\cite{ArrowMcManus1958,Johnson1974} and are surveyed in~\cite{Cross1978,Hershkowitz1992,Kushel2019}; our use of the boundary-permitting negation of D-instability follows~\cite{Companion2026}. The separation between stoichiometric coefficients and kinetic orders is the defining feature of generalized mass-action systems~\cite{MullerRegensburger2012,MullerRegensburger2014} and of network translation~\cite{Johnston2014}; the present paper uses that separation inside ordinary integer-exponent mass action, where the kinetic order \emph{is} the reactant multiplicity. Graph-theoretic approaches to oscillatory instabilities in reaction networks include~\cite{MinchevaRoussel2007,AngeliBanajiPantea2014}; the classical route from network structure to Routh--Hurwitz conditions goes back to Clarke~\cite{Clarke1980}. The autocatalytic cores of~\cite{BlokhuisLacosteNghe2020} play no role here: none of our child-selection matrices is Hurwitz unstable, and the instability we exhibit is of complex-pair type.
+
+\section{Setting}\label{sec:setting}
+
+\subsection{Networks and classical mass action}
+
+A reaction network on species $X_0,\dots,X_{n-1}$ and reactions $r_0,\dots,r_{m-1}$ is given by reactant and product matrices $Y,P\in\N^{n\times m}$; its stoichiometric matrix is $S=P-Y\in\Z^{n\times m}$. Species $X_i$ is a \emph{reactant} of $r_j$ if $Y_{ij}>0$, and we write $\supp Y=\{(i,j): Y_{ij}>0\}$ for the reactant-incidence relation. A species may occur on both sides of a reaction; this is permitted and is exactly what catalytic padding produces. Throughout, species and reactions are indexed from $0$, matching the formal development and~\cite{Companion2026}.
+
+\begin{definition}[Stoichiometric/support skeleton]
+The \emph{skeleton} of a network is the pair $(S,\supp Y)$. Two networks are \emph{skeleton-equivalent} if they have the same stoichiometric matrix and the same reactant-incidence relation.
+\end{definition}
+
+Classical mass-action kinetics with rate constants $k\in\R_{>0}^m$ assigns to reaction $r_j$ the rate $r_j(x)=k_jx^{Y_{\cdot j}}=k_j\prod_i x_i^{Y_{ij}}$, and the dynamics are $\dot x=Sr(x)$. A state $\xbar\in\R_{>0}^n$ is an \emph{equilibrium} if $Sr(\xbar)=0$; we call $v=r(\xbar)\in\R_{>0}^m$ its \emph{flux}. Differentiating,
+\begin{equation}\label{eq:reactivity}
+  R_{ji}:=\frac{\partial r_j}{\partial x_i}(\xbar)=\frac{Y_{ij}v_j}{\xbar_i},
+  \qquad
+  J:=D\bigl(Sr\bigr)(\xbar)=SR=S\,\diag(v)\,Y^{\mathsf T}\diag(\xbar)^{-1}.
+\end{equation}
+We call $R$ the \emph{reactivity} of the equilibrium and $J$ its \emph{Jacobian}. Since $Y_{ij}>0$ exactly on reactant incidences, every mass-action reactivity satisfies
+\begin{equation}\label{eq:admissible}
+  R_{ji}>0\iff Y_{ij}>0,\qquad R_{ji}=0\iff Y_{ij}=0 .
+\end{equation}
+A matrix $R\in\R_{\ge0}^{m\times n}$ satisfying~\eqref{eq:admissible} is an \emph{admissible reactivity} for the network. A kinetics is \emph{parameter-rich}~\cite[Def.~3]{VassenaStadler2024} if every admissible $R$ is realized at every positive equilibrium by some choice of parameters. Mass action is not parameter-rich: by~\eqref{eq:reactivity}, at a fixed $Y$ the ratios $R_{ji}\xbar_i/v_j=Y_{ij}$ are prescribed integers. This rigidity is analysed in Section~\ref{sec:rigidity}.
+
+\subsection{Child selections and D-instability}
+
+\begin{definition}[Child selection, {\cite[Def.~7]{VassenaStadler2024}}]
+A \emph{child selection} is a pair $\kappa=(\Sigma,\mathbf{J})$ with $\Sigma$ a nonempty set of species and $\mathbf{J}\colon\Sigma\to\{r_0,\dots,r_{m-1}\}$ injective such that $X_i$ is a reactant of $\mathbf J(i)$ for every $i\in\Sigma$. Its \emph{child-selection matrix} is the $|\Sigma|\times|\Sigma|$ matrix $S[\kappa]_{il}=S_{i,\mathbf J(l)}$, $i,l\in\Sigma$. A child selection $\kappa'=(\Sigma',\mathbf J')$ is a \emph{restriction} of $\kappa$ if $\Sigma'\subseteq\Sigma$ and $\mathbf J'=\mathbf J|_{\Sigma'}$; then $S[\kappa']$ is the principal submatrix of $S[\kappa]$ on $\Sigma'$.
+\end{definition}
+
+The set of child selections of a network, ordered by restriction, is its \emph{child lattice}. The following observation is the starting point of this paper.
+
+\begin{lemma}[Children depend only on the skeleton]\label{lem:skeleton}
+The child lattice and all child-selection matrices of a network are determined by its skeleton $(S,\supp Y)$. In particular, skeleton-equivalent networks have identical child lattices and identical child-selection matrices.
+\end{lemma}
+
+\begin{proof}
+Whether $(\Sigma,\mathbf J)$ is a child selection depends only on injectivity and on the incidences $(i,\mathbf J(i))\in\supp Y$; the matrix $S[\kappa]$ depends only on $S$.
+\end{proof}
+
+\begin{definition}[Spectral notions]\label{def:spectral}
+Let $A\in\R^{k\times k}$ and let $\mathcal D_k$ be the set of positive diagonal $k\times k$ matrices.
+\begin{enumerate}[label=(\alph*)]
+\item $A$ is \emph{Hurwitz unstable} if it has an eigenvalue $\lambda$ with $\Real\lambda>0$, and \emph{Hurwitz stable} if every eigenvalue has $\Real\lambda<0$.
+\item $A$ is \emph{D-unstable} if $AD$ is Hurwitz unstable for some $D\in\mathcal D_k$.
+\item $A$ is \emph{D-nonunstable} if it is not D-unstable: for every $D\in\mathcal D_k$, every eigenvalue of $AD$ has real part $\le0$.
+\item $A$ is \emph{D-stable} if $AD$ is Hurwitz stable for every $D\in\mathcal D_k$.
+\end{enumerate}
+\end{definition}
+
+D-stability implies D-noninstability, not conversely: (c) permits imaginary-axis eigenvalues, (d) excludes them. The conjecture of~\cite{VassenaStadler2024} and its classical analogue are statements about (b) and its negation (c). One of the maximal children in Section~\ref{sec:skeleton} has a permanent zero eigenvalue and is D-nonunstable but not D-stable, so the distinction cannot be blurred.
+
+\begin{definition}[D-unstable core, {\cite[Def.~16]{VassenaStadler2024}}]
+A child selection $\kappa$ is a \emph{D-unstable core} if $S[\kappa]$ is D-unstable and $S[\kappa']$ is not D-unstable for every proper restriction $\kappa'$ of $\kappa$.
+\end{definition}
+
+Since restrictions of child selections are child selections and species sets are finite, every D-unstable child selection contains a D-unstable core. Hence a network has a D-unstable core if and only if some child-selection matrix is D-unstable, and if every child-selection matrix is D-nonunstable then the network has no D-unstable core.
+
+\subsection{The classical localization statement}
+
+The theorem of~\cite{VassenaStadler2024} says that a D-unstable core forces an unstable positive equilibrium for every parameter-rich kinetics. The refuted conjecture is the converse for parameter-rich kinetics. Because every mass-action reactivity is admissible, mass-action Jacobians form a \emph{subfamily} of the parameter-rich Jacobians $\{SR: R\text{ admissible}\}$. Consequently the classical statement below is \emph{weaker} than the parameter-rich necessity statement, and its truth is not decided by the parameter-rich counterexample.
+
+\begin{quote}
+\textbf{(CL)} For every reaction network $(Y,P)$ on $n$ species and $m$ reactions, every $k\in\R_{>0}^m$ and every positive equilibrium $\xbar$ of the mass-action system $\dot x=Sr(x)$: if the Jacobian $J=SR$ of~\eqref{eq:reactivity} is Hurwitz unstable, then the network has a D-unstable core.
+\end{quote}
+
+We prove that (CL) fails for $n=4$, $m=5$. The formal statement refuted in Lean is the instance $\mathrm{(CL)}_{4,5}$ quantifying over all networks on four species and five reactions (Section~\ref{sec:formal}); the universal statement fails a fortiori.
+
+\section{The forgotten coordinate and the lifting theorem}\label{sec:lift}
+
+\subsection{Rigidity of mass action at a fixed reactant matrix}\label{sec:rigidity}
+
+Fix a network $(Y,P)$. By~\eqref{eq:reactivity}, an admissible reactivity $R$ is realized by mass action at some positive equilibrium with flux $v$ if and only if the system of equations
+\begin{equation}\label{eq:consistency}
+  \xbar_i=\frac{Y_{ij}v_j}{R_{ji}}\qquad\text{for all }(i,j)\in\supp Y
+\end{equation}
+has a solution $\xbar\in\R_{>0}^n$, that is, if and only if for each species $i$ the quantities $Y_{ij}v_j/R_{ji}$ agree over all reactions $j$ in which $X_i$ is a reactant. When they do, $\xbar$ is determined by~\eqref{eq:consistency}, the rate constants $k_j=v_j/\xbar^{Y_{\cdot j}}$ are determined, and $\xbar$ is an equilibrium exactly when $Sv=0$. Thus for a species that is a reactant of two or more reactions, mass action imposes genuine constraints on the ratios of the corresponding reactivity entries; this is the whole difference between mass action and parameter-rich kinetics at the level of a single equilibrium.
+
+\begin{example}[The parameter-rich witness does not lift at fixed $Y$]\label{ex:obstruction}
+The network of~\cite{Companion2026}, reproduced in Section~\ref{sec:skeleton}, has reactant matrix $Y_0$ with $Y_0[2,1]=2$ and $Y_0[2,2]=4$, and its unstable reactivity has $R_{12}=\frac1{1000}$ and $R_{22}=\frac5{11}$ at the flux $v=(2,3,2,2,2)$. Equation~\eqref{eq:consistency} demands
+\[
+  \xbar_2=\frac{2\cdot 3}{1/1000}=6000\qquad\text{and}\qquad \xbar_2=\frac{4\cdot 2}{5/11}=\frac{88}{5},
+\]
+which is impossible. So the parameter-rich counterexample is not, as written, a mass-action counterexample.
+\end{example}
+
+The obstruction in Example~\ref{ex:obstruction} is caused by the integers $Y_0[2,1]$ and $Y_0[2,2]$. These integers are invisible to every child selection.
+
+\subsection{Stoichiometrically silent catalytic padding}
+
+\begin{definition}[Catalytic padding]
+Let $(Y,P)$ be a network and let $C\in\N^{n\times m}$ satisfy $C_{ij}=0$ whenever $Y_{ij}=0$. The \emph{padding of $(Y,P)$ by $C$} is the network $(Y+C,\,P+C)$. In chemical notation, reaction $r_j$ is replaced by the reaction that additionally consumes and additionally produces $C_{ij}$ copies of $X_i$ for every $i$; the added copies act as explicit catalysts.
+\end{definition}
+
+\begin{lemma}[Padding preserves the skeleton]\label{lem:padding}
+Let $(\Ytil,\Ptil)=(Y+C,P+C)$ be a padding of $(Y,P)$. Then $\Ptil-\Ytil=P-Y=S$ and $\supp\Ytil=\supp Y$. Consequently the padded network has the same child lattice and the same child-selection matrices as $(Y,P)$, and it has a D-unstable core if and only if $(Y,P)$ has one.
+\end{lemma}
+
+\begin{proof}
+The first identity is immediate. If $Y_{ij}>0$ then $\Ytil_{ij}\ge Y_{ij}>0$; if $Y_{ij}=0$ then $C_{ij}=0$ and $\Ytil_{ij}=0$. Apply Lemma~\ref{lem:skeleton}.
+\end{proof}
+
+Padding does change the Jacobian family~\eqref{eq:reactivity}: in $S\diag(v)Y^{\mathsf T}\diag(\xbar)^{-1}$ it replaces $Y$ by $Y+C$, while $S$ and the admissible flux cone $\ker S\cap\R^m_{>0}$ are unchanged. The lifting theorem says that this freedom is complete over the rationals.
+
+\subsection{The support-preserving rational lifting theorem}
+
+\begin{theorem}[Support-preserving rational lift]\label{thm:lift}
+Let $(Y,P)$ be a network with $S=P-Y$, let $v\in\Q_{>0}^m$ satisfy $Sv=0$, and let $R\in\Q^{m\times n}_{\ge0}$ be admissible, i.e.\ $R_{ji}>0\iff Y_{ij}>0$. Then there exist a padding $(\Ytil,\Ptil)=(Y+C,P+C)$ of $(Y,P)$, a state $\xbar\in\Q_{>0}^n$ and rate constants $k\in\Q_{>0}^m$ such that, for the classical mass-action system on $(\Ytil,\Ptil)$ with rate constants $k$,
+\begin{enumerate}[label=(\alph*)]
+\item $\xbar$ is a positive equilibrium with flux $r(\xbar)=v$;
+\item the reactivity of $\xbar$ is exactly $R$, so the Jacobian at $\xbar$ is $SR$;
+\item $(\Ytil,\Ptil)$ is skeleton-equivalent to $(Y,P)$, hence has the same child lattice and the same child-selection matrices.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Put $q_{ij}=R_{ji}/v_j\in\Q_{\ge0}$. Choose a positive integer $\Delta$ with $\Delta q_{ij}\in\N$ for all $i,j$ (a common denominator), and put
+\[
+  L=1+\sum_{i,j}Y_{ij},\qquad \xbar_i=L\Delta\ \ (\text{all }i),\qquad \Ytil_{ij}=L\Delta\, q_{ij}\in\N .
+\]
+By admissibility, $\Ytil_{ij}>0\iff q_{ij}>0\iff Y_{ij}>0$, so $\supp\Ytil=\supp Y$. If $Y_{ij}>0$ then $\Delta q_{ij}\ge1$, hence $\Ytil_{ij}\ge L>Y_{ij}$; if $Y_{ij}=0$ then $\Ytil_{ij}=0=Y_{ij}$. Therefore $C:=\Ytil-Y$ is a nonnegative integer matrix supported on $\supp Y$, and $(\Ytil,\Ptil)$ with $\Ptil=P+C$ is a padding of $(Y,P)$; (c) is Lemma~\ref{lem:padding}. Define $k_j=v_j/\xbar^{\Ytil_{\cdot j}}>0$. Then $r_j(\xbar)=k_j\xbar^{\Ytil_{\cdot j}}=v_j$ identically, and $Sv=0$ gives (a). Finally, by~\eqref{eq:reactivity} applied to $\Ytil$,
+\[
+  \frac{\Ytil_{ij}v_j}{\xbar_i}=\frac{L\Delta\,(R_{ji}/v_j)\,v_j}{L\Delta}=R_{ji},
+\]
+which is (b).
+\end{proof}
+
+The uniform state $\xbar_i=L\Delta$ and the generous scale $L$ are chosen for transparency of the domination argument $\Ytil\ge Y$, not for economy; Section~\ref{sec:unstable} shows that far smaller pads suffice in the example. The construction never expands the monomials $\xbar^{\Ytil_{\cdot j}}$: the rate constants are defined by the reconstruction formula $k_j=v_j/\xbar^{\Ytil_{\cdot j}}$, and every subsequent identity uses only $k_j\xbar^{\Ytil_{\cdot j}}=v_j$. The same device keeps the formal proof cheap (Section~\ref{sec:formal}).
+
+\begin{corollary}[Transport of rational parameter-rich counterexamples]\label{cor:transport}
+Let $(Y,P)$ be a network with a strictly positive rational vector in $\ker S$, and let $R$ be a rational admissible reactivity with $SR$ Hurwitz unstable and with no D-unstable core in $(Y,P)$. Then some padding of $(Y,P)$ is a classical mass-action system with positive rate constants, a positive equilibrium with Hurwitz-unstable Jacobian $SR$, and no D-unstable core.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:lift} and Lemma~\ref{lem:padding}.
+\end{proof}
+
+Applied to the rational counterexample of~\cite{Companion2026}, Corollary~\ref{cor:transport} already refutes (CL). The rest of the paper strengthens this to Theorem~\ref{thm:main-intro}, which additionally proves that the \emph{unpadded} network is stable at every positive equilibrium: the skeleton itself is innocent, and only the kinetic-order lift creates the instability.
+
+\begin{remark}[Fixed sources remain rigid]
+Theorem~\ref{thm:lift} does not say that mass action is parameter-rich. For a fixed reactant matrix the constraints~\eqref{eq:consistency} are real, as Example~\ref{ex:obstruction} shows. It says that the family of mass-action networks sharing one skeleton is rich enough to realize every rational admissible reactivity at every positive rational flux. The parameter-rich freedom lives in the fibre of kinetic orders over the skeleton, not in any single point of it.
+\end{remark}
+
+\section{The four-species skeleton}\label{sec:skeleton}
+
+\subsection{The network}
+
+Let $\mathcal N_0$ be the network on species $X_0,\dots,X_3$ with the five reactions
+\begin{equation}\label{eq:reactions}
+\begin{aligned}
+  r_0&\colon X_0+2X_3\longrightarrow 4X_2, &
+  r_1&\colon 4X_1+2X_2\longrightarrow \varnothing, &
+  r_2&\colon 4X_2\longrightarrow 2X_3,\\
+  r_3&\colon 2X_3\longrightarrow X_0+6X_1+X_2, &
+  r_4&\colon \varnothing\longrightarrow 2X_2+2X_3 .
+\end{aligned}
+\end{equation}
+Its reactant, product and stoichiometric matrices are
+\begin{equation}\label{eq:matrices}
+\setlength{\arraycolsep}{3.5pt}
+Y_0=\begin{pmatrix}1&0&0&0&0\\0&4&0&0&0\\0&2&4&0&0\\2&0&0&2&0\end{pmatrix},\quad
+P_0=\begin{pmatrix}0&0&0&1&0\\0&0&0&6&0\\4&0&0&1&2\\0&0&2&0&2\end{pmatrix},\quad
+S=P_0-Y_0=\begin{pmatrix}-1&0&0&1&0\\0&-4&0&6&0\\4&-2&-4&1&2\\-2&0&2&-2&2\end{pmatrix}.
+\end{equation}
+No species occurs on both sides of a reaction, so the reactant incidences are the negative entries of $S$:
+\begin{equation}\label{eq:support}
+  \supp Y_0=\{(0,0),(1,1),(2,1),(2,2),(3,0),(3,3)\}.
+\end{equation}
+Species $X_0$ is a reactant only of $r_0$, $X_1$ only of $r_1$, $X_2$ of $r_1$ and $r_2$, and $X_3$ of $r_0$ and $r_3$. Reaction $r_4$ is a reactant-free inflow. This is the network of~\cite{Companion2026}, and we recall the facts about it that we need.
+
+\begin{lemma}[One-dimensional flux cone]\label{lem:kernel}
+$\rank S=4$, $\ker S=\R v^0$ with $v^0=(2,3,2,2,2)^{\mathsf T}$, and $\ker S\cap\R^5_{>0}=\{tv^0: t>0\}$.
+\end{lemma}
+
+\begin{proof}
+The first four columns of $S$ have determinant $48$, so $\rank S=4$ and $\dim\ker S=1$. Row by row, $Sv^0=(-2+2,\,-12+12,\,8-6-8+2+4,\,-4+4-4+4)=0$. A multiple $tv^0$ is positive exactly when $t>0$.
+\end{proof}
+
+In particular $\mathcal N_0$ has positive mass-action equilibria: for any $\xbar\in\R^4_{>0}$ and $t>0$, the rate constants $k_j=tv^0_j/\xbar^{(Y_0)_{\cdot j}}$ make $\xbar$ an equilibrium with flux $tv^0$.
+
+\subsection{The child lattice and its certificates}
+
+From~\eqref{eq:support}, $X_0$ and $X_1$ each have a unique admissible reaction, $X_2$ may choose $r_1$ or $r_2$, and $X_3$ may choose $r_0$ or $r_3$; $r_4$ is never selectable. Call $\mathbf J(2)=r_1$ and $\mathbf J(3)=r_0$ the \emph{exceptional edges}. The lattice has $24$ child selections, and exactly four are maximal under restriction:
+\begin{equation}\label{eq:children}
+\begin{aligned}
+A_{\mathrm{id}}&=S[\{0,1,2,3\}\mapsto(r_0,r_1,r_2,r_3)]=\begin{pmatrix}-1&0&0&1\\0&-4&0&6\\4&-2&-4&1\\-2&0&2&-2\end{pmatrix},\\[4pt]
+A_{a}&=S[\{0,2,3\}\mapsto(r_0,r_1,r_3)]=\begin{pmatrix}-1&0&1\\4&-2&1\\-2&0&-2\end{pmatrix},\\[4pt]
+A_{b}&=S[\{1,2,3\}\mapsto(r_1,r_2,r_0)]=\begin{pmatrix}-4&0&0\\-2&-4&4\\0&2&-2\end{pmatrix},\\[4pt]
+A_{2}&=S[\{2,3\}\mapsto(r_1,r_0)]=\begin{pmatrix}-2&4\\0&-2\end{pmatrix}.
+\end{aligned}
+\end{equation}
+
+\begin{lemma}[Classification, {\cite[Lemma~4.1]{Companion2026}}]\label{lem:classification}
+Every child selection of $\mathcal N_0$ is a restriction of exactly one of the four maximal selections in~\eqref{eq:children}: of $A_2$ if it uses both exceptional edges, of $A_a$ if it uses only $\mathbf J(2)=r_1$, of $A_b$ if it uses only $\mathbf J(3)=r_0$, and of $A_{\mathrm{id}}$ if it uses neither.
+\end{lemma}
+
+\begin{proof}
+If $\mathbf J(2)=r_1$ then $1\notin\Sigma$, since $X_1$ can only select $r_1$ and $\mathbf J$ is injective; if $\mathbf J(3)=r_0$ then $0\notin\Sigma$ likewise. In each of the four cases the remaining assignments are forced, and the four maximal selections disagree on the exceptional edges.
+\end{proof}
+
+For $A\in\R^{k\times k}$ and a weight $p\in\R^k_{>0}$ with $\Pi=\diag(p)$, the \emph{weighted symmetrization} is $M(A,p)=-(\Pi A+A^{\mathsf T}\Pi)$.
+
+\begin{lemma}[Dissipativity bridge]\label{lem:dissipative}
+If $M(A,p)$ is positive semidefinite for some $p\in\R^k_{>0}$, then $A$ and every principal submatrix of $A$ are D-nonunstable.
+\end{lemma}
+
+\begin{proof}
+Let $D\in\mathcal D_k$ and $ADz=\lambda z$ with $z\neq0$. Put $u=Dz\ne0$, so $Au=\lambda D^{-1}u$. Then $\Real(\lambda)\,u^*\Pi D^{-1}u=\Real(u^*\Pi Au)=-\tfrac12u^*M(A,p)u\le0$ with $u^*\Pi D^{-1}u>0$, so $\Real\lambda\le0$. A principal submatrix $A[I]$ has $M(A[I],p|_I)=M(A,p)[I]$, again positive semidefinite.
+\end{proof}
+
+\begin{theorem}[All children are D-nonunstable, {\cite[Thm.~4.7]{Companion2026}}]\label{thm:children}
+Every child-selection matrix of $\mathcal N_0$ is D-nonunstable. Hence $\mathcal N_0$, and by Lemma~\ref{lem:padding} every padding of $\mathcal N_0$, has no D-unstable core.
+\end{theorem}
+
+\begin{proof}
+The weighted symmetrizations
+\begin{gather*}
+M(A_2,(1,2))=\begin{pmatrix}4&-4\\-4&8\end{pmatrix},\qquad
+M(A_a,(10,2,7))=\begin{pmatrix}20&-8&4\\-8&8&-2\\4&-2&28\end{pmatrix},\\[4pt]
+M(A_{\mathrm{id}},(100,35,40,140))=\begin{pmatrix}200&0&-160&180\\0&280&80&-210\\-160&80&320&-320\\180&-210&-320&560\end{pmatrix}
+\end{gather*}
+are positive definite: their leading principal minors are $4,16$; $20,96,2608$; and $200$, $56000$, $9472000$, $1524480000$, respectively. By Lemma~\ref{lem:dissipative}, $A_2$, $A_a$, $A_{\mathrm{id}}$ and all their principal submatrices are D-nonunstable. The matrix $A_b$ is singular and admits no such certificate; instead, for every $D=\diag(d_0,d_1,d_2)\in\mathcal D_3$ the matrix $A_bD$ is block lower triangular with diagonal blocks $-4d_0$ and $\bigl(\begin{smallmatrix}-4d_1&4d_2\\2d_1&-2d_2\end{smallmatrix}\bigr)$, the latter having determinant $0$ and trace $-(4d_1+2d_2)$, so
+\begin{equation}\label{eq:Ab}
+  \det(XI-A_bD)=X\,(X+4d_0)\,(X+4d_1+2d_2).
+\end{equation}
+Thus $A_b$ is D-nonunstable with a permanent zero eigenvalue, and not D-stable. Its proper restrictions are three singletons and three pairs; those using no exceptional edge restrict $A_{\mathrm{id}}$ and are covered, and the two remaining faces
+\[
+A_{13}=S[\{1,3\}\mapsto(r_1,r_0)]=\begin{pmatrix}-4&0\\0&-2\end{pmatrix},\qquad
+A_{23}=S[\{2,3\}\mapsto(r_2,r_0)]=\begin{pmatrix}-4&4\\2&-2\end{pmatrix}
+\]
+have $M(A_{13},(1,2))=\diag(8,8)$ and $M(A_{23},(1,2))=8\bigl(\begin{smallmatrix}1&-1\\-1&1\end{smallmatrix}\bigr)$, both positive semidefinite. By Lemma~\ref{lem:classification} every child is one of the cases treated, up to simultaneous reindexing of rows and columns, which preserves D-noninstability.
+\end{proof}
+
+\section{Universal stability before the lift}\label{sec:stable}
+
+\begin{lemma}[Equilibrium Jacobians of $\mathcal N_0$]\label{lem:template}
+Let $\xbar$ be a positive equilibrium of the mass-action system on $\mathcal N_0$ for some $k\in\R^5_{>0}$. Then its flux is $tv^0$ for a unique $t>0$, and its Jacobian is $J=B_0\diag(d)$ with $d_i=t/\xbar_i>0$ and
+\begin{equation}\label{eq:B0}
+B_0=S\,\diag(v^0)\,Y_0^{\mathsf T}=\begin{pmatrix}-2&0&0&0\\0&-48&-24&24\\8&-24&-44&20\\-4&0&16&-16\end{pmatrix}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The flux $v=r(\xbar)$ is strictly positive and lies in $\ker S$, so $v=tv^0$ with $t>0$ by Lemma~\ref{lem:kernel}. By~\eqref{eq:reactivity}, $J=S\diag(tv^0)Y_0^{\mathsf T}\diag(\xbar)^{-1}=B_0\diag(t/\xbar)$. The entries of $B_0$ are read off from~\eqref{eq:matrices}.
+\end{proof}
+
+\begin{theorem}[Universal stability of the unpadded network]\label{thm:base-stable}
+The matrix $B_0$ is D-stable in the strict sense of Definition~\ref{def:spectral}(d). Consequently, for every choice of positive rate constants, every positive equilibrium of the classical mass-action system on $\mathcal N_0$ is strictly Hurwitz stable.
+\end{theorem}
+
+\begin{proof}
+Let $d\in\R^4_{>0}$. The first row of $B_0\diag(d)$ is $(-2d_0,0,0,0)$, so its characteristic polynomial is $(z+2d_0)\,\chi(z)$ where $\chi$ is the characteristic polynomial of the lower-right block
+\[
+  B(d)=\begin{pmatrix}-48d_1&-24d_2&24d_3\\-24d_1&-44d_2&20d_3\\0&16d_2&-16d_3\end{pmatrix}.
+\]
+Expanding the trace, the sum of principal $2\times2$ minors and the determinant of $B(d)$ gives $\chi(z)=z^3+a_1z^2+a_2z+a_3$ with
+\begin{equation}\label{eq:cubic}
+  a_1=48d_1+44d_2+16d_3,\qquad
+  a_2=1536d_1d_2+768d_1d_3+384d_2d_3,\qquad
+  a_3=18432\,d_1d_2d_3,
+\end{equation}
+and a direct expansion yields
+\begin{equation}\label{eq:delta}
+\begin{aligned}
+  a_1a_2-a_3={}&73728d_1^2d_2+36864d_1^2d_3+67584d_1d_2^2+58368d_1d_2d_3\\
+  &+12288d_1d_3^2+16896d_2^2d_3+6144d_2d_3^2 .
+\end{aligned}
+\end{equation}
+For $d>0$ all of $a_1,a_2,a_3$ and $a_1a_2-a_3$ are strictly positive, so by the strict cubic Routh--Hurwitz criterion~\cite[Ch.~XV]{Gantmacher1959} all roots of $\chi$ lie in the open left half-plane; the remaining eigenvalue $-2d_0$ is negative. Hence $B_0\diag(d)$ is Hurwitz stable for every $d>0$, and Lemma~\ref{lem:template} gives the second statement.
+\end{proof}
+
+\begin{remark}
+The theorem quantifies over all positive rate constants and all positive equilibria of $\mathcal N_0$, not over a chosen point. This is what makes Theorem~\ref{thm:main-intro} a statement about information: the skeleton $(S,\supp Y_0)$, which is all a D-core method sees, is compatible with a network that is stable everywhere.
+\end{remark}
+
+\section{Instability after a support-preserving lift}\label{sec:unstable}
+
+\subsection{The target reactivity}
+
+Let
+\begin{equation}\label{eq:EF}
+  E=\frac{\Nbig}{\Dbig},\qquad F=\frac{\Mbig}{\Dbig},
+\end{equation}
+and let $R\in\Q^{5\times4}$, rows indexed by reactions and columns by species, be
+\begin{equation}\label{eq:R}
+R=\begin{pmatrix}1&0&0&E\\0&\frac1{50}&\frac1{1000}&0\\0&0&\frac5{11}&0\\0&0&0&F\\0&0&0&0\end{pmatrix}.
+\end{equation}
+Comparing with~\eqref{eq:support}, $R$ is admissible for $\mathcal N_0$. This is the reactivity of~\cite{Companion2026}; its Jacobian
+\begin{equation}\label{eq:G}
+  G=SR=\begin{pmatrix}-1&0&0&-E+F\\[1pt]0&-\frac2{25}&-\frac1{250}&6F\\[1pt]4&-\frac1{25}&-\frac1{500}-\frac{20}{11}&4E+F\\[1pt]-2&0&\frac{10}{11}&-2E-2F\end{pmatrix}
+\end{equation}
+has the exact eigenpair recorded in Proposition~\ref{prop:eigenpair} below.
+
+\subsection{The padded network}
+
+Write $N=\Nbig$ and $M=\Mbig$. Let $C\in\N^{4\times5}$ have the four nonzero entries
+\begin{equation}\label{eq:C}
+  C_{2,1}=9,\qquad C_{2,2}=7496,\qquad C_{3,0}=N-2,\qquad C_{3,3}=M-2,
+\end{equation}
+all on reactant incidences of $Y_0$, and let $\mathcal N_1=(Y_0+C,\,P_0+C)$. Explicitly, $\mathcal N_1$ consists of the reactions
+\begin{equation}\label{eq:padded-reactions}
+\begin{aligned}
+  r_0&\colon X_0+N\,X_3\longrightarrow 4X_2+(N-2)X_3, \\
+  r_1&\colon 4X_1+11X_2\longrightarrow 9X_2,\\
+  r_2&\colon 7500X_2\longrightarrow 7496X_2+2X_3, \\
+  r_3&\colon M\,X_3\longrightarrow X_0+6X_1+X_2+(M-2)X_3,\\
+  r_4&\colon \varnothing\longrightarrow 2X_2+2X_3 ,
+\end{aligned}
+\end{equation}
+with reactant matrix
+\begin{equation}\label{eq:Y1}
+  Y_1=Y_0+C=\begin{pmatrix}1&0&0&0&0\\0&4&0&0&0\\0&11&7500&0&0\\N&0&0&M&0\end{pmatrix}.
+\end{equation}
+By Lemma~\ref{lem:padding}, $\mathcal N_1$ has stoichiometric matrix $S$, reactant incidences~\eqref{eq:support}, and the child lattice of Section~\ref{sec:skeleton}.
+
+\begin{proposition}[Exact positive equilibrium with reactivity $R$]\label{prop:padded-equilibrium}
+Let
+\begin{equation}\label{eq:xbar}
+  \xbar=(2,\ 600,\ 33000,\ 93316000000)^{\mathsf T},\qquad k_j=\frac{v^0_j}{\xbar^{(Y_1)_{\cdot j}}}\quad(j=0,\dots,4).
+\end{equation}
+Then $k\in\Q^5_{>0}$, $\xbar$ is an equilibrium of the mass-action system on $\mathcal N_1$ with flux $v^0=(2,3,2,2,2)$, and the reactivity of $\xbar$ is exactly the matrix $R$ of~\eqref{eq:R}. Hence the Jacobian at $\xbar$ is $G=SR$.
+\end{proposition}
+
+\begin{proof}
+The rate constants are positive rationals, and $r_j(\xbar)=k_j\xbar^{(Y_1)_{\cdot j}}=v^0_j$ by construction; $Sv^0=0$ by Lemma~\ref{lem:kernel}. For the reactivity we evaluate~\eqref{eq:reactivity} on the six incidences~\eqref{eq:support}, using $\xbar_3=2\cdot\Dbig$:
+\[
+\begin{array}{lll}
+R_{00}=\dfrac{1\cdot2}{2}=1, &
+R_{11}=\dfrac{4\cdot3}{600}=\dfrac1{50}, &
+R_{12}=\dfrac{11\cdot3}{33000}=\dfrac1{1000},\\[8pt]
+R_{22}=\dfrac{7500\cdot2}{33000}=\dfrac5{11}, &
+R_{03}=\dfrac{N\cdot2}{2\cdot\Dbig}=E, &
+R_{33}=\dfrac{M\cdot2}{2\cdot\Dbig}=F .
+\end{array}
+\]
+All other entries vanish because the corresponding $Y_1$ entries vanish.
+\end{proof}
+
+The padding entries in~\eqref{eq:C} are exactly the values forced by~\eqref{eq:consistency} once $\xbar$ is chosen: $\Ytil_{ij}=R_{ji}\xbar_i/v_j$. The choice $\xbar_2=33000$ reconciles the two incompatible requirements of Example~\ref{ex:obstruction} by raising the kinetic orders $Y_0[2,1]=2$ and $Y_0[2,2]=4$ to $11$ and $7500$, and $\xbar_3$ is chosen so that $N$ and $M$ are integers. Theorem~\ref{thm:lift} would instead use a uniform state and pads of the order of $L\Delta\cdot q_{ij}$; the present pad is smaller, but both are instances of the same mechanism.
+
+\begin{proposition}[Exact unstable eigenpair, {\cite[Prop.~3.2]{Companion2026}}]\label{prop:eigenpair}
+Let $\lambda=\frac1{500}+\frac{51}{500}i$ and let $z\in\Z[i]^4$ be the Gaussian-integer vector
+\[
+  z=\begin{pmatrix}-152886431705+15563289455\,i\\ 23331004034-30699360512\,i\\ 7890610882+34396287629\,i\\ 1399740000\end{pmatrix}.
+\]
+Then $Gz=\lambda z$. Hence $G$ is Hurwitz unstable with $\Real\lambda=\frac1{500}>0$.
+\end{proposition}
+
+\begin{proof}
+Each of the four coordinate identities is a finite computation in $\Q(i)$. The characteristic polynomial of $G$ factors over $\Q$ as
+\[
+  \chi_G(X)=\frac{(125000X^2-500X+1301)\,(513238000X^2+116236430203X+13005481800)}{64154750000000},
+\]
+and the first factor has the roots $\frac1{500}\pm\frac{51}{500}i$ because $500^2-4\cdot125000\cdot1301=-25500^2$. The other two eigenvalues are real and negative (approximately $-226.36$ and $-0.112$).
+\end{proof}
+
+\begin{theorem}[The padded network is an unstable mass-action system without D-unstable cores]\label{thm:padded}
+The classical mass-action system on $\mathcal N_1$ with the rate constants of~\eqref{eq:xbar} has the positive equilibrium $\xbar$, whose Jacobian $G$ has the eigenvalue $\lambda=\frac1{500}+\frac{51}{500}i$, and $\mathcal N_1$ has no D-unstable core.
+\end{theorem}
+
+\begin{proof}
+Propositions~\ref{prop:padded-equilibrium} and~\ref{prop:eigenpair}, and Theorem~\ref{thm:children} via Lemma~\ref{lem:padding}.
+\end{proof}
+
+The instability is of complex-pair type: $G$ has no positive real eigenvalue, $\det G>0$, and all coefficients of $\chi_G$ are positive; only the third Hurwitz determinant of the quartic is negative. This is consistent with the localization results that survive (Section~\ref{sec:survives}).
+
+\subsection{A compact witness with maximal exponent 200}\label{sec:y200}
+
+The pads in~\eqref{eq:C} are large because they reproduce the specific reactivity $R$ of~\cite{Companion2026}, whose entries $E,F$ were themselves produced by an exact search. The mechanism does not need large numbers. Let $\mathcal N_{200}=(Y_{200},P_0+C_{200})$ be the padding of $\mathcal N_0$ with
+\begin{equation}\label{eq:Y200}
+  Y_{200}=\begin{pmatrix}1&0&0&0&0\\0&4&0&0&0\\0&2&200&0&0\\200&0&0&2&0\end{pmatrix}
+\end{equation}
+and $C_{200}=Y_{200}-Y_0$, whose nonzero entries are $(C_{200})_{2,2}=196$ and $(C_{200})_{3,0}=198$; that is, $r_0\colon X_0+200X_3\to4X_2+198X_3$ and $r_2\colon 200X_2\to196X_2+2X_3$, the other three reactions unchanged.
+
+\begin{proposition}[Exact quartic certificate]\label{prop:y200}
+Let $\xbar=(1,\,235,\,585,\,\tfrac1{257})^{\mathsf T}$ and $k_j=v^0_j/\xbar^{(Y_{200})_{\cdot j}}$, i.e.
+\[
+  k_0=2\cdot257^{200},\quad k_1=\frac{3}{235^4\cdot585^2},\quad k_2=\frac{2}{585^{200}},\quad k_3=2\cdot257^2,\quad k_4=2 .
+\]
+Then $\xbar$ is a positive equilibrium of the mass-action system on $\mathcal N_{200}$ with flux $v^0$, its Jacobian is
+\begin{equation}\label{eq:J200}
+  J_{200}=\begin{pmatrix}-2&0&0&-101772\\[1pt]0&-\frac{48}{235}&-\frac{8}{195}&6168\\[1pt]8&-\frac{24}{235}&-\frac{124}{45}&412228\\[1pt]-4&0&\frac{160}{117}&-207656\end{pmatrix},
+\end{equation}
+and the characteristic polynomial of $J_{200}$ is
+\begin{equation}\label{eq:quartic}
+  z^4+\frac{87840586}{423}z^3+\frac{325113896}{5499}z^2+\frac{22009472}{1833}z+\frac{2105344}{611} .
+\end{equation}
+Writing it as $z^4+a_1z^3+a_2z^2+a_3z+a_4$, all coefficients are positive, while the Hurwitz determinants satisfy
+\begin{equation}\label{eq:hurwitz200}
+\begin{aligned}
+  \Delta_2&=a_1a_2-a_3=\frac{2196782093181776}{178929}>0,\\
+  \Delta_3&=a_1a_2a_3-a_3^2-a_1^2a_4=-\frac{384290295376441702400}{327976857}<0 .
+\end{aligned}
+\end{equation}
+Consequently $J_{200}$ is Hurwitz unstable, and $\mathcal N_{200}$ has no D-unstable core.
+\end{proposition}
+
+\begin{proof}
+Equilibrium and flux follow as in Proposition~\ref{prop:padded-equilibrium}. The reactivity from~\eqref{eq:reactivity} has the nonzero entries $R_{00}=2$, $R_{03}=102800$, $R_{11}=\frac{12}{235}$, $R_{12}=\frac{2}{195}$, $R_{22}=\frac{80}{117}$, $R_{33}=1028$, and $J_{200}=SR$ is~\eqref{eq:J200}. The characteristic polynomial and the two determinants are exact rational computations. For a real quartic with positive coefficients, the Routh--Hurwitz criterion~\cite[Ch.~XV]{Gantmacher1959} gives Hurwitz stability if and only if $\Delta_3>0$; since $\Delta_1=a_1>0$, $\Delta_2>0$, $\Delta_3<0$ and $\Delta_4=a_4\Delta_3<0$, the Routh sign-change count places exactly two roots in the open right half-plane. Numerically they are $4.69\cdot10^{-4}\pm0.2410\,i$; the other roots are approximately $-0.2856$ and $-2.0766\cdot10^{5}$. The last claim is Theorem~\ref{thm:children} with Lemma~\ref{lem:padding}.
+\end{proof}
+
+Proposition~\ref{prop:y200} is checked exactly by rational arithmetic and independently by the preflight script accompanying the formal development, but it is not part of the Lean proof of Theorem~\ref{thm:main}, which uses the compiled eigenpair of Proposition~\ref{prop:eigenpair}; see Section~\ref{sec:formal-boundary}. The exponent $200$ is not claimed to be optimal.
+
+\section{The main theorem}\label{sec:main}
+
+\begin{theorem}[Same skeleton, opposite stability]\label{thm:main}
+The networks $\mathcal N_0$ of~\eqref{eq:reactions} and $\mathcal N_1$ of~\eqref{eq:padded-reactions} are classical mass-action networks on four species and five reactions with identical stoichiometric matrix $S$ and identical reactant-incidence relation~\eqref{eq:support}, and:
+\begin{enumerate}[label=(\roman*)]
+\item for every $k\in\R^5_{>0}$, every positive equilibrium of the mass-action system on $\mathcal N_0$ is strictly Hurwitz stable;
+\item the mass-action system on $\mathcal N_1$ with the rate constants~\eqref{eq:xbar} has the positive equilibrium $\xbar$ of~\eqref{eq:xbar}, whose Jacobian has the eigenvalue $\frac1{500}+\frac{51}{500}i$;
+\item the common child lattice of $\mathcal N_0$ and $\mathcal N_1$ contains no D-unstable core.
+\end{enumerate}
+The same holds with $\mathcal N_{200}$ in place of $\mathcal N_1$, with the equilibrium of Proposition~\ref{prop:y200}.
+\end{theorem}
+
+\begin{proof}
+Skeleton equivalence is Lemma~\ref{lem:padding}; (i) is Theorem~\ref{thm:base-stable}; (ii) and (iii) are Theorem~\ref{thm:padded}; the last sentence is Proposition~\ref{prop:y200}.
+\end{proof}
+
+\begin{corollary}[Classical localization is false]\label{cor:refutation}
+Statement (CL) of Section~\ref{sec:setting} is false. Explicitly, there is a network on four species and five reactions, positive rate constants, and a positive equilibrium of the resulting classical mass-action system whose Jacobian has an eigenvalue with positive real part, although the network has no D-unstable core.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:main}(ii) and (iii).
+\end{proof}
+
+\begin{corollary}[No skeleton criterion]\label{cor:no-skeleton}
+There is no predicate on skeletons $(S,\supp Y)$ that is necessary for the existence of a Hurwitz-unstable positive equilibrium of a classical mass-action system and that fails on the skeleton of $\mathcal N_0$; and there is no predicate on skeletons that is sufficient for stability of all positive mass-action equilibria and that holds on the skeleton of $\mathcal N_0$. In particular, every universal mass-action instability-localization theorem must use information beyond $(S,\supp Y)$.
+\end{corollary}
+
+\begin{proof}
+$\mathcal N_0$ and $\mathcal N_1$ have the same skeleton; $\mathcal N_0$ is stable at every positive equilibrium and $\mathcal N_1$ has an unstable one.
+\end{proof}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Two distinct information losses}
+
+The D-core campaign now exhibits two separate compression failures. The parameter-rich counterexample of~\cite{Companion2026} shows that the passage from the skeleton to the \emph{child lattice} loses the collective cross-terms between independently tunable derivatives of different reactions: every child is safe under every positive scaling, yet the full Jacobian $SR$ is unstable. The present paper shows that the earlier passage from the \emph{mass-action network} to its skeleton loses the kinetic-order matrix $Y$:
+\[
+  \text{mass-action network }(Y,P)\ \longrightarrow\ (S,\supp Y)\ \longrightarrow\ \text{child lattice}.
+\]
+The first arrow forgets reactant multiplicities; the second forgets simultaneous whole-network interactions among children. Both losses are dynamically decisive.
+
+\subsection{The object a corrected theorem must see}
+
+For a mass-action network with reactant matrix $Y$ and stoichiometric matrix $S$, define the \emph{equilibrium linearization profile}
+\begin{equation}\label{eq:profile}
+  \LMA(S,Y)=\bigl\{\,S\,\diag(v)\,Y^{\mathsf T}D:\ v\in\ker S\cap\R^m_{>0},\ D\in\mathcal D_n\,\bigr\}.
+\end{equation}
+By~\eqref{eq:reactivity} and the rate reconstruction $k_j=v_j/\xbar^{Y_{\cdot j}}$ with $\xbar_i=D_{ii}^{-1}$, $\LMA(S,Y)$ is exactly the set of Jacobians of positive equilibria of mass-action systems on $(Y,P)$ over all positive rate constants. Whether some positive equilibrium is unstable is the question whether $\LMA(S,Y)$ contains a Hurwitz-unstable matrix. For the skeleton of Section~\ref{sec:skeleton}, $\ker S\cap\R^5_{>0}$ is one ray, so $\LMA(S,Y)=\{B_Y\diag(d):d>0\}$ with $B_Y=S\diag(v^0)Y^{\mathsf T}$, and the question reduces to the D-stability of the single matrix $B_Y$. Theorem~\ref{thm:base-stable} says that $B_{Y_0}$ is D-stable; Propositions~\ref{prop:eigenpair} and~\ref{prop:y200} say that $B_{Y_1}$ and $B_{Y_{200}}$ are D-unstable. Padding moves through the fibre of kinetic orders over a fixed skeleton, and Theorem~\ref{thm:lift} says that over the rationals this fibre is large enough to realize every admissible reactivity at every positive rational flux. A corrected localization theorem for mass action must therefore either see $Y$ itself, or restrict to a class of networks in which the fibre is controlled.
+
+\subsection{What survives}\label{sec:survives}
+
+Two localization statements established in~\cite{Companion2026} for parameter-rich kinetics apply verbatim to mass action, since every mass-action reactivity is admissible. First, if $SR$ has a \emph{positive real} eigenvalue for some admissible $R$, then some child-selection matrix is D-unstable; the argument runs through the sign of a characteristic coefficient and its Cauchy--Binet localization. So the mass-action instabilities that escape D-cores are, like the one here, of complex-pair (oscillatory) type. Second, if every child-selection matrix is D-nonunstable, then every coefficient of the characteristic polynomial of $SR$ is nonnegative for every admissible $R$, which is exactly what one observes in~\eqref{eq:quartic}. Third, for networks with at most three species the necessity statement is true for parameter-rich kinetics and hence for mass action; four species is the least possible dimension for a counterexample of either kind. Finally, the sufficiency direction of~\cite{VassenaStadler2024} is untouched: a D-unstable core still forces an unstable equilibrium under every parameter-rich kinetics, and by Theorem~\ref{thm:lift} under classical mass action after a suitable padding.
+
+\subsection{What is not claimed}
+
+\begin{itemize}
+\item \emph{No Hopf bifurcation.} The unstable equilibria have a complex eigenvalue pair in the open right half-plane, which is what a Hurwitz-unstable Jacobian requires. We prove nothing about periodic orbits, imaginary-axis crossings in a parameter family, or nonlinear nondegeneracy.
+\item \emph{No minimality beyond dimension.} Four species is minimal by the three-species result quoted above; five reactions, the sizes of the padding entries, and the exponent $200$ are not claimed to be minimal.
+\item \emph{No low-molecularity counterexample.} Both padded witnesses use reactions of high molecularity with explicit catalysis. Whether (CL) holds for bimolecular, or bounded-molecularity, or catalyst-free mass-action networks is open (Question~\ref{q:molecularity}).
+\item \emph{Mass action at a fixed network is not parameter-rich.} Theorem~\ref{thm:lift} varies the reactant matrix within a skeleton; Example~\ref{ex:obstruction} shows that a fixed reactant matrix can exclude a given admissible reactivity.
+\end{itemize}
+
+\subsection{Open problems}
+
+\begin{question}[Bounded molecularity]\label{q:molecularity}
+Does D-unstable-core localization hold for classical mass-action networks in which every reaction has at most two (or at most $\mu$) reactant molecules, or in which no species occurs on both sides of a reaction? The counterexamples here use kinetic orders $11$, $7500$, $N$, $M$ and $200$.
+\end{question}
+
+\begin{question}[Minimal kinetic order on the skeleton]
+For the skeleton of Section~\ref{sec:skeleton}, what is the smallest maximal entry of a reactant matrix $Y$ with $\supp Y=\supp Y_0$ for which $\LMA(S,Y)$ contains a Hurwitz-unstable matrix? Proposition~\ref{prop:y200} gives the upper bound $200$; Theorem~\ref{thm:base-stable} shows that $Y_0$ itself does not qualify. Since $\ker S$ is one-dimensional, this is a question about the D-stability of the single matrix $S\diag(v^0)Y^{\mathsf T}$ as a function of the six integers on $\supp Y_0$.
+\end{question}
+
+\begin{question}[Corrected classes]
+Identify classes of mass-action networks for which a localization theorem holds with the kinetic-order matrix taken into account: for instance minimal reactant complexes $Y=(-S)_+$, networks with one-dimensional positive flux cone and bounded kinetic order, or networks admitting a common diagonal Lyapunov weight for all elements of $\LMA(S,Y)$. Any proposed class should first be tested against Theorem~\ref{thm:lift}, which shows that the class must not be closed under catalytic padding.
+\end{question}
+
+\section{Formal verification and reproducibility}\label{sec:formal}
+
+All statements on the critical path of Theorem~\ref{thm:main} and Corollary~\ref{cor:refutation}, and the general Theorem~\ref{thm:lift}, are verified in Lean~4~\cite{Lean4} against Mathlib~\cite{Mathlib}, compiled with the flag \lean{-DwarningAsError=true}, exit code zero, and no \lean{sorry} or \lean{admit}. The development lives in the directory \lean{proofs/DUnstableCores/ClassicalMassAction/} of the accompanying repository and imports the frozen parameter-rich development of~\cite{Companion2026} for the source-network, child-selection, D-scaling and cubic Routh--Hurwitz interfaces. Table~\ref{tab:lean} summarizes the architecture.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.68\textwidth}@{}}
+\toprule
+Module & Content \\
+\midrule
+\lean{Source.lean} & The literal unpadded network $\mathcal N_0$ and padding $C$ of~\eqref{eq:C}; the padded network as \lean{base + C} on both sides; \lean{classicalPadded_stoich_eq_base} and \lean{classicalPadded_reactant_iff_base} (Lemma~\ref{lem:padding} for $C$). \\
+\lean{Rate.lean} & Mass-action monomials, positivity, the reconstructed rates $k_j=v_j/\xbar^{Y_{\cdot j}}$, the cancellation \lean{reconstructedRate_mul_monomial} ($k_j\xbar^{Y_{\cdot j}}=v_j$ without expanding powers), the stationarity predicate, and the derivative identity~\eqref{eq:reactivity}. \\
+\lean{ChildLatticeTransfer.lean} & Transport of every child selection of $\mathcal N_1$ to the corresponding child of $\mathcal N_0$ with equal real matrix; import of the all-children theorem of~\cite{Companion2026}; \lean{classicalPadded_no_dUnstableCore} (Theorem~\ref{thm:children} for $\mathcal N_1$). \\
+\lean{PaddedCounterexample.lean} & The state~\eqref{eq:xbar}, the rate reconstruction, the exact reactivity table of Proposition~\ref{prop:padded-equilibrium}, stationarity, equality of the Jacobian with $G$, instability via the compiled eigenpair of Proposition~\ref{prop:eigenpair}, and the terminal negation of $\mathrm{(CL)}_{4,5}$. \\
+\lean{RationalLift.lean} & \lean{RationalReactivityProfile}, the ratios $q$, common denominator, scale $L$, the lifted exponents, domination $\Ytil\ge Y$, support and stoichiometry preservation, exact rate reconstruction, stationarity and Jacobian transport; Theorem~\ref{thm:lift}. \\
+\lean{UnpaddedStability.lean} & Lemma~\ref{lem:kernel} for stationary fluxes, the template $B_0$, the cubic block and coefficients~\eqref{eq:cubic}, the seven-term identity~\eqref{eq:delta}, a strict cubic Routh--Hurwitz bridge, D-stability of $B_0$, and Theorem~\ref{thm:base-stable}. \\
+\lean{Main.lean} & The two public declarations below. \\
+\bottomrule
+\end{tabular}
+\caption{Architecture of the Lean development.}\label{tab:lean}
+\end{table}
+
+\subsection{Public declarations}
+
+The mass-action contract is a structure \lean{ClassicalMassActionInstance Q} carrying positive concentrations, positive rate constants, a reactivity, and the derivative identity~\eqref{eq:reactivity} as a field; \lean{ClassicalStationary M} is the predicate $Sr(\xbar)=0$. The lifting theorem reads (in ASCII notation)
+{\footnotesize\begin{verbatim}
+theorem rationalReactivity_realizable_by_supportPreservingPadding
+    (Q : SourceNetwork Species Reaction)
+    (P : RationalReactivityProfile Q) (v : Reaction -> Rat)
+    (hv : forall r, 0 < v r)
+    (hker : forall s, sum r, (Q.stoich s r : Rat) * v r = 0) :
+    exists (Qlift : SourceNetwork Species Reaction)
+      (M : ClassicalMassActionInstance Qlift),
+      Qlift.stoich = Q.stoich  and
+      (forall s r, Qlift.Reactant s r <-> Q.Reactant s r)  and
+      ClassicalStationary M  and
+      Qlift.jacobian M.reactivity = Q.jacobian P.toReactivity
+\end{verbatim}}
+and the headline theorem is
+{\footnotesize\begin{verbatim}
+theorem classical_sameSkeleton_stableBefore_unstableAfter :
+    (forall M : ClassicalMassActionInstance classicalBaseCounterexampleSource,
+      ClassicalStationary M ->
+        HurwitzStable
+          (classicalBaseCounterexampleSource.jacobian M.reactivity))  and
+    classicalPaddedCounterexampleSource.stoich =
+      classicalBaseCounterexampleSource.stoich  and
+    (forall s r,
+      classicalPaddedCounterexampleSource.Reactant s r <->
+        classicalBaseCounterexampleSource.Reactant s r)  and
+    ClassicalStationary classicalPaddedMassActionInstance  and
+    HurwitzUnstable
+      (classicalPaddedCounterexampleSource.jacobian
+        classicalPaddedMassActionInstance.reactivity)  and
+    not exists core : ChildSelection classicalPaddedCounterexampleSource,
+      IsDUnstableCore core
+\end{verbatim}}
+whose six conjuncts are the six claims of Theorem~\ref{thm:main}. The refutation of $\mathrm{(CL)}_{4,5}$ is
+\begin{center}\small
+\lean{theorem classicalMassAction_localization_false : not ClassicalMassActionCoreNecessityFin4Fin5}
+\end{center}
+where the predicate quantifies over all \lean{SourceNetwork (Fin 4) (Fin 5)}, all stationary mass-action instances on them, and Hurwitz instability of their Jacobians, and concludes the existence of a D-unstable core. The predicates \lean{HurwitzUnstable}, \lean{HurwitzStable}, \lean{DUnstable}, \lean{DStable} and \lean{DNonUnstable} are kept distinct, with \lean{DNonUnstable} the boundary-permitting notion of Definition~\ref{def:spectral}(c) and \lean{HurwitzStable} the strict notion used in Theorem~\ref{thm:base-stable}.
+
+\subsection{Receipts}
+
+Each authority-bearing file was compiled by a verification script that records the toolchain, \lean{leanprover/lean4:v4.30.0}; the SHA-256 of the Lake manifest pinning Mathlib, with prefix \lean{a8df0b60}; the SHA-256 of the proof source; and a hash of the elaborated interfaces of the requested declarations. The receipts are listed in Table~\ref{tab:receipts}. The proof of \lean{Main.lean} in its final form elaborates in about $67$\,s on top of cached dependencies.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.50\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}@{}}
+\toprule
+Declaration & Source SHA-256 (prefix) & Interface hash (prefix)\\
+\midrule
+\lean{rationalReactivity_realizable_by_supportPreservingPadding} & \lean{82afc94fd6d27c1f} & \lean{4efd81342f87aa4a}\\
+\lean{classicalBase_every_positive_equilibrium_hurwitzStable} & \lean{a64784c15f01697b} & \lean{a6611aae91f60e83}\\
+\lean{classical_sameSkeleton_stableBefore_unstableAfter}, \lean{classicalMassAction_localization_false} & \lean{15443357756ce378} & \lean{c99183227533e39c}\\
+\bottomrule
+\end{tabular}
+\caption{Strict verification receipts; the full hashes are recorded in the repository receipt files.}\label{tab:receipts}
+\end{table}
+
+\subsection{Coverage boundary and design notes}\label{sec:formal-boundary}
+
+Proposition~\ref{prop:y200} is verified by exact rational arithmetic (a deterministic script using only \lean{Fraction} arithmetic, permutation-expanded determinants and no floating point) but is not promoted to a Lean theorem: the formal quartic library contains the imaginary-axis boundary identity but not the general implication ``$\Delta_3<0$ implies a root in the open right half-plane''. Building that reusable bridge is a separate theorem project, and it was not needed because the principal witness $\mathcal N_1$ has a compiled exact eigenpair. The manuscript keeps the two coverage levels apart.
+
+Two design decisions kept the formalization small. First, the padded network is encoded as \lean{base + C} on both sides, so that stoichiometric preservation is the generic cancellation $(P+C)-(Y+C)=P-Y$; a first encoding that wrote the two padded complexes with their multi-digit entries independently required replaying twenty large arithmetic cells and was abandoned. Second, rate constants are represented by the reconstruction formula and are never evaluated, so that no monomial with exponent $N$ or $M$ is expanded. The strict cubic Routh--Hurwitz theorem needed for Theorem~\ref{thm:base-stable} was placed in the leaf module rather than in the shared cubic library, so that the frozen artifacts of~\cite{Companion2026} were reused unchanged.
+
+The repository script \lean{reproduce.ps1} reruns the exact preflight computations and the strict verification of the four public declarations in the frozen environment.
+
+\appendix
+
+\section{Exact data}\label{app:data}
+
+\subsection*{The padded witness $\mathcal N_1$}
+With $E,F$ as in~\eqref{eq:EF}, the Jacobian $G=SR$ of~\eqref{eq:G} is, entrywise over $\Q$,
+\[
+G=\begin{pmatrix}
+-1&0&0&-\dfrac{2579661001547}{23329000000}\\[8pt]
+0&-\dfrac{2}{25}&-\dfrac{1}{250}&\dfrac{84600659109}{23329000000}\\[8pt]
+4&-\dfrac{1}{25}&-\dfrac{10011}{5500}&\dfrac{20778289110891}{46658000000}\\[8pt]
+-2&0&\dfrac{10}{11}&-\dfrac{50885097}{227600}
+\end{pmatrix},
+\]
+with characteristic polynomial
+\[
+  z^4+\frac{2834984811}{12518000}z^3+\frac{3136469465073}{128309500000}z^2+\frac{144720854794103}{64154750000000}z+\frac{84600659109}{320773750000},
+\]
+all of whose coefficients are positive. Its factorization over $\Q$ is given in the proof of Proposition~\ref{prop:eigenpair}. The equilibrium~\eqref{eq:xbar} has $\xbar_3=93316000000=2\cdot\Dbig$, and the padded kinetic orders are $Y_1[2,1]=11$, $Y_1[2,2]=7500$, $Y_1[3,0]=N=\Nbig$, $Y_1[3,3]=M=\Mbig$.
+
+\subsection*{The compact witness $\mathcal N_{200}$}
+At $\xbar=(1,235,585,\frac1{257})$ with flux $v^0$, the reactivity is
+\[
+R_{200}=\begin{pmatrix}2&0&0&102800\\0&\frac{12}{235}&\frac{2}{195}&0\\0&0&\frac{80}{117}&0\\0&0&0&1028\\0&0&0&0\end{pmatrix},
+\]
+and $J_{200}=SR_{200}$ is~\eqref{eq:J200}. The Hurwitz determinants of~\eqref{eq:quartic} are $\Delta_1=a_1>0$, $\Delta_2>0$, $\Delta_3<0$ and $\Delta_4=a_4\Delta_3<0$, as recorded in~\eqref{eq:hurwitz200}.
+
+\subsection*{The unpadded template}
+$B_0=S\diag(2,3,2,2,2)Y_0^{\mathsf T}$ is~\eqref{eq:B0}; for $d\in\R^4_{>0}$, $\det(zI-B_0\diag(d))=(z+2d_0)(z^3+a_1z^2+a_2z+a_3)$ with $a_1,a_2,a_3$ as in~\eqref{eq:cubic} and $a_1a_2-a_3$ as in~\eqref{eq:delta}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

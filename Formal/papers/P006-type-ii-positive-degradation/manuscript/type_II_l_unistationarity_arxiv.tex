@@ -1,0 +1,625 @@
+%% Unistationarity of Type II_l autocatalytic cores with positive degradation,
+%% and exact multistationarity beyond minimality.
+%% arXiv submission source.  Compile with pdflatex (two passes).
+\documentclass[11pt,reqno]{amsart}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\lstdefinelanguage{Lean}{
+  morekeywords={theorem,def,structure,inductive,namespace,end,import,by,intro,exact,constructor},
+  sensitive=true,
+  morecomment=[l]{--},
+  morestring=[b]",
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  frame=single,
+  framerule=0.3pt,
+  xleftmargin=1em,
+  xrightmargin=1em,
+  extendedchars=true,
+  literate={≤}{{$\le$}}1 {ℕ}{{$\mathbb{N}$}}1 {ℝ}{{$\mathbb{R}$}}1 {→}{{$\to$}}1 {∀}{{$\forall$}}1 {∃}{{$\exists$}}1 {≠}{{$\neq$}}1 {∧}{{$\wedge$}}1 {¬}{{$\neg$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {ᵀ}{{$^{\mathsf T}$}}1
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Top}{\mathrm{(Top)}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Ker}{\operatorname{ker}}
+\newcommand{\bs}{\boldsymbol}
+\DeclareMathOperator{\sgn}{sgn}
+
+\title[Unistationarity of Type $\mathrm{II}_\ell$ autocatalytic cores]{Unistationarity of Type $\mathrm{II}_\ell$ autocatalytic cores with positive degradation, and exact multistationarity beyond minimality}
+
+\author{Author name to be inserted}
+\address{Affiliation to be inserted}
+\email{email to be inserted}
+
+\date{7 September 2026}
+
+\subjclass[2020]{Primary 92C42, 80A30; Secondary 15B48, 34C99, 68V20}
+\keywords{autocatalysis, autocatalytic cores, chemical reaction networks, mass action, unistationarity, multistationarity, Schur complement, cyclic tridiagonal matrices, Lean 4, formal verification}
+
+\begin{document}
+
+\begin{abstract}
+Nandan, Nghe and Unterberger classified the minimal autocatalytic cores of diluted chemical reaction networks into five families and proved that, under strictly positive linear degradation of every species, every classified core has at most one positive stationary state, with one exception: the family of Type $\mathrm{II}_\ell$ cores with $\ell>2$ cyclically ordered one-to-many forks.  We prove the missing case.  Starting from the source normal form of a Type $\mathrm{II}_\ell$ core, source minimality yields a sharp dichotomy: either every weak stem is strictly separated, or the core is the fully coincident three-fork quotient.  In the separated case minimality forces every stoichiometric multiplier on each return tail to equal one, and the tails contract to passive positive two-ports.  Given two positive stationary states, their concentration ratio and one-way currents satisfy an exact linear current-kernel equation.  A back-first divided difference of the product monomials gives every fork row a common sign pattern, Schur elimination of the passive stems produces a cyclic three-term matrix with a uniform diagonal margin and a strictly positive comparison vector supplied by the base stationary current, and a continuant and multiaffine-determinant argument shows that this cyclic matrix is nonsingular.  Hence every ratio equals one.  The coincident three-fork quotient is handled by a direct ratio-extremum argument.  We also show that the minimality hypothesis cannot be dropped: an explicit six-species reversible mass-action network with the Type $\mathrm{II}_3$ fork wiring, coefficient-one back products, strictly positive rates and strictly positive degradation has two distinct positive stationary states with exact rational data, and a seven-species weak-order network with six forks shows the same for coincident stems.  Both networks violate exactly the minimality consequences used in the proof.  The main theorem and all indispensable reductions have been compiled in Lean~4 against Mathlib with no unproved declarations, and both counterexample certificates are checked exactly.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+Autocatalysis is the property of a chemical reaction network that a set of species can amplify itself from an external food supply.  In the diluted regime, where every reaction has a single reactant among the autocatalytic species, Unterberger and Nghe~\cite{UN22} showed that stoichiometric autocatalysis is equivalent to a purely topological condition, called $\Top$: the split graph of the network must contain a strongly connected component with at least one reaction having several products in that component.  Building on the motif analysis of Blokhuis, Lacoste and Nghe~\cite{BLN20}, Nandan, Nghe and Unterberger~\cite{NNU26} classified the \emph{minimal} networks satisfying $\Top$, the autocatalytic cores, into five families, and studied their dynamics under mass-action kinetics with linear degradation of every species.  Among their results is a uniqueness theorem: with strictly positive degradation, every classified core has at most one positive stationary state, except possibly the cores of Type $\mathrm{II}_\ell$ with $\ell>2$~\cite[Theorem~5.2]{NNU26}.
+
+A Type $\mathrm{II}_\ell$ core consists of a main cycle carrying $\ell$ cyclically ordered fork reactions.  Each fork produces its main-cycle successor with an arbitrary positive integer multiplicity and, in addition, one earlier species of the cycle with coefficient one; the weak cyclic ordering of the fork sources and of their back targets permits endpoint coincidences.  This combination of arbitrary main-cycle multiplicities, several interacting one-to-many branches, and a weak ordering defeated the continuation argument used in~\cite{NNU26} for the other core types.
+
+This paper closes the case.
+
+\begin{theorem}[Type $\mathrm{II}_\ell$ unistationarity]\label{thm:main}
+Let $\ell>2$ and let $Q$ be a minimal diluted Type $\mathrm{II}_\ell$ autocatalytic core in the source normal form of Section~\ref{sec:normal-form}.  Give every reversible reaction strictly positive forward and reverse mass-action rate constants and every species a strictly positive linear degradation constant.  Then $Q$ has at most one positive stationary state.
+\end{theorem}
+
+The proof is not a perturbation of the continuation theorem of~\cite{NNU26}.  It compares two hypothetical positive stationary states directly.  The nonlinear mass-action difference is rewritten as an exact linear equation for the vector of reaction-current differences, the \emph{current kernel}, after which the topology of a Type II core supplies two things at once: a strictly positive comparison vector, namely the stationary current of the reference state, and a cyclic Schur complement whose determinant is positive.  The proof has five irreducible parts, and they are exactly the branches of the formal proof.
+\begin{enumerate}[label=(\roman*)]
+\item One weak-order coincidence creates a proper three-species restriction satisfying $\Top$, unless the whole core is the fully coincident three-fork quotient (Lemma~\ref{lem:exhaustion}).
+\item A single length-independent positive-flux witness forces every return-tail multiplier to one (Lemma~\ref{lem:tail}).
+\item Unit return tails contract to passive two-ports (Lemma~\ref{lem:chain}).
+\item A back-first monomial secant and passive gap elimination reduce two stationary states to a nonsingular cyclic fork matrix (Lemmas~\ref{lem:generator} and~\ref{lem:cyclic}).
+\item The exceptional three-species quotient is unistationary by a direct extremal-ratio argument (Lemma~\ref{lem:quotient}).
+\end{enumerate}
+
+\subsection*{Sharpness: multistationarity without minimality}
+The hypothesis that $Q$ is a \emph{core}, that is, minimal under chemostatted restriction, enters the proof only through parts (i) and (ii).  We show that neither can be removed.  Theorem~\ref{thm:sixspecies} exhibits a six-species reversible network with the Type $\mathrm{II}_3$ fork wiring, coefficient-one back products, strictly positive rate constants and strictly positive degradation, which has two distinct positive stationary states with exact rational coordinates.  It fails minimality precisely because its three return tails carry multipliers $2$, $3$, $3$, violating the conclusion of Lemma~\ref{lem:tail}.  Theorem~\ref{thm:sevenspecies} exhibits a seven-species network with six forks and unit multiplicities in which five of the six stems are coincident; it also has two exact positive stationary states, and it fails minimality precisely through the three-species restriction of Lemma~\ref{lem:exhaustion}.  These examples arose from a search for counterexamples to Theorem~\ref{thm:main} inside the Type II family; the search found none inside the minimal class, and the exact examples it did find delimit the theorem from the outside.
+
+\subsection*{Formal verification}
+The main theorem has been formalized in Lean~4~\cite{dMU21} against Mathlib~\cite{mathlib20}.  The terminal declaration quantifies over the literal source normal form, assumes only $\Top$, source minimality, $3\le\ell$, positivity and stationarity of two literal states, and concludes their equality.  It compiles with warnings treated as errors and uses no axioms beyond the standard foundation of Mathlib.  The two counterexample certificates are checked by exact rational arithmetic; the six-species one is also compiled in Lean.  Details are in Section~\ref{sec:formal}.
+
+\subsection*{Organisation}
+Section~\ref{sec:normal-form} fixes the source normal form and the stationary problem.  Section~\ref{sec:minimality} derives the two consequences of minimality.  Section~\ref{sec:tails} contracts the return tails and derives the exact two-state reduction.  Section~\ref{sec:kernel} constructs the current kernel and proves its nonsingularity.  Section~\ref{sec:quotient} treats the exceptional quotient, and Section~\ref{sec:proof} assembles the proof of Theorem~\ref{thm:main}.  Section~\ref{sec:counterexamples} presents the two exact multistationary networks and the search that produced them.  Section~\ref{sec:formal} documents the formal verification, and Section~\ref{sec:discussion} discusses the relation to injectivity criteria and open questions.
+
+\section{The source normal form and the stationary problem}\label{sec:normal-form}
+
+\subsection{Reactions and currents}\label{subsec:reactions}
+Let $V$ be a finite set of \emph{retained source species}, indexed so that each $r\in V$ is also the source of one reversible reaction.  Let $\nu\colon V\to V$ be the successor permutation, let $w_r\in\N_{\ge1}$, and let $b(r)$ be either undefined or a \emph{back target} in $V$.  The product exponent matrix $P$ and the stoichiometric matrix $N$ are
+\begin{equation}\label{eq:PN}
+P_{ir}=w_r\,\one_{\{i=\nu(r)\}}+\one_{\{b(r)\text{ defined and }i=b(r)\}},\qquad
+N_{ir}=P_{ir}-\one_{\{i=r\}} .
+\end{equation}
+Thus a nonfork reaction has the form $X_r\rightleftharpoons w_rX_{\nu(r)}$ and a fork reaction has the form $X_r\rightleftharpoons w_rX_{\nu(r)}+X_{b(r)}$.  The coefficient of the back product is exactly one; this is forced by minimality in the source classification~\cite[\S 1.2]{NNU26}.  With positive constants $k_r^+,k_r^-$ and $d_i$, the current of the retained reaction $r$ at a concentration vector $z$ is
+\begin{equation}\label{eq:current}
+J_r(z)=k_r^+z_r-k_r^-\prod_{i\in V}z_i^{P_{ir}} .
+\end{equation}
+The literal separated network also contains the internal species of the $\ell$ return tails (Section~\ref{subsec:forks}).  Their one-to-one balance equations are retained until Section~\ref{sec:tails}.  The complete stationary equation is the finite species balance
+\begin{equation}\label{eq:stationary}
+\sum_{r}N_{ir}J_r(z)-d_iz_i=0\qquad\text{at every retained and every internal species }i .
+\end{equation}
+
+\subsection{Fork order, stems and return tails}\label{subsec:forks}
+Write $F_j$, $j\in\Z/\ell\Z$, for the fork sources in cyclic order.  Contracting only the internal vertices of a weak stem produces a Boolean word $\varepsilon\in\{0,1\}^{\Z/\ell\Z}$.  The value $\varepsilon_j=1$ means that the stem leaving $F_j$ contains a separated nonfork vertex before the next fork; $\varepsilon_j=0$ is the weak-order coincidence $i_j=\sigma_{j+1}$ in the notation of~\cite{NNU26}.  In the \emph{separated class} ($\varepsilon\equiv1$) the retained source species partition into the forks and $\ell$ disjoint nonempty \emph{gaps} $G_j$ of nonfork species.  The final species $T_j$ of the gap preceding $F_j$ is the back target of $F_j$.  The \emph{return tail} from $T_j$ to $F_j$ may contain arbitrarily many internal species, joined by reversible one-to-one reactions with positive integer multipliers.
+
+The formal source-core predicate contains $\Top$ and the following two consequences of source minimality:
+\begin{enumerate}[label=(M\arabic*)]
+\item\label{M1} no proper chemostatted weak-stem restriction retains $\Top$;
+\item\label{M2} no rotated proper return-tail cycle is stoichiometrically autocatalytic.
+\end{enumerate}
+Global minimality as defined in~\cite[Definitions~2.3--2.4]{NNU26} implies both statements, since the restriction witnesses used below are genuine chemostatted restrictions in the sense of that paper.  This formulation is slightly weaker than assuming the full restriction lattice and is therefore sufficient for the classified source family.
+
+\begin{remark}[Formal scope]\label{rem:scope}
+The object $Q$ used in the verified theorem is a source-specific normal-form presentation of the classified Type II family.  It is not a generic encoding of all reaction networks, and no general theory of chemostatted restriction is formalized.  The proof nevertheless retains the full literal concentration state, arbitrary positive integer main weights, common rate constants for the two states, positive degradation, the weak stem order, and the exceptional quotient.  No unit-weight assumption is imposed on the main cycle, and no uniformity is imposed on stem or tail lengths.
+\end{remark}
+
+\section{Minimality rigidifies the source}\label{sec:minimality}
+
+\subsection{Exhaustion of the weak order}
+
+\begin{lemma}[Source exhaustion]\label{lem:exhaustion}
+Let $\ell\ge3$.  If the weak Type $\mathrm{II}_\ell$ skeleton has no proper chemostatted restriction satisfying $\Top$, then either $\varepsilon_j=1$ for every $j$, or $\ell=3$ and $\varepsilon_j=0$ for every $j$.
+\end{lemma}
+
+\begin{proof}
+Suppose $\varepsilon_j=0$ for some $j$.  Put $A=F_j$, $B=F_{j+1}$ and $T=b(F_j)$, and retain only $\{A,B,T\}$, chemostatting every other species.  The coincidence gives the main edge $A\to B$.  The two adjacent back branches give $A\to T$ and $B\to A$, while the main edge out of $T$ gives $T\to A$.  Hence the restricted split graph contains
+\begin{equation}\label{eq:star}
+T\to A\leftrightarrow B\qquad\text{and}\qquad A\to T .
+\end{equation}
+It is strongly connected, and the reaction at $A$ retains the two distinct products $B$ and $T$, so the restriction satisfies $\Top$.  It remains to test properness.  The contracted weak skeleton has exactly $\ell$ plus the number of separated stems species.  It therefore has more than three species when $\ell>3$.  When $\ell=3$ it has more than three species unless every stem is coincident.  Thus $\{A,B,T\}$ is a proper restriction except in the fully coincident three-fork case, and minimality excludes every other coincidence.
+\end{proof}
+
+The point of the lemma is that it proves the whole dichotomy from a single reusable restriction; no enumeration of gap words or stem lengths is needed.
+
+\subsection{Unit gain on every return tail}
+
+\begin{lemma}[Return-tail rigidity]\label{lem:tail}
+On every proper return tail of a source-minimal Type II core, every positive integer stoichiometric multiplier equals one.
+\end{lemma}
+
+\begin{proof}
+Consider a directed return cycle with $M\ge2$ reactions and positive integer multipliers $u_0,\dots,u_{M-1}$; the cycle consists of the return tail from $T_j$ to $F_j$ followed by the coefficient-one back product $F_j\to T_j$.  Its stoichiometric action on a flux $v\in\R^M$ is
+\begin{equation}\label{eq:Sv}
+(Sv)_i=-v_i+u_{i-1}v_{i-1},\qquad i\in\Z/M\Z .
+\end{equation}
+If some $u_s\ge2$, rotate the cycle so that $s=0$ and choose the universal flux
+\begin{equation}\label{eq:flux}
+v_0=M+1,\qquad v_j=2(M+1)-j\quad(1\le j<M).
+\end{equation}
+All entries are positive.  At $i=1$ the gain edge gives $u_0v_0-v_1\ge 2(M+1)-(2M+1)=1$; for $2\le i<M$, positivity of the integer weights gives $u_{i-1}v_{i-1}-v_i\ge v_{i-1}-v_i=1$; and at $i=0$ the closing difference is $u_{M-1}v_{M-1}-v_0\ge v_{M-1}-v_0=(M+3)-(M+1)=2$.  Thus $Sv>0$, so this proper return cycle is stoichiometrically autocatalytic, contrary to~\ref{M2}.  Every multiplier is therefore one.
+\end{proof}
+
+One flux formula, rotated to the offending edge, proves all positions and all lengths.  Section~\ref{sec:counterexamples} shows that this lemma is exactly what a nonminimal Type-II-shaped network can violate.
+
+\section{Passive tails and the exact two-state reduction}\label{sec:tails}
+
+\subsection{Contraction and reconstruction}
+
+\begin{lemma}[Passive-chain summary]\label{lem:chain}
+A finite reversible unit chain of one-to-one reactions, with strictly positive rate and degradation constants, from endpoint concentration $X$ to endpoint concentration $Y$ has positive transfer coefficients $c,\beta$ and nonnegative endpoint leaks $\lambda_L,\lambda_R$ such that every stationary chain state satisfies
+\begin{equation}\label{eq:twoport}
+j_L=cX-\beta Y+\lambda_LX,\qquad j_R=cX-\beta Y-\lambda_RY,
+\end{equation}
+where $j_L$ is the current entering the chain at $X$ and $j_R$ the current leaving it at $Y$.  For fixed $X,Y$ the internal stationary state is unique.
+\end{lemma}
+
+\begin{proof}
+Proceed by successive Schur elimination of the internal one-to-one balances.  At each step the pivot is the sum of the positive outgoing rates and the positive degradation rate of the eliminated species.  Appending one edge across an intermediate with degradation $d$ replaces $(c,\beta)$ by $(c\,c'/L,\ \beta\beta'/L)$ with $L=\beta+\lambda_R+c'+d>0$, where $c',\beta'$ are the forward and reverse constants of the new edge, and adds nonnegative terms to the two leaks.  Hence $c,\beta$ remain positive and the leaks remain nonnegative.  Reversing the eliminations reconstructs the internal state uniquely from $(X,Y)$.
+\end{proof}
+
+Let $T$ be the left endpoint of a tail and $F$ its fork endpoint.  The boundary contribution of the literal chain equals the contracted unit terminal column minus endpoint leakage:
+\begin{equation}\label{eq:boundary}
+-j_L\ \text{at }T=-(cX-\beta Y)-\lambda_LX,\qquad
++j_R\ \text{at }F=+(cX-\beta Y)-\lambda_RY .
+\end{equation}
+All return tails are disjoint, so they contract simultaneously.  Their leakage only increases the positive degradation flux at an endpoint.  Moreover, if two stationary states agree at all contracted endpoints, the uniqueness part of Lemma~\ref{lem:chain} recovers equality at every internal tail species.  This is the only property of a tail used below; in particular, tail length changes transfer coefficients but cannot by itself create a second stationary state.
+
+\subsection{Ratios and one-way currents}\label{subsec:ratios}
+Let $x$ and $y$ be two positive stationary states in the separated class, and use $y$ as reference.  On the retained source species define
+\begin{equation}\label{eq:rho-pq}
+\rho_i=\frac{x_i}{y_i},\qquad p_r=k_r^+y_r,\qquad q_r=k_r^-\prod_iy_i^{P_{ir}} .
+\end{equation}
+Let $e_i$ be $d_iy_i$ plus all contracted tail leakage at $i$.  Then $p,q,e,\rho$ are strictly positive.  Put
+\begin{equation}\label{eq:M}
+M_r(\rho)=\prod_i\rho_i^{P_{ir}} .
+\end{equation}
+Since the two states share the rate constants, the forward current of reaction $r$ at $x$ is $\rho_rp_r$ and its reverse current is $M_r(\rho)q_r$; the endpoint leaks of Lemma~\ref{lem:chain} scale in the same way.  Substituting~\eqref{eq:boundary} into the balances~\eqref{eq:stationary} at $y$ and at $x$ transforms the two complete literal stationary systems into the exact pair
+\begin{equation}\label{eq:pair}
+N(p-q)=e,\qquad N\bigl(\rho\odot p-M(\rho)\odot q\bigr)=\rho\odot e,
+\end{equation}
+where $\odot$ is the componentwise product.  No contracted stationarity assumption has been introduced: \eqref{eq:pair} is obtained by substitution into the original balance equations.
+
+\section{The current kernel}\label{sec:kernel}
+
+\subsection{The back-first secant}\label{subsec:secant}
+For $w\ge1$ let $s_w(t)=1+t+\dots+t^{w-1}$, so that $t^w-1=s_w(t)(t-1)$ with $s_w(t)\ge1$ for $t>0$.  For a nonfork reaction, $M_r(\rho)=\rho_{\nu(r)}^{w_r}$.  For a fork with back target $b(r)$ the coefficient-one back product is expanded first:
+\begin{equation}\label{eq:backfirst}
+M_r(\rho)-1=(\rho_{b(r)}-1)+\rho_{b(r)}\,s_{w_r}(\rho_{\nu(r)})\,(\rho_{\nu(r)}-1).
+\end{equation}
+Thus there is a nonnegative \emph{secant matrix} $C$ satisfying
+\begin{equation}\label{eq:secant}
+M_r(\rho)-1=\sum_iC_{ri}(\rho_i-1),
+\end{equation}
+whose row sum is at least one at a nonfork and strictly greater than one at a fork.  The order in~\eqref{eq:backfirst} is a rowwise gauge choice: it changes neither the monomial nor its exact divided difference, but it removes the artificial seam created by one ambient coordinate order, and it is what makes every fork row share the same sign pattern below.
+
+Define the difference of reaction currents between $x$ and $y$ and its response matrix by
+\begin{equation}\label{eq:delta-A}
+\delta_r=p_r(\rho_r-1)-q_r\bigl(M_r(\rho)-1\bigr),\qquad
+A_{ri}=p_r\one_{\{r=i\}}-q_rC_{ri} .
+\end{equation}
+Equations~\eqref{eq:secant}--\eqref{eq:delta-A} give $\delta=A(\rho-\one)$.  Subtracting the two balances in~\eqref{eq:pair} gives $N\delta=E(\rho-\one)$ with $E=\diag(e)$.  Eliminating $\rho-\one$ yields
+\begin{equation}\label{eq:kernel}
+K\delta=0,\qquad K=I-AE^{-1}N .
+\end{equation}
+The same identity applied to the base current $J=p-q$ is especially informative.  Since $NJ=e$, one has $E^{-1}NJ=\one$ and therefore
+\begin{equation}\label{eq:KJ}
+(KJ)_r=J_r-\sum_iA_{ri}=q_r\Bigl(\sum_iC_{ri}-1\Bigr).
+\end{equation}
+Hence $KJ$ is nonnegative on every nonfork row and strictly positive on every fork row.  The chemistry itself has produced the global comparison vector.
+
+\subsection{Elimination of passive stems}\label{subsec:gaps}
+Partition the reaction coordinates into the forks $\mathcal F$ and the disjoint nonfork gaps $\mathcal G$.  The block $K_{\mathcal G\mathcal G}$ is block diagonal, one block $H_j$ for each gap.  Each $H_j$ is a Z-matrix: its off-diagonal entries are nonpositive.  The positive degradation pivots and the path orientation give
+\begin{equation}\label{eq:Hinv}
+H_j\ \text{invertible},\qquad H_j^{-1}\ge0 .
+\end{equation}
+This is proved along the path by the standard positive-supersolution criterion for Z-matrices~\cite{BP94}: the restriction of $J$ to the gap is a positive vector with $H_jJ_{\mathcal G_j}\ge0$ by~\eqref{eq:KJ}, and the strict inequality needed at one end is supplied by the fork column adjacent to the gap.  Equivalently, forward substitution constructs the two nonnegative Green responses of the gap to the adjacent fork columns, and the homogeneous path recurrence has only the zero solution.  Singleton gaps are the scalar instance of the same statement, including their direct feedthrough.
+
+Let $H=K_{\mathcal G\mathcal G}$ and form the Schur complement
+\begin{equation}\label{eq:schur}
+R=K_{\mathcal F\mathcal F}-K_{\mathcal F\mathcal G}H^{-1}K_{\mathcal G\mathcal F} .
+\end{equation}
+
+\begin{lemma}[Gap-condensation generator]\label{lem:generator}
+In cyclic fork order, row $j$ of $R$ has only three entries: $P_j$ at $F_{j-1}$, $B_j$ at $F_j$, and $F_j$ at $F_{j+1}$.  They satisfy
+\[
+P_j\le0,\qquad F_j>0,\qquad B_j-F_j\ge1 .
+\]
+Moreover the fork current $J_j=p_{F_j}-q_{F_j}$ is positive and $(RJ_{\mathcal F})_j>0$.
+\end{lemma}
+
+\begin{proof}
+The base balance and the unit terminal weights first give $J_j>0$: summing the balances of $y$ over the gap following $F_j$, the return tail after it, and the next fork $F_{j+1}$ cancels every internal current, including the back product of $F_{j+1}$, and leaves $w_{F_j}J_j$ equal to a sum of positive degradation fluxes.  The Green responses in~\eqref{eq:Hinv} are nonnegative.  In the preceding port they enter a fork row with the opposite sign, which gives $P_j\le0$; in the following port the direct coefficient and the response orientation give $F_j>0$.  Formula~\eqref{eq:KJ} is a weak supersolution on every gap and a strict one at each fork.  Multiplication by $H^{-1}\ge0$ shows that the gap correction cannot consume the strict fork defect, proving $RJ_{\mathcal F}>0$.
+
+For the diagonal margin, write the raw fork diagonal as $1+g_j+h_j+k_jw_{F_j}$, where $g_j$ and $h_j$ are the two positive direct degradation and back-product budgets and $k_j\ge0$ is the following-port secant factor.  The preceding Green correction is at most $g_j+h_j$.  The following response satisfies
+\begin{equation}\label{eq:margin}
+k_j\bigl(w_{F_j}-\mathsf d_j+\mathsf y_j-\mathsf x_j\bigr)\ge0,
+\end{equation}
+where $\mathsf d_j$ is the singleton direct-feedthrough indicator and $\mathsf x_j,\mathsf y_j$ are the two Green endpoint responses.  Substitution in the definitions of $B_j$ and $F_j$ cancels $g_j+h_j$ and leaves $B_j-F_j\ge1$.  This calculation is independent of the number of internal gap vertices.
+\end{proof}
+
+\subsection{The cyclic determinant}\label{subsec:cyclic}
+Normalize every row of $R$ by $B_j>0$ and put
+\begin{equation}\label{eq:normalized}
+\alpha_j=-\frac{P_j}{B_j},\qquad \gamma_j=\frac{F_j}{B_j},\qquad
+(\mathcal Cz)_j=-\alpha_jz_{j-1}+z_j+\gamma_jz_{j+1} .
+\end{equation}
+Lemma~\ref{lem:generator} gives $\alpha_j\ge0$ and $0<\gamma_j<1$.  Since $RJ_{\mathcal F}>0$,
+\begin{equation}\label{eq:U}
+\alpha_j<U_j:=\frac{J_j+\gamma_jJ_{j+1}}{J_{j-1}} .
+\end{equation}
+
+\begin{lemma}[Cyclic-sector nonsingularity]\label{lem:cyclic}
+Let $\ell\ge3$, $0<\gamma_j<1$, $v_j>0$, and $0\le\alpha_j<U_j:=(v_j+\gamma_jv_{j+1})/v_{j-1}$ for all $j\in\Z/\ell\Z$.  Then the cyclic matrix $\mathcal C$ in~\eqref{eq:normalized} has positive determinant.
+\end{lemma}
+
+\begin{proof}
+The determinant is multiaffine in the predecessor coefficients $\alpha_j$, one per column, so place each $\alpha_j$ in the closed interval $[0,U_j]$ and consider the resulting box.  Fix one seam row $j_0$.  At a proper vertex of the box in the remaining coordinates, at least one ordinary predecessor coefficient $\alpha_k$, $k\ne j_0$, vanishes.  Cut the cycle at that missing edge.  After the positive prefix scaling
+\begin{equation}\label{eq:scaling}
+x_k=\Bigl(\prod_{r<k}\gamma_r\Bigr)z_k,
+\end{equation}
+the homogeneous rows become the continuant recurrence
+\begin{equation}\label{eq:continuant}
+x_{k+2}=(\alpha_{k+1}\gamma_k)\,x_k-x_{k+1} .
+\end{equation}
+The missing coefficient, the return row and the seam row force the first two values to vanish; \eqref{eq:continuant} then forces all values to vanish.  Thus every proper box vertex is nonsingular.  The same cutting argument applies at every point of the box at which some ordinary predecessor coefficient vanishes, so the determinant keeps a constant sign along any edge path from the all-zero ordinary vertex that retains one such zero; every proper vertex therefore has the sign of the all-zero ordinary vertex.  That sign is positive: at seam value zero the determinant equals $1\pm\prod_j\gamma_j>0$, and the cutting argument excludes a zero as the seam value moves to its actual value.  The all-upper matrix, with every $\alpha_j=U_j$, annihilates $v$ exactly, by the definition of $U_j$.  However, the actual seam value $\alpha_{j_0}$ is strictly below $U_{j_0}$.  Interpolating this one column from the singular upper endpoint makes its determinant positive.  Freeze that column and interpolate the remaining columns.  Every nonterminal edge retains a missing ordinary column, so the proper-cut recurrence keeps all vertex determinants positive.  Multiaffinity now expresses the determinant at the actual $\alpha$ as a positive convex combination of these vertex determinants.
+\end{proof}
+
+Taking $v=J_{\mathcal F}$ in Lemma~\ref{lem:cyclic} shows $\det\mathcal C>0$.  Since every $B_j>0$, $\det R>0$.  Consequently a vector in $\Ker K$ has zero fork coordinates after Schur elimination, and then~\eqref{eq:Hinv} forces every gap coordinate to vanish.  We have proved
+\begin{equation}\label{eq:trivial-kernel}
+\Ker K=\{0\} .
+\end{equation}
+Applying~\eqref{eq:trivial-kernel} to the current difference $\delta$ in~\eqref{eq:kernel} gives $\delta=0$.  The stationary difference $N\delta=E(\rho-\one)$ and $e_i>0$ then give $\rho_i=1$ for every retained species.
+
+\begin{remark}
+The comparison vector in Lemma~\ref{lem:cyclic} is not an auxiliary construction: it is the stationary current of the reference state, and the strict inequality~\eqref{eq:U} is the statement that the fork rows of $K$ act on $J$ with a strict positive defect~\eqref{eq:KJ}.  This is the mechanism by which the theorem escapes the sign-pattern obstructions discussed in Section~\ref{sec:discussion}.
+\end{remark}
+
+\section{The exceptional quotient}\label{sec:quotient}
+
+Source exhaustion leaves one nonseparated case: $\ell=3$ and every weak stem is coincident.  Its three species are the three forks, each fork producing its successor with multiplicity $m_j$ and its predecessor with coefficient one.  Write a positive stationary state as $(x_0,x_1,x_2)$ and define the three reversible currents
+\begin{equation}\label{eq:q-quotient}
+q_0=k_0^+x_0-k_0^-x_1^{m_0}x_2,\qquad
+q_1=k_1^+x_1-k_1^-x_2^{m_1}x_0,\qquad
+q_2=k_2^+x_2-k_2^-x_0^{m_2}x_1 .
+\end{equation}
+The stationary equations are
+\begin{equation}\label{eq:quotient-balance}
+\begin{aligned}
+-q_0+q_1+m_2q_2&=d_0x_0,\\
+m_0q_0-q_1+q_2&=d_1x_1,\\
+q_0+m_1q_1-q_2&=d_2x_2 .
+\end{aligned}
+\end{equation}
+
+\begin{lemma}[Coincident three-fork quotient]\label{lem:quotient}
+For arbitrary positive integers $m_0,m_1,m_2$ and strictly positive kinetic and degradation constants, the system~\eqref{eq:q-quotient}--\eqref{eq:quotient-balance} has at most one positive solution.
+\end{lemma}
+
+\begin{proof}
+Let $x$ and $y$ be positive solutions and put $z_i=x_i/y_i$.  Set
+\begin{equation}\label{eq:Delta}
+\Delta=m_0+m_1+m_2+m_0m_1m_2>0 .
+\end{equation}
+Solving the linear system~\eqref{eq:quotient-balance} for $q_0$ gives
+\begin{equation}\label{eq:q0}
+\Delta\,q_0=(1-m_1)d_0x_0+(1+m_1m_2)d_1x_1+(1+m_2)d_2x_2,
+\end{equation}
+with the other two formulas obtained cyclically.  Cross-multiplying~\eqref{eq:q0} at $x$ and at $y$ cancels its first term and gives
+\begin{equation}\label{eq:cross}
+\Delta\bigl[x_0q_0(y)-y_0q_0(x)\bigr]
+=(1+m_1m_2)d_1(x_0y_1-y_0x_1)+(1+m_2)d_2(x_0y_2-y_0x_2).
+\end{equation}
+Suppose the three ratios are not all equal.  An elementary cyclic extremum lemma says that for some $i$, either $z_i$ is a maximum and $z_{i+1}^{m_i}z_{i+2}<z_i$, or $z_i$ is a minimum and the reverse strict inequality holds.  To see this, order the three positive ratios; if neither inequality held at the two ends of that order, positive powers would force the minimum to be at least one and the maximum to be at most one, contradicting strict separation.
+
+By cyclic symmetry take $i=0$.  In the maximum case, $z_0\ge z_1$ and $z_0\ge z_2$ with one inequality strict, so the right side of~\eqref{eq:cross} is strictly positive.  But the kinetic definition~\eqref{eq:q-quotient} gives
+\begin{equation}\label{eq:kinetic-cross}
+x_0q_0(y)-y_0q_0(x)=k_0^-\,y_0y_1^{m_0}y_2\,\bigl(z_1^{m_0}z_2-z_0\bigr)<0,
+\end{equation}
+a contradiction.  In the minimum case both signs reverse and again contradict.  Thus $z_0=z_1=z_2=:z$.  Then~\eqref{eq:cross} gives a zero current cross product, while~\eqref{eq:kinetic-cross} reduces to a strictly positive factor times $z(z^{m_0}-1)$.  Hence $z=1$ and $x=y$.
+\end{proof}
+
+\section{Proof of the main theorem}\label{sec:proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Apply Lemma~\ref{lem:exhaustion} to the weak source word of $Q$.  If the core is the fully coincident $\ell=3$ quotient, Lemma~\ref{lem:quotient} gives equality of any two positive stationary states.
+
+Otherwise every weak stem is separated.  Lemma~\ref{lem:tail} makes every multiplier on every proper return tail equal to one.  Contract all return tails by Lemma~\ref{lem:chain}; the effective degradation flux $e$ remains strictly positive.  Given two positive literal stationary states $x$ and $y$, define $\rho,p,q,e$ by~\eqref{eq:rho-pq} and the contracted leakage.  The original stationary equations give~\eqref{eq:pair}, and the back-first identity~\eqref{eq:backfirst} gives the exact current kernel~\eqref{eq:kernel}.
+
+Lemma~\ref{lem:generator} condenses every passive stem, including singleton stems, and produces the cyclic fork matrix~\eqref{eq:normalized} with the inequalities~\eqref{eq:U}.  Lemma~\ref{lem:cyclic} makes its determinant positive.  The gap blocks are independently nonsingular by~\eqref{eq:Hinv}, so the full current kernel $K$ is nonsingular and $\delta=0$.  The stationary difference $N\delta=E(\rho-\one)$, with $E$ a strictly positive diagonal matrix, gives $\rho=\one$ on every retained source species.  Finally the reconstruction half of Lemma~\ref{lem:chain} gives equality at every eliminated return-tail species.  Thus the two original literal states are equal.
+
+This proves that there is at most one positive stationary state for every $\ell\ge3$, which is exactly the previously open Type $\mathrm{II}_\ell$, $\ell>2$, case of~\cite[Theorem~5.2]{NNU26}.
+\end{proof}
+
+Mechanistically, a second positive stationary state would define a nontrivial positive ratio mode $\rho\ne\one$.  Source minimality removes every coincidence except the rigid three-species quotient; in the separated class, passive stems and return chains cannot create such a mode, and the active cyclic fork operator cannot support one.  There is nowhere for a second state to live.
+
+\section{Sharpness: exact multistationarity beyond minimality}\label{sec:counterexamples}
+
+The minimality of $Q$ enters the proof of Theorem~\ref{thm:main} only through Lemmas~\ref{lem:exhaustion} and~\ref{lem:tail}.  In this section we show that both are indispensable, by exhibiting reversible mass-action networks that satisfy every other hypothesis of the theorem, namely the Type II fork wiring, coefficient-one back products, strictly positive forward and reverse rate constants, and strictly positive degradation of every species, and that have two distinct positive stationary states.  Both examples have exact rational data, so the stationarity identities are checked by rational arithmetic rather than by floating-point residuals.  We use the notation of Section~\ref{subsec:ratios}: $y$ is the reference state, $\rho=x/y$, $p_r,q_r$ are the forward and reverse one-way currents at $y$, $e_i=d_iy_i$, and $\beta_r=M_r(\rho)$ is the product-complex ratio.  With $y=\one$ the one-way currents at $y$ coincide with the rate constants, $p_r=k_r^+$, $q_r=k_r^-$, $e_i=d_i$, and two states $y=\one$ and $x=\rho$ are both stationary for these constants if and only if
+\begin{equation}\label{eq:two-root}
+N(p-q)=e,\qquad N\bigl(\rho\odot p-\beta\odot q\bigr)=\rho\odot e .
+\end{equation}
+
+\subsection{A six-species network with Type $\mathrm{II}_3$ wiring}\label{subsec:six}
+Consider the fully open reversible network
+\begin{equation}\label{eq:six-network}
+\begin{aligned}
+R_0&:\ X_0\rightleftharpoons 2X_1+X_5, &\qquad R_1&:\ X_1\rightleftharpoons 2X_2, \\
+R_2&:\ X_2\rightleftharpoons X_3+X_1, & R_3&:\ X_3\rightleftharpoons 3X_4, \\
+R_4&:\ X_4\rightleftharpoons X_5+X_3, & R_5&:\ X_5\rightleftharpoons 3X_0,
+\end{aligned}
+\end{equation}
+together with the degradation reactions $X_i\to\varnothing$, $i=0,\dots,5$.  Its forks are $R_0,R_2,R_4$ with back targets $X_5,X_1,X_3$, its gap word is $111$, and its main-cycle multipliers are $(w_0,\dots,w_5)=(2,2,1,3,1,3)$.  With reactions oriented left to right, the stoichiometric matrix is
+\begin{equation}\label{eq:six-N}
+N=\begin{pmatrix}
+-1&0&0&0&0&3\\
+2&-1&1&0&0&0\\
+0&2&-1&0&0&0\\
+0&0&1&-1&1&0\\
+0&0&0&3&-1&0\\
+1&0&0&0&1&-1
+\end{pmatrix}.
+\end{equation}
+
+\begin{theorem}[Exact two-state certificate]\label{thm:sixspecies}
+Let $y=(1,1,1,1,1,1)$ and
+\begin{equation}\label{eq:six-x}
+x=\Bigl(\tfrac{31}{50},\ \tfrac{57}{50},\ \tfrac{22}{25},\ \tfrac35,\ \tfrac{14}{25},\ \tfrac35\Bigr),
+\end{equation}
+and take the strictly positive integer rate and degradation constants of Table~\ref{tab:six}.  Then $y$ and $x$ are both positive stationary states of the mass-action system of~\eqref{eq:six-network} with these constants, and $x\ne y$.  In particular, the network~\eqref{eq:six-network} with strictly positive reversible mass-action kinetics and strictly positive degradation is multistationary.
+\end{theorem}
+
+\begin{table}[ht]
+\centering
+\caption{Exact rate and degradation constants for Theorem~\ref{thm:sixspecies}.  Because $y=\one$, the forward and reverse constants equal the one-way currents $p_r,q_r$ at $y$ and the degradation constants equal the degradation fluxes $e_i$.  The product-complex ratio $\beta_r=M_r(x)$ is listed for the verification of~\eqref{eq:two-root}.}
+\label{tab:six}
+\small
+\begin{tabular}{@{}c r r c@{\qquad}c r@{}}
+\toprule
+$r$ & $k_r^+=p_r$ & $k_r^-=q_r$ & $\beta_r$ & $i$ & $d_i=e_i$\\
+\midrule
+0 & 704\,180\,941\,994\,460 & 18\,981\,846\,318\,750 & $9747/12500$ & $X_0$ & 4\,806\,051\,633\,136\,950\\
+1 & 619\,799\,798\,320\,080 & 1\,952\,234\,297\,034\,000 & $484/625$ & $X_1$ & 18\,981\,846\,318\,750\\
+2 & 1\,064\,148\,026\,967\,810 & 3\,747\,998\,870\,714\,400 & $171/250$ & $X_2$ & 18\,981\,846\,318\,750\\
+3 & 1\,379\,889\,114\,510\,795 & 18\,981\,846\,318\,750 & $2744/15625$ & $X_3$ & 18\,981\,846\,318\,750\\
+4 & 5\,001\,118\,197\,194\,658 & 937\,378\,238\,937\,273 & $9/25$ & $X_4$ & 18\,981\,846\,318\,750\\
+5 & 1\,928\,841\,702\,241\,720 & 98\,424\,792\,637\,500 & $29791/125000$ & $X_5$ & 2\,918\,522\,144\,328\,875\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proof}
+At $y=\one$ every reactant and product monomial equals one, so the current of $R_r$ at $y$ is $p_r-q_r$ and the balance at $y$ is the first identity in~\eqref{eq:two-root}.  At $x=\rho$ the reactant monomial of $R_r$ is $\rho_r$ and its product monomial is $\beta_r=M_r(\rho)$, namely
+\[
+\beta=\bigl(\rho_1^2\rho_5,\ \rho_2^2,\ \rho_3\rho_1,\ \rho_4^3,\ \rho_5\rho_3,\ \rho_0^3\bigr),
+\]
+which evaluates to the column of Table~\ref{tab:six}; the balance at $x$ is the second identity in~\eqref{eq:two-root}.  Both identities are finite rational computations with the data of Table~\ref{tab:six} and~\eqref{eq:six-N}, and every coordinate of both residual vectors is exactly zero.  All coordinates of $x$, $y$, $p$, $q$, $e$ are strictly positive, and $x_0\ne y_0$.  The computation is also compiled in Lean as the declaration \texttt{TypeII3.weighted\_typeII3\_multistationary} (Section~\ref{sec:formal}).
+\end{proof}
+
+\begin{proposition}[Failure of minimality]\label{prop:six-nonminimal}
+The network~\eqref{eq:six-network} satisfies $\Top$ but is not a minimal autocatalytic core.  Its proper restriction to $\{X_1,X_2\}$, obtained by chemostatting the remaining species, retains the reactions $X_1\to2X_2$ and $X_2\to X_1$ with stoichiometric matrix
+\[
+S_{12}=\begin{pmatrix}-1&1\\ 2&-1\end{pmatrix},\qquad S_{12}\begin{pmatrix}2\\3\end{pmatrix}=\begin{pmatrix}1\\1\end{pmatrix}>0,
+\]
+and is therefore stoichiometrically autocatalytic.  The same obstruction recurs at $\{X_3,X_4\}$ with gain $3$ and at $\{X_5,X_0\}$ with gain $3$.
+\end{proposition}
+
+\begin{proof}
+The split graph of~\eqref{eq:six-network} is strongly connected and $R_0$ has two products, so $\Top$ holds.  Chemostatting $X_3$ turns $R_2$ into $X_2\to X_1$, and $R_1$ is already $X_1\to2X_2$; the displayed flux $(2,3)$ has strictly positive net production on both species.  The restrictions $\{X_3,X_4\}$ and $\{X_5,X_0\}$ are treated identically using $R_3,R_4$ and $R_5,R_0$.
+\end{proof}
+
+In the language of Section~\ref{sec:normal-form}, the three restrictions of Proposition~\ref{prop:six-nonminimal} are exactly the rotated return cycles of Lemma~\ref{lem:tail}: the return tail from $T_1=X_1$ to $F_1=X_2$ is the single reaction $R_1$ with multiplier $2$, and the flux $(2,3)$ is the universal flux~\eqref{eq:flux} for $M=2$ up to scaling.  The six-species network is therefore not a near miss.  It is the Type $\mathrm{II}_3$ wiring with precisely the return-tail gains that Lemma~\ref{lem:tail} forbids, and it shows that the unit-gain conclusion of that lemma is the exact boundary of Theorem~\ref{thm:main} in this direction.
+
+\subsection{A seven-species weak-order network with six forks}\label{subsec:seven}
+The second example has unit multiplicities everywhere and violates minimality only through coincident stems.  Consider the fully open reversible network on $X_0,\dots,X_6$ with reactions
+\begin{equation}\label{eq:seven-network}
+\begin{aligned}
+R_0&:\ X_0\rightleftharpoons X_1+X_6, & R_1&:\ X_1\rightleftharpoons X_2, & R_2&:\ X_2\rightleftharpoons X_3+X_1, & R_3&:\ X_3\rightleftharpoons X_4+X_2,\\
+R_4&:\ X_4\rightleftharpoons X_5+X_3, & R_5&:\ X_5\rightleftharpoons X_6+X_4, & R_6&:\ X_6\rightleftharpoons X_0+X_5,
+\end{aligned}
+\end{equation}
+and degradation of every species.  It has $\ell=6$ forks, at $X_0,X_2,X_3,X_4,X_5,X_6$, with back targets $X_6,X_1,X_2,X_3,X_4,X_5$, and weak gap word $(1,0,0,0,0,0)$: only the stem leaving $X_0$ contains a separated nonfork species, and the other five stems are coincident.
+
+\begin{theorem}[Exact two-state certificate, coincident stems]\label{thm:sevenspecies}
+Let $y=\one\in\R^7$ and
+\[
+x=\rho=\Bigl(1,\ \tfrac1{16},\ \tfrac19,\ \tfrac15,\ \tfrac13,\ \tfrac43,\ 12\Bigr).
+\]
+With the strictly positive rational constants of Table~\ref{tab:seven}, both $y$ and $x$ are positive stationary states of the mass-action system of~\eqref{eq:seven-network}, and $x\ne y$.
+\end{theorem}
+
+\begin{table}[ht]
+\centering
+\caption{Exact constants for Theorem~\ref{thm:sevenspecies}, with $D=3\,546\,790\,543$.  The constants are normalized so that $\sum_r(k_r^++k_r^-)+\sum_id_i=1$; the smallest constant is $1\,809\,648/D$.}
+\label{tab:seven}
+\small
+\begin{tabular}{@{}c l l l@{}}
+\toprule
+$r$ & $k_r^+$ & $k_r^-$ & $d_r$\\
+\midrule
+0 & $79\,873\,083/D$ & $150\,591\,284/D$ & $72\,385\,920/D$\\
+1 & $4\,870\,030\,864/(11D)$ & $1\,809\,648/D$ & $1\,809\,648/D$\\
+2 & $6\,049\,869\,075/(11D)$ & $401\,938\,000/(11D)$ & $413\,617\,671/(2D)$\\
+3 & $562\,292\,665/(2D)$ & $1\,809\,648/D$ & $6\,785\,880\,025/(22D)$\\
+4 & $560\,635\,312/D$ & $486\,297\,815/D$ & $558\,389\,511/(2D)$\\
+5 & $76\,005\,216/D$ & $1\,809\,648/D$ & $1\,809\,648/D$\\
+6 & $80\,869/(D/43)$ & $1\,809\,648/D$ & $1\,809\,648/D$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proof}
+As in Theorem~\ref{thm:sixspecies}, the two balances are the identities~\eqref{eq:two-root} with $\beta_r=\rho_{r+1}\rho_{b(r)}$ at forks and $\beta_1=\rho_2$; here $N_{rr}=-1$, $N_{r+1,r}=1$ and $N_{b(r),r}=1$ at forks.  Both residual vectors vanish exactly in rational arithmetic, all constants are strictly positive, and $x_1\ne y_1$.
+\end{proof}
+
+\begin{proposition}\label{prop:seven-nonminimal}
+The network~\eqref{eq:seven-network} satisfies $\Top$ but is not a minimal autocatalytic core.  For the coincident stem at $F=X_3$, with successor fork $X_4$ and back target $X_2$, the three-species restriction $\{X_2,X_3,X_4\}$ retains $X_2\to X_3$, $X_3\to X_4+X_2$ and $X_4\to X_3$, and the flux $(2,3,2)$ has net production $(1,1,1)>0$.
+\end{proposition}
+
+\begin{proof}
+This is the restriction~\eqref{eq:star} of Lemma~\ref{lem:exhaustion} with $(T,A,B)=(X_2,X_3,X_4)$; the network has seven species, so the restriction is proper.
+\end{proof}
+
+Thus Theorem~\ref{thm:sevenspecies} shows that the dichotomy of Lemma~\ref{lem:exhaustion} is also the exact boundary of Theorem~\ref{thm:main}: once a coincident stem is allowed in a nonminimal network with $\ell>3$, multistationarity can occur even with unit multiplicities.
+
+\subsection{How the examples were found, and what was not found}\label{subsec:search}
+Both certificates come from a systematic search for counterexamples to Theorem~\ref{thm:main} that preceded its proof.  We record the method because it is reusable and because its negative outcome inside the minimal class is informative.
+
+\emph{The two-root reduction.}  For a fixed candidate ratio vector $\rho$, the two identities~\eqref{eq:two-root} are linear in the unknown positive data $(p,q,e)$.  Hence the existence of common positive rate constants admitting the two stationary states $\one$ and $\rho$ is a linear feasibility problem in the positive orthant, and its infeasibility is certified by a Gordan--Farkas dual vector.  This converts the nonlinear multistationarity question, for each $\rho$, into a linear program; conversely, a feasible primal with positive margin can be cleared of denominators to give exact integer data as in Table~\ref{tab:six}.
+
+\emph{Equilibrium Jacobian sign change.}  Coarse sweeps over dyadic ratio vectors $\rho_i=2^{Z_i}$ produced small dual separators for every tested $\rho$ and suggested uniqueness.  The decisive signal came instead from keeping the equilibrium $y=\one$ fixed while varying the positive one-way currents subject to $N(p-q)=e$: for the weighted topology $(2,2,1,3,1,3)$ the determinant of the equilibrium log-Jacobian changed sign along such a family, so a singular equilibrium lies between the two parameter points.  The singular value was simple with nonzero transversality and quadratic coefficients, the local signature of a transcritical branch.  Continuation from the singular neighbourhood found a second positive branch, a floating point on it was rounded to the rational vector~\eqref{eq:six-x}, and the two-root linear program was re-solved exactly at that $\rho$, yielding a positive rational kernel with positive margin.  The seven-species example was obtained in the same way from a weak-gap linear-program vertex with seven active lower bounds, reconstructed exactly.
+
+\emph{Inside the minimal class.}  The same two-root linear program was run on source-generated Type $\mathrm{II}_\ell$ matrices for $\ell=3,4,5,6$, five structured gap families (all-zero, all-positive, one-zero, one-positive and alternating), unit and weighted nonfork steps, and $52$ structured or random integer log-ratio vectors per case: $40$ topology and weight cases and $2{,}080$ ratio configurations in total.  There were no strictly positive kernel hits; every maximizing witness had at least one vanishing one-way or degradation coordinate.  Independently, at $300{,}000$ constructed positive equilibria of minimal Type $\mathrm{II}_3$ cores the determinant of $-J$ stayed positive, and a further $60{,}000$-sample audit found every principal minor positive.  None of this is proof, and Theorem~\ref{thm:main} does not rely on it; but it is consistent with the theorem, and the exact examples above show that the search was capable of finding second states whenever the minimality boundary was crossed.
+
+\section{Formal verification}\label{sec:formal}
+
+\subsection{The main theorem}
+The proof of Theorem~\ref{thm:main} has been formalized in Lean~4~\cite{dMU21}, version 4.30.0, against a frozen Mathlib~\cite{mathlib20} manifest with SHA-256
+\begin{center}\small\texttt{a8df0b606ec258561c226df89856884be433c19b49fb0a27335d69bb2b6e9fac}.\end{center}
+The terminal declaration is
+\begin{lstlisting}
+theorem paper_typeII_l_unistationarity
+    {l : ℕ} (Q : OpenNetwork l) (hcore : IsPaperTypeIILCore Q)
+    (hl : 3 ≤ l) (x y : Q.State)
+    (hx : Q.PositiveState x) (hy : Q.PositiveState y)
+    (hxs : Q.Stationary x) (hys : Q.Stationary y) : x = y
+\end{lstlisting}
+in the namespace \texttt{TypeIIL.PaperRaw}.  Here \texttt{OpenNetwork l} is the literal source normal form of Section~\ref{sec:normal-form}: the weak stem word, a separated realization with a cyclic source partition, arbitrary positive integer main weights, coefficient-one back products, common positive rate constants, positive degradation and literal reversible unit return chains, together with the fully coincident three-fork quotient data.  \texttt{IsPaperTypeIILCore Q} consists of $\Top$ and source minimality in the form~\ref{M1}--\ref{M2}.  \texttt{State}, \texttt{PositiveState} and \texttt{Stationary} select the literal concentration space and the finite mass-action balance equations~\eqref{eq:stationary} of the active normal form, including every internal return-chain species in the separated branch.  The public interface exposes no analytic object: the ratio vector, the one-way currents, the contracted tails, the current kernel and the cyclic comparison inequalities are all constructed inside the proof from the two raw stationary states.
+
+The declaration compiles with warnings treated as errors and exit code zero, contains no \texttt{sorry}, and its axiom report lists only \texttt{Classical.choice}, \texttt{Quot.sound} and \texttt{propext}, the ordinary foundational axioms used by Mathlib.  The authenticated SHA-256 of its source file is
+\begin{center}\small\texttt{d828ffd7c96909745c83a171f6eaef2efce2db9b787118b1bf3b76dc385e153c}\end{center}
+and its authenticated declaration-interface hash is
+\begin{center}\small\texttt{f7a6467d06c18e73404fb45c8a4c2f947abe4dca8c6eaafcdc6952929ff9293b}.\end{center}
+
+The indispensable formal modules correspond directly to the sections of this paper:
+\begin{itemize}[nosep]
+\item \texttt{PaperSourceExhaustion}: the weak-order dichotomy of Lemma~\ref{lem:exhaustion} via the three-species restriction (\texttt{source\_exhaustion\_of\_minimal});
+\item \texttt{PaperTailMinimality}, \texttt{PaperTailContraction}: Lemmas~\ref{lem:tail} and~\ref{lem:chain};
+\item \texttt{PaperSourceLift}: the literal two-state lift~\eqref{eq:rho-pq}--\eqref{eq:pair} from two raw equilibria, and the reconstruction of the literal state;
+\item the \texttt{SourceBackFirst*}, \texttt{SourceFork*}, \texttt{SourceWrap*} and \texttt{Cyclic*} modules: the back-first current kernel, the gap Green responses, the diagonal margin and the cyclic determinant of Section~\ref{sec:kernel} (analytic engine \texttt{PaperFullClosure});
+\item \texttt{TypeII3.QuotientAllZero}: Lemma~\ref{lem:quotient} (\texttt{all\_zero\_unistationarity});
+\item \texttt{PaperRawCore}: the literal core predicate and the final branch join.
+\end{itemize}
+Named regression declarations in \texttt{PaperRawCoreRegression} additionally check the coincident Type $\mathrm{II}_3$ branch (\texttt{all\_coincident\_typeII3}) and a single deliberately nonuniform separated geometry with unequal neighbouring stem lengths, a return tail of depth one, a return tail of depth at least two, and a main-cycle weight at least two (\texttt{separated\_nonuniform\_geometry}).  These guard against the theorem silently acquiring uniform-geometry or unit-main-weight assumptions.
+
+\subsection{The counterexamples}
+The six-species certificate of Theorem~\ref{thm:sixspecies} is compiled as the declaration \texttt{TypeII3.weighted\_\allowbreak typeII3\_\allowbreak multistationary}, which unfolds the literal network~\eqref{eq:six-network}, the data of Table~\ref{tab:six} and the two states, and proves positivity of $x,y,p,q,e$, stationarity of both states under the common constants, and $x\ne y$.  The minimality failure of Proposition~\ref{prop:six-nonminimal} is compiled as the declaration \texttt{TypeII3.weighted\_\allowbreak counterexample\_\allowbreak not\_\allowbreak source\_\allowbreak minimal}, via the positive-production witness $(2,3)$ for the restricted matrix $S_{12}$.  The seven-species certificate of Theorem~\ref{thm:sevenspecies} is checked by exact rational arithmetic (both residual vectors of~\eqref{eq:two-root} vanish identically) and has not been formalized.  The unistationarity search of Section~\ref{subsec:search} is diagnostic only and is not part of any theorem.
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Relation to injectivity criteria}
+Uniqueness of positive equilibria in mass-action systems is classically approached through injectivity of the species-formation rate function, certified by sign conditions on the Jacobian or on its minors, as in Craciun and Feinberg~\cite{CF05}, Banaji and Craciun~\cite{BC10}, Feliu and Wiuf~\cite{FW12} and M\"uller et al.~\cite{MFRCSD16}; see~\cite{Fei19} for a systematic account.  These criteria are parameter-independent and therefore cannot see the difference between the minimal core and its nonminimal relatives of Section~\ref{sec:counterexamples}, which share the same fork wiring and sign pattern.  Indeed, during the exploration of the Type $\mathrm{II}_3$ case, the parameter-independent P-matrix property was found to fail for the minimal gap-word-$111$ wiring with unit weights: there are strictly positive coefficient vectors $(p,q,e)$, not constrained by the stationary balance, at which the logarithmically scaled matrix $-J$ has a negative principal minor, whereas at coefficients constrained by $N(p-q)=e$ every sampled principal minor was positive.  A fixed cyclic sign criterion and an H-matrix criterion for the reduced fork matrix were likewise falsified by exact instances.  Theorem~\ref{thm:main} is instead a parameter-dependent injectivity statement: the comparison vector~\eqref{eq:KJ} is the stationary current of the reference state, and the strict margin~\eqref{eq:U} is inherited from the stationary balance itself.  The current kernel~\eqref{eq:kernel} may be viewed as a secant, rather than tangent, version of the Jacobian, evaluated between two equilibria; the back-first gauge~\eqref{eq:backfirst} chooses the divided difference so that every fork row has the same sign structure.
+
+\subsection{What the counterexamples say about cores}
+An autocatalytic core is not merely a network containing an autocatalytic cycle; it is minimal under chemostatted restriction.  Theorems~\ref{thm:sixspecies} and~\ref{thm:sevenspecies} show that this minimality is dynamical as well as taxonomic: a composite Type-II-shaped network assembled from a Type II wiring and embedded gain cycles, or from coincident stems in a longer cycle, can acquire a second positive stationary state that no minimal Type $\mathrm{II}_\ell$ core supports.  The two lemmas of Section~\ref{sec:minimality} identify exactly which embedded structures are excluded, and the two examples realize exactly those structures.  In particular, the source-membership question must be part of any theorem statement about cores: a proof assistant can verify the wrong mathematical object perfectly if the class boundary is left in prose.
+
+\subsection{Open directions}
+Three natural questions remain.  First, Theorem~\ref{thm:main} assumes strictly positive degradation of every species; Lemma~\ref{lem:chain} and~\eqref{eq:Hinv} use it essentially, and the classification of~\cite{NNU26} leaves the mixed case with some zero degradation open for Type $\mathrm{II}_{\ell>2}$.  Second, the current-kernel method compares two equilibria and says nothing about their stability; whether the unique positive equilibrium of a Type $\mathrm{II}_\ell$ core is always locally stable, or whether oscillations can occur, is not addressed here.  Third, the exact two-root reduction~\eqref{eq:two-root} and the Gordan--Farkas certificate architecture of Section~\ref{subsec:search} apply to any reaction network in the diluted regime, and it would be interesting to use them to classify multistationarity in composite networks of several interacting cores, of which Section~\ref{sec:counterexamples} gives the first exact instances.
+
+\section*{Acknowledgements}
+Acknowledgements to be inserted.
+
+\begin{thebibliography}{99}
+
+\bibitem{BC10}
+M.~Banaji and G.~Craciun,
+\emph{Graph-theoretic criteria for injectivity and unique equilibria in general chemical reaction systems},
+Adv. Appl. Math. \textbf{44} (2010), 168--184.
+\url{https://doi.org/10.1016/j.aam.2009.07.003}
+
+\bibitem{BP94}
+A.~Berman and R.~J. Plemmons,
+\emph{Nonnegative Matrices in the Mathematical Sciences},
+Classics in Applied Mathematics 9, SIAM, Philadelphia, 1994.
+
+\bibitem{BLN20}
+A.~Blokhuis, D.~Lacoste and P.~Nghe,
+\emph{Universal motifs and the diversity of autocatalytic systems},
+Proc. Natl. Acad. Sci. USA \textbf{117} (2020), 25230--25236.
+\url{https://doi.org/10.1073/pnas.2013527117}
+
+\bibitem{CF05}
+G.~Craciun and M.~Feinberg,
+\emph{Multiple equilibria in complex chemical reaction networks: I. The injectivity property},
+SIAM J. Appl. Math. \textbf{65} (2005), 1526--1546.
+\url{https://doi.org/10.1137/S0036139904440278}
+
+\bibitem{dMU21}
+L.~de~Moura and S.~Ullrich,
+\emph{The Lean 4 theorem prover and programming language},
+in: Automated Deduction -- CADE 28, Lecture Notes in Computer Science 12699, Springer, 2021, pp. 625--635.
+\url{https://doi.org/10.1007/978-3-030-79876-5_37}
+
+\bibitem{Fei19}
+M.~Feinberg,
+\emph{Foundations of Chemical Reaction Network Theory},
+Applied Mathematical Sciences 202, Springer, Cham, 2019.
+
+\bibitem{FW12}
+E.~Feliu and C.~Wiuf,
+\emph{Preclusion of switch behavior in networks with mass-action kinetics},
+Appl. Math. Comput. \textbf{219} (2012), 1449--1467.
+\url{https://doi.org/10.1016/j.amc.2012.07.048}
+
+\bibitem{mathlib20}
+The mathlib Community,
+\emph{The Lean mathematical library},
+in: Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020), ACM, 2020, pp. 367--381.
+\url{https://doi.org/10.1145/3372885.3373824}
+
+\bibitem{MFRCSD16}
+S.~M\"uller, E.~Feliu, G.~Regensburger, C.~Conradi, A.~Shiu and A.~Dickenstein,
+\emph{Sign conditions for injectivity of generalized polynomial maps with applications to chemical reaction networks and real algebraic geometry},
+Found. Comput. Math. \textbf{16} (2016), 69--97.
+\url{https://doi.org/10.1007/s10208-014-9239-3}
+
+\bibitem{NNU26}
+P.~Nandan, P.~Nghe and J.~Unterberger,
+\emph{Autocatalytic cores in the diluted regime: classification and properties},
+J. Math. Biol. \textbf{92} (2026), article 36.
+\url{https://doi.org/10.1007/s00285-026-02357-7}; arXiv:2507.15546.
+
+\bibitem{UN22}
+J.~Unterberger and P.~Nghe,
+\emph{Stoechiometric and dynamical autocatalysis for diluted chemical reaction networks},
+J. Math. Biol. \textbf{85} (2022), article 26.
+\url{https://doi.org/10.1007/s00285-022-01798-0}
+
+\end{thebibliography}
+
+\end{document}

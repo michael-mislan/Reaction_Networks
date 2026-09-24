@@ -1,0 +1,24 @@
+\section{Evidence, scope and reproducibility}\label{sec:evidence}
+Different statements in this paper rest on different kinds of evidence, and it is worth separating them explicitly.
+
+\begin{table}[htb]
+\centering\small
+\caption{Evidence supporting each class of statement. These classes describe how a claim was checked, not how biologically applicable it is: a mechanically checked inequality can be exactly correct about an unsuitable source.}\label{tab:evidence}
+\begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X l@{}}
+\toprule
+Class & Statements & Verification\\
+\midrule
+Conventional proof & Process construction and nonexplosion; localization; scale function and excursion counting (Thm.~\ref{thm:anchor}, Cor.~\ref{cor:initial}); order coupling; Riemann-sum capacity law (Thm.~\ref{thm:capacity}); fluid limit (Prop.~\ref{prop:regime}); high-renewal limit (Prop.~\ref{prop:highrenewal}); latency floor~\eqref{eq:latency} & Text of this paper\\
+Exact finite computation & Rational drift rows and error envelope; reserve products; Taylor sums; Cor.~\ref{cor:filling} and Cor.~\ref{cor:smaller} & Rational arithmetic, no floating point\\
+Mechanized & Source interval inequalities, relative-error envelope, reserve product~\eqref{eq:certificate}, delivery arithmetic and the assembled margins of Thm.~\ref{thm:main} & Lean~4.30.0, pinned Mathlib\\
+Numerical illustration & Figures~\ref{fig:course}, \ref{fig:scaling} and~\ref{fig:map}; the exact-probability curves of Fig.~\ref{fig:highrenewal} & Deterministic solvers; never used in a proof\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The probability construction, stopping arguments, order comparison, capacity limit and both sharpness statements of Section~\ref{sec:sharp} are conventional mathematical proofs, given in full above. Lean~4.30.0 checks the finite source-specific drift bounds over real erasure intervals, the relative-error envelope, the rational reserve product and the numerical exponential and risk margins that enter Theorem~\ref{thm:main}; the assembled declaration is \texttt{TherapeuticWindows.publication\_certificate}, compiled against a pinned Mathlib with warnings treated as errors. This is a modular algebra verification. It does not formalize the process construction, the stopping theory, the coupling or the asymptotics, and it does not by itself establish the probabilistic meaning of the inequalities it checks; that meaning is supplied by the proofs in the text.
+
+Two scope statements should be read alongside that certificate. First, Corollaries~\ref{cor:filling} and~\ref{cor:smaller}, and Propositions~\ref{prop:regime} and~\ref{prop:highrenewal}, are \emph{not} part of the compiled declaration. The corollaries are exact rational evaluations of an already-proved inequality and are reproduced by the arithmetic script in the package; the propositions are conventional proofs. Second, no figure is ever used in place of an inequality: neither a sampled dosing grid nor a numerical healthy mean supplies an exclusion theorem, and the curve in Figure~\ref{fig:course} is a numerically integrated killed forward equation for one parameter trajectory, not a rare-event Monte Carlo estimate. The unresolved safe-baseline converse of Section~\ref{sec:converse} is left unclassified rather than asserted in either direction.
+
+\paragraph{Code and data availability.}
+The source package contains nine Lean modules: \texttt{Source}, \texttt{Clock}, \texttt{Reserve}, \texttt{Robustness}, \texttt{Delivery} and \texttt{Root} for the benchmark result, together with \texttt{AnchoredReserve}, \texttt{WideBox} and \texttt{Publication}, which carry the anchored product, the relative-error envelope and the assembled declaration. It also contains the Python code that reconstructs the source and evaluates every rational quantity quoted above; the exact witness and figure data, including the high-precision evaluations behind Figure~\ref{fig:highrenewal}; build instructions with toolchain pins; and a reproduction driver. Figure~\ref{fig:highrenewal} is computed at sixty decimal digits because the quantities plotted fall below $10^{-15}$, where double precision loses every significant figure to cancellation and can appear to contradict a proved bound. A persistent archive location and version identifier accompany the released version of this manuscript.

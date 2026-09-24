@@ -1,0 +1,6 @@
+import proofs.ResourceLimitedCompetition.Tradeoff
+import proofs.ResourceLimitedCompetition.Frequency
+import proofs.ResourceLimitedCompetition.SharperError
+import proofs.ResourceLimitedCompetition.JointLocalization
+import proofs.ResourceLimitedCompetition.AccuracyScaling
+import proofs.ResourceLimitedCompetition.SourceTradeoff

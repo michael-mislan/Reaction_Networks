@@ -1,0 +1,1071 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,array}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\hypersetup{pdftitle={The 2n-1 steady-state bound is sharp for sequential distributive phosphorylation},
+ pdfsubject={Maximal multistationarity of the n-site phosphorylation cycle for every n},
+ pdfkeywords={multisite phosphorylation, multistationarity, mass-action kinetics, chemical reaction networks, steady states, interlacing polynomials, formal verification}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\raw}{\mathrm{raw}}
+\newcommand{\ET}{E_{\mathrm T}}
+\newcommand{\FT}{F_{\mathrm T}}
+\newcommand{\ST}{S_{\mathrm T}}
+\newcommand{\JS}{\mathcal J}
+\newcommand{\cs}{c_\ast}
+\newcommand{\es}{e_\ast}
+\DeclareMathOperator{\sign}{sign}
+\setlength{\emergencystretch}{1.5em}
+
+\title{The \(2n-1\) steady-state bound is sharp for\\ sequential distributive phosphorylation}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The sequential distributive \(n\)-site phosphorylation cycle, in which one kinase and one
+phosphatase act on a substrate with \(n\) ordered sites, is the standard mass-action model of
+multisite protein modification. Wang and Sontag proved that it has at most \(2n-1\) positive
+steady states for any rate constants and any conserved totals. Whether this bound is attained
+has been known only for \(n\le 4\). We prove that it is attained for every \(n\). More
+precisely, for any \(2n-1\) distinct positive numbers we construct, by explicit algebraic
+formulas, positive rate constants and totals for which the system has exactly \(2n-1\) positive
+steady states whose free-kinase to free-phosphatase ratios are the prescribed numbers. All of
+these steady states are nondegenerate, so the maximal count persists on a nonempty open subset
+of the full \((6n+3)\)-dimensional parameter space, and rational data suffice. The construction
+rests on a square-root change of variable that turns the steady-state equation on a special
+parameter locus into an interpolation problem, on a positive two-term polynomial recurrence, and
+on an interlacing argument that gives an explicit admissible range of enzyme totals; for
+instance, equally spaced auxiliary roots work for every kinase-to-phosphatase ratio above
+\((4n^2-1)/8\). We also prove a determinant formula which shows that \(n-1\) of the constructed
+steady states are unstable for every \(n\), and we certify in exact rational arithmetic that
+for \(n\le 10\) the remaining \(n\) are asymptotically stable. The existence of \(2n-1\)
+positive steady states for every \(n\) is formally verified in Lean~4 with Mathlib.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Background}
+Reversible phosphorylation at multiple sites is one of the most common ways in which cells
+regulate protein function \cite{Cohen2000,SalazarHofer2009}. In the simplest mechanistic
+description, a single kinase \(E\) adds phosphate groups to a substrate one site at a time in a
+fixed order, a single phosphatase \(F\) removes them in the reverse order, and each enzyme
+releases the substrate after every catalytic event. This is the \emph{sequential distributive}
+mechanism, also called the multiple futile cycle. Under mass-action kinetics it is the reaction
+network
+\begin{equation}\label{eq:network}
+\begin{aligned}
+ S_{i-1}+E &\ \underset{b_i}{\overset{a_i}{\rightleftharpoons}}\ C_i
+       \ \xrightarrow{\ c_i\ }\ S_i+E,\\[3pt]
+ S_i+F &\ \underset{\beta_i}{\overset{\alpha_i}{\rightleftharpoons}}\ Y_i
+       \ \xrightarrow{\ \gamma_i\ }\ S_{i-1}+F,
+       \qquad i=1,\dots,n,
+\end{aligned}
+\end{equation}
+where \(S_i\) is the substrate with \(i\) phosphorylated sites, \(C_i\) and \(Y_i\) are the
+kinase--substrate and phosphatase--substrate complexes, and all \(6n\) rate constants are
+positive. There are \(3n+3\) species and three conserved totals,
+\begin{equation}\label{eq:totals}
+ \ET=E+\sum_{i=1}^n C_i,\qquad
+ \FT=F+\sum_{i=1}^n Y_i,\qquad
+ \ST=\sum_{i=0}^n S_i+\sum_{i=1}^n(C_i+Y_i).
+\end{equation}
+
+Markevich, Hoek, and Kholodenko observed that already the two-site cycle can be bistable, with
+no feedback other than competition for the shared enzymes \cite{Markevich2004}. This started a
+long line of work on the steady states of \eqref{eq:network}; see
+\cite{Gunawardena2005,ConradiFlockerziRaisch2008,ThomsonGunawardena2009,FeliuWiuf2012,
+HolsteinFlockerziConradi2013,ConradiMincheva2014,HellRendall2015,CFMW2017,BihanDickensteinGiaroli2020,
+FKdWY2022,TorresFeliu2021} and the surveys \cite{ConradiShiu2018,Dickenstein2016,Dickenstein2020}.
+The network has become a standard test case for algebraic and analytic methods in reaction
+network theory, because it is large, biologically meaningful, and has a steady-state variety
+with a monomial parametrization \cite{PDSC2012}.
+
+The basic counting result is due to Wang and Sontag.
+
+\begin{theorem}[Wang and Sontag {\cite{WangSontag2008}}]\label{thm:WS}
+For every \(n\ge1\), all positive rate constants, and all positive totals \(\ET,\FT,\ST\), the
+system \eqref{eq:network} has at most \(2n-1\) positive steady states with those totals.
+\end{theorem}
+
+This is Theorem~3 of \cite{WangSontag2008}. In the same paper they showed that \(n+1\) (for
+\(n\) even) or \(n\) (for \(n\) odd) positive steady states do occur, and that, under a
+genericity condition, there are at most \(n+1\) when the enzymes are sufficiently scarce
+relative to the substrate. On this basis they conjectured that \(n+1\) is never exceeded. For
+\(n=2\) the numbers \(n+1\) and \(2n-1\) agree. Flockerzi, Holstein, and Conradi
+\cite{FHC2014} refuted the conjecture: they produced rate constants with five steady states
+for \(n=3\) and seven for \(n=4\), so that the bound \(2n-1\) is attained for \(n\le4\). Their
+method prescribes zeros of a determining equation and requires the solution of a system of
+polynomial inequalities that grows with \(n\). Since then the bound \(2n-1\) has been
+conjectured to be sharp for all \(n\) \cite{FRW2020,FKdWY2023}, and the question is recorded
+as open beyond \(n=4\) in \cite{FKdWY2023}. Thomson and Gunawardena had given numerical
+evidence that the number of steady states grows with \(n\) \cite{ThomsonGunawardena2009}.
+Feliu, Rendall, and Wiuf \cite{FRW2020} proved that for every \(n\) there are parameters with
+\(2\lfloor n/2\rfloor+1\) steady states of which \(\lfloor n/2\rfloor+1\) are asymptotically
+stable, and explained why their reduction to a Michaelis--Menten limit cannot give \(2n-1\)
+for \(n\ge3\). Giaroli, Rischter, P\'erez Mill\'an, and Dickenstein \cite{GRPD2019} described
+explicit open parameter regions with \(2\lfloor n/2\rfloor+1\) positive steady states, and
+remarked that degeneration techniques are unlikely to reach \(2n-1\). Thus for every \(n\ge5\)
+there has been a gap between the largest number known to occur, \(2\lfloor n/2\rfloor+1\), and
+the upper bound \(2n-1\), and the gap grows linearly in \(n\). The dynamics of the cycle
+beyond steady states is also of current interest \cite{CMS2019,CFM2020,ConradiMincheva2024}.
+
+\subsection{Results}
+This paper closes the gap.
+
+\begin{theorem}\label{thm:main}
+Let \(n\ge1\) and let \(u_0,\dots,u_{2n-2}\) be distinct positive real numbers. There exist
+positive rate constants \(a_i,b_i,c_i,\alpha_i,\beta_i,\gamma_i\) and positive totals
+\(\ET,\FT,\ST\) such that the system \eqref{eq:network} has exactly \(2n-1\) positive steady
+states with these totals, and the values of the ratio \(E/F\) of free kinase to free
+phosphatase at these steady states are exactly \(u_0,\dots,u_{2n-2}\). Every one of these
+steady states is nondegenerate. If the numbers \(\sqrt{1+8u_j}\) are all rational, then the
+rate constants, the totals, and all steady-state concentrations can be chosen rational.
+\end{theorem}
+
+Here a positive steady state is \emph{nondegenerate} if the Jacobian of the mass-action vector
+field, restricted to the stoichiometric subspace, is invertible there. Nondegeneracy makes the
+count stable under perturbation, and the upper bound holds for all parameters, so we obtain a
+full-dimensional region of maximal multistationarity.
+
+\begin{corollary}\label{cor:open}
+For every \(n\ge1\) there is a nonempty open subset of \(\R^{6n+3}_{>0}\), the space of all rate
+constants and totals, on which \eqref{eq:network} has exactly \(2n-1\) positive steady states,
+all nondegenerate.
+\end{corollary}
+
+In particular the maximum number of positive steady states of the \(n\)-site sequential
+distributive cycle is \(2n-1\) for every \(n\), and the set of parameters attaining it has
+positive Lebesgue measure.
+
+The construction is explicit. Write \(x_j=\sqrt{1+8u_j}\). A two-term recurrence produces two
+polynomials \(N,J\) of degree \(n-1\) with positive coefficients from the \(x_j\)
+(Section~\ref{sec:recurrence}); an exact polynomial division depending on one more number
+\(r\) converts them into the polynomials \(B,D\) whose coefficients are, up to the
+normalization \eqref{eq:rates}, the rate constants (Section~\ref{sec:conversion}); and the
+totals are \((\ET,\FT,\ST)=(2r,2,2r+2)\). The only condition is that the coefficients come out
+positive. We determine an explicit range of \(r\) for which they do.
+
+\begin{theorem}\label{thm:threshold}
+In the setting of Theorem~\ref{thm:main}, put \(x_j=\sqrt{1+8u_j}\). The construction of
+Sections~\ref{sec:recurrence}--\ref{sec:assembly} yields positive rate constants, and hence
+the conclusions of Theorem~\ref{thm:main} with \(\ET/\FT=r\), for every real number \(r\) such
+that
+\begin{equation}\label{eq:rcondition}
+ r>\max_j u_j\qquad\text{and}\qquad 4r+\sqrt{1+8r}\ \ge\ \sum_{j=0}^{2n-2}x_j .
+\end{equation}
+For \(x_j=j+2\) the second condition follows from the first, so every
+\(r>(4n^2-1)/8\) is admissible.
+\end{theorem}
+
+Finally we obtain information on stability. Order the prescribed ratios increasingly,
+\(u_0<u_1<\dots<u_{2n-2}\).
+
+\begin{theorem}\label{thm:unstable}
+In the construction of Theorem~\ref{thm:threshold}, the \(n-1\) steady states with odd index
+\(j\) are unstable: the Jacobian on the stoichiometric subspace has an odd number of positive
+real eigenvalues there. At the \(n\) steady states with even index this number is even.
+\end{theorem}
+
+This follows from a determinant formula, Proposition~\ref{prop:det}, which is valid for all
+rate constants and relates the determinant of the restricted Jacobian at any positive steady
+state to the slope of a scalar function. For the rational family \(x_j=j+2\) with the smallest
+admissible integer \(r\) we have computed the characteristic polynomials of the restricted
+Jacobians exactly and applied the Routh criterion in rational arithmetic
+(Proposition~\ref{prop:census}): for every \(n\le10\) the \(n\) even-indexed steady states are
+asymptotically stable and the \(n-1\) odd-indexed ones are hyperbolic saddles with a
+one-dimensional unstable manifold. This is \(n\)-fold multistability, the largest number
+compatible with \(2n-1\) alternating steady states; for \(n\ge3\) it exceeds the number
+\(\lfloor n/2\rfloor+1\) established for all \(n\) in \cite{FRW2020}. We conjecture that it
+holds for every \(n\) (Conjecture~\ref{conj:stable}).
+
+\subsection{Idea of the proof}
+At a positive steady state all concentrations are monomials in three quantities: the ratio
+\(u=E/F\), the free unphosphorylated substrate \(s=S_0\), and \(f=F\). The three totals then
+become \(\ET=uf(1+sB(u))\), \(\FT=f(1+suD(u))\), \(\ST=sA(u)+usf(B(u)+D(u))\) for polynomials
+\(A,B,D\) with positive coefficients determined by the rate constants, and conversely every
+such triple of polynomials comes from rate constants (Proposition~\ref{prop:param}). The two
+enzyme totals determine \(s\) and \(f\) as rational functions of \(u\), and the steady states
+are the solutions of one scalar equation \(H(u)=\ST\).
+The equation is rational of high degree, and the difficulty is that its \(3n\) effective
+coefficients must all be positive while \(2n-1\) roots are placed in the region where \(s\)
+and \(f\) are positive.
+
+The key observation is that on the locus \(A=(1+u)D\), \(\ST=\ET+\FT\), the numerator of
+\(H(u)-\ST\) is a quadratic form in \(\ell=B/D-r\) and \(v=r-u\) with discriminant
+\(v^2(1+8u)\). In the variable \(x=\sqrt{1+8u}\) it splits into two linear factors, and the
+steady-state equation becomes the \emph{linear} condition
+\begin{equation}\label{eq:introinterp}
+ (x-1)\bigl(B(u)-rD(u)\bigr)=2(r-u)D(u),\qquad u=\tfrac{x^2-1}{8}.
+\end{equation}
+We then need polynomials \(B,D\) in \(u\) of degree \(n-1\) with positive coefficients for
+which \eqref{eq:introinterp} holds at \(2n-1\) prescribed values of \(x\). Splitting
+\(\prod_j(x-x_j)\) into its even and odd parts in \(x\) gives polynomials in \(u\) that solve a
+version of this interpolation problem with \(r=\infty\); they are generated by a recurrence
+whose coefficients are visibly positive. A B\'ezout-type quotient moves the solution to finite
+\(r\). Positivity of the quotient is where interlacing enters: the roots of \(N\) and \(J\)
+are real, negative, and interlace, so \(N/J\) has a partial-fraction expansion with positive
+residues, and this expresses \(D\) and \(B\) as positive combinations of polynomials with
+positive coefficients.
+
+\subsection{Formal verification}
+The existence statement underlying Theorem~\ref{thm:main}, that for every \(n\ge1\) there are
+positive rate constants and totals with \(2n-1\) distinct positive steady states of the
+mass-action system \eqref{eq:network}, has been formalized and checked in Lean~4
+\cite{Lean4} with Mathlib \cite{Mathlib}. The formal statement refers to the vector field
+itself and not to a reduced equation. Section~\ref{sec:formal} states precisely what is and is
+not covered. All numerical statements in the paper are exact rational computations that are
+reproduced by a script distributed with the source.
+
+\subsection{Organization}
+Section~\ref{sec:model} parametrizes the steady states and reduces them to a scalar equation.
+Section~\ref{sec:recurrence} introduces the square-root coordinate and the recurrence.
+Section~\ref{sec:conversion} contains the conversion and the positivity theorem.
+Section~\ref{sec:assembly} assembles the steady states and proves the counting part of
+Theorem~\ref{thm:main}. Section~\ref{sec:nondeg} proves nondegeneracy, the determinant formula,
+Corollary~\ref{cor:open}, and Theorem~\ref{thm:unstable}. Section~\ref{sec:properties} records
+further properties of the constructed steady states. Section~\ref{sec:examples} gives a
+complete three-site example and the stability computations.
+Section~\ref{sec:formal} describes the formal verification, and
+Section~\ref{sec:discussion} discusses limitations and open problems.
+
+\section{Steady states of the mechanism}\label{sec:model}
+Let \(V\) be the mass-action vector field of \eqref{eq:network} on \(\R^{3n+3}\), with
+coordinates
+\[
+ (S_0,\dots,S_n,\;E,\;F,\;C_1,\dots,C_n,\;Y_1,\dots,Y_n),
+\]
+and write \(W\colon\R^{3n+3}\to\R^3\) for the linear map \eqref{eq:totals}. The totals are conserved, so \(V\)
+takes values in \(\ker W\). We shall see in Section~\ref{sec:nondeg} that \(\ker W\) is the
+stoichiometric subspace; it has dimension \(3n\). A \emph{positive steady state} is a zero of
+\(V\) with all coordinates positive.
+
+For given rate constants put
+\begin{equation}\label{eq:pq}
+ p_i=\frac{a_i}{b_i+c_i},\qquad q_i=\frac{\alpha_i}{\beta_i+\gamma_i},\qquad
+ \lambda_i=\frac{c_ip_i}{\gamma_iq_i},\qquad t_i=\prod_{k=1}^{i}\lambda_k\quad(t_0=1),
+\end{equation}
+and define three polynomials with positive coefficients,
+\begin{equation}\label{eq:coeff}
+\begin{gathered}
+ A(u)=\sum_{i=0}^n t_i u^i,\qquad
+ B(u)=\sum_{i=0}^{n-1} B_i u^i,\qquad
+ D(u)=\sum_{i=0}^{n-1} D_i u^i,\\
+ B_{i-1}=p_it_{i-1},\qquad D_{i-1}=q_it_i\qquad(1\le i\le n).
+\end{gathered}
+\end{equation}
+The letter \(D\) always denotes this polynomial; the phosphatase complexes are called \(Y_i\).
+
+\begin{proposition}\label{prop:param}
+\textup{(i)} The positive steady states of \eqref{eq:network} are exactly the points
+\begin{equation}\label{eq:states}
+\begin{aligned}
+ S_i&=t_i u^i s \quad(0\le i\le n),& E&=uf,& F&=f,\\
+ C_i&=B_{i-1}u^i sf,& Y_i&=D_{i-1}u^i sf \quad(1\le i\le n),
+\end{aligned}
+\end{equation}
+with \((u,s,f)\in\R^3_{>0}\). Their totals are
+\begin{equation}\label{eq:totalcoords}
+ \ET=uf\bigl(1+sB(u)\bigr),\qquad \FT=f\bigl(1+suD(u)\bigr),\qquad
+ \ST=sA(u)+usf\bigl(B(u)+D(u)\bigr).
+\end{equation}
+\textup{(ii)} Conversely, let \(t_0=1\) and let \(t_1,\dots,t_n\), \(B_0,\dots,B_{n-1}\),
+\(D_0,\dots,D_{n-1}\) be arbitrary positive numbers. For any positive numbers
+\(b_i,\beta_i,\gamma_i\) \((1\le i\le n)\), the rate constants
+\begin{equation}\label{eq:ratesgeneral}
+ c_i=\gamma_i\frac{D_{i-1}}{B_{i-1}},\qquad
+ a_i=(b_i+c_i)\frac{B_{i-1}}{t_{i-1}},\qquad
+ \alpha_i=(\beta_i+\gamma_i)\frac{D_{i-1}}{t_i}
+\end{equation}
+are positive and have the given numbers as their coefficients \eqref{eq:coeff}.
+\end{proposition}
+
+\begin{proof}
+The components of \(V\) for the complexes are
+\(\dot C_i=a_iS_{i-1}E-(b_i+c_i)C_i\) and \(\dot Y_i=\alpha_iS_iF-(\beta_i+\gamma_i)Y_i\). For
+\(1\le i\le n\) let
+\begin{equation}\label{eq:pools}
+ Z_i=\sum_{j=i}^n S_j+\sum_{j=i+1}^n C_j+\sum_{j=i}^n Y_j
+\end{equation}
+be the amount of substrate carrying at least \(i\) phosphate groups, where \(C_j\) is counted
+with \(j-1\) groups and \(Y_j\) with \(j\). Binding and unbinding do not change \(Z_i\), the
+kinase catalytic step at site \(i\) increases it, and the phosphatase catalytic step at site
+\(i\) decreases it; hence
+\begin{equation}\label{eq:poolcurrent}
+ \dot Z_i=c_iC_i-\gamma_iY_i .
+\end{equation}
+At a steady state, therefore, \(C_i=p_iS_{i-1}E\), \(Y_i=q_iS_iF\), and \(c_iC_i=\gamma_iY_i\),
+which gives \(S_i=\lambda_i(E/F)S_{i-1}\). With \(u=E/F\), \(s=S_0\), \(f=F\) this is
+\eqref{eq:states}. Conversely, at a point of the form \eqref{eq:states} the complex
+components of \(V\) vanish and \(c_iC_i=\gamma_iY_i\) for every \(i\). Since then
+\(a_iS_{i-1}E-b_iC_i=c_iC_i\) and \(\alpha_iS_iF-\beta_iY_i=\gamma_iY_i\), we get
+\(\dot S_i=-c_{i+1}C_{i+1}+c_iC_i-\gamma_iY_i+\gamma_{i+1}Y_{i+1}=0\) (with the convention
+that terms with index \(0\) or \(n+1\) are absent), and \(\dot E=\dot F=0\) because the
+complexes are stationary. Summation gives \eqref{eq:totalcoords}. Part (ii) is a direct
+substitution: \eqref{eq:ratesgeneral} gives \(p_i=B_{i-1}/t_{i-1}\), \(q_i=D_{i-1}/t_i\), and
+\(\lambda_i=c_ip_i/(\gamma_iq_i)=t_i/t_{i-1}\).
+\end{proof}
+
+Thus the set of positive steady states, and the number of them in each compatibility class,
+depend on the \(6n\) rate constants only through the \(3n\) coefficients of \(A,B,D\). The
+remaining \(3n\) degrees of freedom \(b_i,\beta_i,\gamma_i\) affect the dynamics, including
+stability, but not the steady states. For definiteness we shall use the normalization
+\begin{equation}\label{eq:rates}
+ \beta_i=\gamma_i=1,\qquad b_i=c_i=\frac{D_{i-1}}{B_{i-1}},\qquad
+ a_i=\frac{2D_{i-1}}{t_{i-1}},\qquad \alpha_i=\frac{2D_{i-1}}{t_i},
+\end{equation}
+which is \eqref{eq:ratesgeneral} with \(\gamma_i=\beta_i=1\) and \(b_i=c_i\).
+
+\subsection*{The scalar equation}
+Fix positive totals and put \(r=\ET/\FT\),
+\begin{equation}\label{eq:LM}
+ L(u)=B(u)-rD(u),\qquad M(u)=B(u)-uD(u).
+\end{equation}
+Dividing the first two equations of \eqref{eq:totalcoords} gives \(r-u=suL(u)\). Hence a
+positive steady state with \(u\ne r\) satisfies \((r-u)L(u)>0\), and then
+\begin{equation}\label{eq:chart}
+ s(u)=\frac{r-u}{uL(u)},\qquad
+ f(u)=\frac{\FT}{1+s(u)uD(u)}=\frac{\FT L(u)}{M(u)},
+\end{equation}
+where we used \(L+(r-u)D=M\); in particular \(M(u)=L(u)\bigl(1+suD(u)\bigr)\) is nonzero and
+has the sign of \(L(u)\). Conversely, for every \(u>0\) with \((r-u)L(u)>0\) the formulas
+\eqref{eq:chart} define positive \(s,f\) such that \eqref{eq:states} has enzyme totals
+\(\ET,\FT\). On the open set \(\mathcal U=\{u>0:(r-u)L(u)>0\}\) define
+\begin{equation}\label{eq:H}
+ H(u)=s(u)A(u)+u\,s(u)f(u)\bigl(B(u)+D(u)\bigr).
+\end{equation}
+The positive steady states with totals \((\ET,\FT,\ST)\) and \(u\ne r\) correspond bijectively
+to the solutions \(u\in\mathcal U\) of \(H(u)=\ST\). This reduction is the one used in
+\cite{WangSontag2008}; we need it only as a tool for constructing steady states and for
+computing slopes, and we take the upper bound from Theorem~\ref{thm:WS}.
+
+\section{The square-root coordinate and a positive recurrence}\label{sec:recurrence}
+
+\subsection{A locus on which the scalar equation factors}
+\begin{lemma}\label{lem:factor}
+Suppose \(A(u)=(1+u)D(u)\) and \(\ST=\ET+\FT\), and normalize \(\FT=2\), so that \(\ET=2r\) and
+\(\ST=2(r+1)\). For \(u\in\mathcal U\) put \(\ell=B(u)/D(u)-r\), \(v=r-u\), and
+\(x=\sqrt{1+8u}\). Then
+\begin{equation}\label{eq:residual}
+ H(u)-\ST=\frac{(1+u)\bigl(v(\ell+v)-2u\ell^2\bigr)}{u\,\ell\,(\ell+v)}
+ =-\frac{2(1+u)}{\ell(\ell+v)}\Bigl(\ell-\frac{2v}{x-1}\Bigr)\Bigl(\ell+\frac{2v}{x+1}\Bigr).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Since \(L=D\ell\) and \(M=D(\ell+v)\), \eqref{eq:chart} gives \(s=v/(uD\ell)\) and
+\(f=2\ell/(\ell+v)\). Therefore
+\[
+ H=\frac{(1+u)v}{u\ell}+\frac{2v(\ell+r+1)}{\ell+v},\qquad
+ H-2(r+1)=\frac{(1+u)v}{u\ell}-\frac{2\ell(r+1-v)}{\ell+v}
+ =(1+u)\Bigl(\frac{v}{u\ell}-\frac{2\ell}{\ell+v}\Bigr),
+\]
+because \(r+1-v=1+u\). This is the first expression. For the second, expand the product and
+use \(x^2-1=8u\):
+\(-2u\bigl(\ell^2-\tfrac{4v}{x^2-1}\ell-\tfrac{4v^2}{x^2-1}\bigr)=-2u\ell^2+v\ell+v^2\).
+\end{proof}
+
+On \(\mathcal U\cap\{u<r\}\) we have \(\ell,v>0\), so only the first linear factor in
+\eqref{eq:residual} can vanish. On this locus the steady-state equation is therefore
+equivalent to
+\begin{equation}\label{eq:interp}
+ \frac{B(u)}{D(u)}=r+\frac{2(r-u)}{x-1},\qquad x=\sqrt{1+8u},
+\end{equation}
+which is \eqref{eq:introinterp}. The two conditions defining the locus have a simple meaning:
+\(A=(1+u)D\) says that \(t_i=D_i+D_{i-1}\), and \(\ST=\ET+\FT\) says that there is as much
+substrate as enzyme. They are used only to find a center for the construction;
+Corollary~\ref{cor:open} removes both.
+
+\subsection{The recurrence}
+Put \(m=n-1\). Let \(x_0,\dots,x_{2m}\) be distinct real numbers greater than \(1\) and write
+\begin{equation}\label{eq:ux}
+ u(x)=\frac{x^2-1}{8},\qquad u_j=u(x_j),\qquad \Pi(x)=\prod_{j=0}^{2m}(x-x_j).
+\end{equation}
+Start with \(N=1\) and \(J=(x_0-1)/2\), and for \(k=0,\dots,m-1\), with
+\((a,b)=(x_{2k+1},x_{2k+2})\), replace \(N,J\) simultaneously by
+\begin{equation}\label{eq:recurrence}
+\begin{aligned}
+ N_{\mathrm{new}}&=\bigl[8u+(a+1)(b+1)\bigr]N+2(a+b)J,\\
+ J_{\mathrm{new}}&=4(a+b)\,uN+\bigl[8u+(a-1)(b-1)\bigr]J .
+\end{aligned}
+\end{equation}
+
+\begin{lemma}\label{lem:recurrence}
+After \(m\) steps \(N=\sum_{i=0}^m h_iu^i\) and \(J=\sum_{i=0}^m d_iu^i\) have degree \(m\),
+all coefficients \(h_i,d_i\) \((0\le i\le m)\) are positive, and
+\begin{equation}\label{eq:product}
+ (x-1)\,N(u(x))-2\,J(u(x))=\Pi(x).
+\end{equation}
+Moreover
+\begin{equation}\label{eq:leading}
+ h_m=8^m,\qquad d_m=8^m\,\frac{\sum_jx_j-1}{2},\qquad d_0=J(0)=\frac12\prod_{j}(x_j-1).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Let \(N,J\) have positive coefficients in degrees \(0,\dots,k\) and none above. The
+coefficient of \(u^i\) in \(N_{\mathrm{new}}\) is \(8h_{i-1}+(a+1)(b+1)h_i+2(a+b)d_i\) and in
+\(J_{\mathrm{new}}\) it is \(4(a+b)h_{i-1}+8d_{i-1}+(a-1)(b-1)d_i\), with \(h_{-1}=d_{-1}=
+h_{k+1}=d_{k+1}=0\). Since \(a,b>1\), both are positive for \(0\le i\le k+1\). The leading
+coefficients obey \(h\mapsto8h\) and \(d\mapsto4(a+b)h+8d\), which gives the first two
+formulas in \eqref{eq:leading}. For \eqref{eq:product}, the initial pair gives \(x-x_0\), and a
+direct expansion using \(8u=x^2-1\) shows
+\[
+ (x-1)N_{\mathrm{new}}-2J_{\mathrm{new}}
+ =\bigl[x^2-(a+b)x+ab\bigr]\bigl[(x-1)N-2J\bigr]
+\]
+at \(u=u(x)\): the coefficient of \(N\) is \((x-1)(x^2+ab+a+b)-(a+b)(x^2-1)=(x-1)(x-a)(x-b)\),
+and the coefficient of \(J\) is \(2(a+b)(x-1)-2(x^2+ab-a-b)=-2(x-a)(x-b)\). Setting \(x=1\) in
+\eqref{eq:product} gives \(d_0\).
+\end{proof}
+
+\begin{remark}\label{rem:evenodd}
+Write \(\Pi(x)=\Pi_{\mathrm e}(x^2)+x\,\Pi_{\mathrm o}(x^2)\). Replacing \(x\) by \(-x\) in
+\eqref{eq:product} and solving the two equations shows that, as functions of \(w=x^2=1+8u\),
+\begin{equation}\label{eq:evenodd}
+ N=\Pi_{\mathrm o},\qquad J=-\tfrac12\bigl(\Pi_{\mathrm e}+\Pi_{\mathrm o}\bigr).
+\end{equation}
+So \(N\) and \(J\) are determined by \eqref{eq:product} and depend only on the set
+\(\{x_j\}\), not on its ordering. The recurrence is a convenient way to compute them and to
+see that their coefficients are positive.
+\end{remark}
+
+\section{Conversion and coefficient positivity}\label{sec:conversion}
+Let \(N,J\) be as in Lemma~\ref{lem:recurrence}. For \(r>0\) write \(N_r=N(r)\), \(J_r=J(r)\)
+and define
+\begin{equation}\label{eq:conversion}
+ Q(u)=\frac{u\,J_rN(u)-r\,N_rJ(u)}{u-r},\qquad
+ D_{\raw}=4Q,\qquad
+ B_{\raw}=rD_{\raw}+(4rN_r-2J_r)N-2J_rJ .
+\end{equation}
+The numerator of \(Q\) vanishes at \(u=r\), so \(Q\) is a polynomial, of degree \(m\) with
+leading coefficient \(J_rh_m\).
+
+\begin{lemma}\label{lem:identity}
+Let \(\cs=J_r\) and \(\es=4rN_r-J_r\). Then, with \(u=u(x)\),
+\begin{equation}\label{eq:interpolation}
+ (x-1)\bigl(B_{\raw}(u)-rD_{\raw}(u)\bigr)+2(u-r)D_{\raw}(u)=(\cs x+\es)\,\Pi(x).
+\end{equation}
+In particular \eqref{eq:interp} holds for \(B_{\raw},D_{\raw}\) at every \(u_j\) with
+\(D_{\raw}(u_j)\ne0\).
+\end{lemma}
+\begin{proof}
+We have \(B_{\raw}-rD_{\raw}=(\es-\cs)N-2\cs J\) and
+\(2(u-r)D_{\raw}=8\cs uN-2(\cs+\es)J\), because \(8rN_r=2(\cs+\es)\). With \(8u=x^2-1\) the
+left side of \eqref{eq:interpolation} becomes
+\((x-1)\bigl[\es-\cs+\cs(x+1)\bigr]N-2(\cs x+\es)J=(\cs x+\es)\bigl[(x-1)N-2J\bigr]\), and
+\eqref{eq:product} applies.
+\end{proof}
+
+It remains to decide when \(D_{\raw}\) and \(B_{\raw}\) have positive coefficients. The answer
+comes from the location of the roots of \(N\) and \(J\).
+
+\begin{lemma}[Interlacing]\label{lem:interlace}
+Let \(m\ge1\). The polynomials \(N\) and \(J\) have only real, simple roots
+\(\nu_m<\dots<\nu_1\) and \(\zeta_m<\dots<\zeta_1\), and
+\begin{equation}\label{eq:interlace}
+ \nu_m<\zeta_m<\dots<\nu_2<\zeta_2<\nu_1<\zeta_1<0 ,\qquad \nu_1<-\tfrac18 .
+\end{equation}
+Consequently
+\begin{equation}\label{eq:pf}
+ \frac{N(u)}{J(u)}=\alpha+\sum_{k=1}^m\frac{\sigma_k}{u-\zeta_k},\qquad
+ \alpha=\frac{h_m}{d_m}=\frac{2}{\sum_jx_j-1}>0,\qquad \sigma_k>0 .
+\end{equation}
+\end{lemma}
+\begin{proof}
+For \(y>0\) evaluate \eqref{eq:product} at \(x=iy\), where \(u=-(1+y^2)/8\) is real and runs
+over \((-\infty,-\tfrac18)\). Each factor is \(iy-x_j=-(x_j^2+y^2)^{1/2}e^{-i\phi_j}\) with
+\(\phi_j=\arctan(y/x_j)\). The number of factors is odd, so
+\(\Pi(iy)=R\,(-\cos\theta+i\sin\theta)\) with \(R=\prod_j(x_j^2+y^2)^{1/2}>0\) and
+\(\theta(y)=\sum_j\phi_j\). Comparing real and imaginary parts in
+\((iy-1)N-2J=\Pi(iy)\) gives
+\begin{equation}\label{eq:trig}
+ N=\frac{R\sin\theta}{y},\qquad J=\frac{R}{2}\Bigl(\cos\theta-\frac{\sin\theta}{y}\Bigr).
+\end{equation}
+The function \(\theta\) increases strictly and continuously from \(0\) to \((2m+1)\pi/2\), so
+it takes each of the values \(\pi,2\pi,\dots,m\pi\) exactly once, at points
+\(y_1<\dots<y_m\). These give \(m\) distinct roots \(\nu_k=-(1+y_k^2)/8<-\tfrac18\) of \(N\),
+which are all its roots since \(\deg N=m\). By \eqref{eq:trig}, \(J(\nu_k)=(-1)^kR/2\). Hence
+\(J\) changes sign on each interval \((\nu_{k+1},\nu_k)\), and since \(J(\nu_1)<0<J(0)\) by
+\eqref{eq:leading}, also on \((\nu_1,0)\). This accounts for all \(m\) roots of \(J\) and
+proves \eqref{eq:interlace}. The roots of \(J\) are simple, so \(N/J\) has the expansion
+\eqref{eq:pf} with \(\sigma_k=N(\zeta_k)/J'(\zeta_k)\). Exactly \(k-1\) roots of \(N\) and
+exactly \(k-1\) roots of \(J\) exceed \(\zeta_k\), and both leading coefficients are positive;
+so \(N(\zeta_k)\) and \(J'(\zeta_k)\) both have sign \((-1)^{k-1}\), and \(\sigma_k>0\).
+\end{proof}
+
+For \(1\le k\le m\) let \(J_k(u)=J(u)/(u-\zeta_k)\). Since all \(\zeta_i\) are negative, \(J_k\)
+is a polynomial of degree \(m-1\) with positive coefficients, and \(J_k(r)>0\) for \(r>0\).
+
+\begin{theorem}[Coefficient positivity]\label{thm:positivity}
+\textup{(i)} For every \(r>0\), all coefficients of \(Q\) and \(D_{\raw}\) in degrees
+\(0,\dots,m\) are positive.
+
+\textup{(ii)} Let \(\rho=\sqrt{1+8r}\). If \(\rho>\max_jx_j\) and
+\(4r+\rho\ge\sum_jx_j\), then all coefficients of \(B_{\raw}\) in degrees \(0,\dots,m\) are
+positive.
+\end{theorem}
+\begin{proof}
+For \(m=0\) we have \(N=1\), \(J=d_0\), \(Q=d_0\), and \(B_{\raw}=2(1+d_0)(2r-d_0)\). Here
+\(d_0=(x_0-1)/2\), and \(\rho>x_0\) gives \(2r=(\rho^2-1)/4>(x_0-1)(x_0+1)/4>d_0\). Let
+\(m\ge1\).
+
+(i) By \eqref{eq:pf}, \(uN/J=\alpha u+\sum_k\sigma_k+\sum_k\sigma_k\zeta_k/(u-\zeta_k)\). Hence
+\[
+ Q(u)=J(u)J_r\,\frac{\frac{uN(u)}{J(u)}-\frac{rN_r}{J_r}}{u-r}
+ =J(u)J_r\Bigl(\alpha+\sum_k\frac{\sigma_k|\zeta_k|}{(u-\zeta_k)(r-\zeta_k)}\Bigr)
+ =\alpha J_r\,J(u)+\sum_{k=1}^m\sigma_k|\zeta_k|\,J_k(r)\,J_k(u).
+\]
+Every term has nonnegative coefficients and the first has positive coefficients in all
+degrees \(0,\dots,m\).
+
+(ii) From \eqref{eq:pf}, \(N=\alpha J+\sum_k\sigma_kJ_k\). Substituting this and the formula
+for \(Q\) into \(B_{\raw}=4rQ+4rN_rN-2J_r(N+J)\) and using \(J_r=(r+|\zeta_k|)J_k(r)\) gives
+\begin{equation}\label{eq:Bdecomp}
+ B_{\raw}=\alpha\Bigl[4rN_r-J_r\Bigl(\sum_jx_j+1-4r\Bigr)\Bigr]J
+ +\sum_{k=1}^m\sigma_k\Bigl[4rN_r-2J_r\Bigl(1-\frac{2r|\zeta_k|}{r+|\zeta_k|}\Bigr)\Bigr]J_k ,
+\end{equation}
+where we used \(2+2/\alpha=\sum_jx_j+1\). Evaluating \eqref{eq:product} at \(x=\rho\), where
+\(u=r\), gives \((\rho-1)N_r-2J_r=\Pi(\rho)>0\), that is,
+\begin{equation}\label{eq:Jr}
+ J_r<\tfrac12(\rho-1)N_r .
+\end{equation}
+Since \(4r=(\rho-1)(\rho+1)/2\), each bracket in the sum in \eqref{eq:Bdecomp} is at least
+\(4rN_r-2J_r>\tfrac12(\rho-1)^2N_r>0\). If \(\sum_jx_j+1-4r\le0\), the first bracket is
+positive as well. Otherwise, by \eqref{eq:Jr}, it exceeds
+\[
+ \tfrac12(\rho-1)N_r\Bigl[(\rho+1)-\Bigl(\sum_jx_j+1-4r\Bigr)\Bigr]
+ =\tfrac12(\rho-1)N_r\Bigl(4r+\rho-\sum_jx_j\Bigr)\ \ge0 .
+\]
+Thus \(B_{\raw}\) is a combination of \(J,J_1,\dots,J_m\) with positive coefficients, and \(J\)
+has positive coefficients in all degrees \(0,\dots,m\).
+\end{proof}
+
+Since the \(J_k\) have degree \(m-1\), the leading coefficient of \(B_{\raw}\) is
+\(h_m\bigl[4rN_r-J_r(\sum_jx_j+1-4r)\bigr]\), by \eqref{eq:Bdecomp}. The proof therefore shows
+that, for \(r>\max_ju_j\), the polynomial \(B_{\raw}\) has positive coefficients if and only
+if its leading coefficient is positive. The second condition in \eqref{eq:rcondition} is a
+convenient sufficient form of this, and it cannot simply be dropped: for the clustered roots
+\(x=(1.059,\,1.098,\,1.003,\,1.029,\,1.038)\) one has \(\max_ju_j\approx0.0257\), but the
+leading coefficient of \(B_{\raw}\) is negative at \(r=0.64\) and positive at \(r=0.66\), while
+\eqref{eq:rcondition} holds from \(r\approx0.675\) on.
+
+\begin{corollary}\label{cor:arith}
+For \(x_j=j+2\) \((0\le j\le 2n-2)\), so that \(u_j=(j+1)(j+3)/8\), the polynomials
+\(D_{\raw}\) and \(B_{\raw}\) have positive coefficients for every \(r>(4n^2-1)/8\).
+\end{corollary}
+\begin{proof}
+Here \(\max_jx_j=2n\) and \(\sum_jx_j=(2n-1)(n+1)\). If \(\rho>2n\), then
+\((\rho+1)^2>4n^2+4n+1>2\bigl(1+\sum_jx_j\bigr)=4n^2+2n\), and
+\((\rho+1)^2\ge2(1+\sum_jx_j)\) is the same as \(4r+\rho\ge\sum_jx_j\).
+\end{proof}
+
+\section{Common totals and the count}\label{sec:assembly}
+Fix \(r\) as in \eqref{eq:rcondition}; the two conditions there are those of
+Theorem~\ref{thm:positivity}(ii), because \(r>u_j\) if and only if \(\rho>x_j\). Normalize and
+choose the totals by
+\begin{equation}\label{eq:normalize}
+ D=\frac{D_{\raw}}{D_{\raw}(0)},\qquad B=\frac{B_{\raw}}{D_{\raw}(0)},\qquad
+ A=(1+u)D,\qquad (\ET,\FT,\ST)=(2r,\,2,\,2r+2).
+\end{equation}
+Then \(A(0)=D(0)=1\), all coefficients of \(A,B,D\) in the ranges required by \eqref{eq:coeff}
+are positive, and Proposition~\ref{prop:param}(ii) provides rate constants; with the
+normalization \eqref{eq:rates} they are rational functions of the \(x_j\) and \(r\) with
+rational coefficients. By Lemma~\ref{lem:identity}, for every \(j\),
+\begin{equation}\label{eq:ratio}
+ \frac{B(u_j)}{D(u_j)}=r+\frac{2(r-u_j)}{x_j-1}>r .
+\end{equation}
+For \(x=x_j\), \(u=u_j\) define
+\begin{equation}\label{eq:sf}
+ s=\frac{x-1}{2uD(u)},\qquad f=\frac{4}{x+1},\qquad\text{so that}\qquad E=uf=\frac{x-1}{2},
+\end{equation}
+and let \(z_j\) be the point \eqref{eq:states} with these \((u,s,f)\). It is a positive steady
+state by Proposition~\ref{prop:param}(i). Its totals are computed from \eqref{eq:totalcoords}:
+first \(suD=(x-1)/2\), so \(\FT=f(1+suD)=2\); next, by \eqref{eq:ratio},
+\(suB=\tfrac12r(x-1)+(r-u)\), so
+\[
+ \ET=uf+f\bigl(\tfrac12r(x-1)+r-u\bigr)=\tfrac12 f\,r\,(x+1)=2r ;
+\]
+finally \(sA=(1+u)(x-1)/(2u)=4(1+u)/(x+1)=(1+u)f\), that is,
+\begin{equation}\label{eq:freeinventory}
+ \sum_{i=0}^nS_i=E+F ,
+\end{equation}
+and since the bound substrate is \(\ET+\FT-E-F\), we get \(\ST=\ET+\FT=2r+2\).
+
+\begin{proof}[Proof of Theorem~\ref{thm:main} (count, prescribed ratios, rationality) and of
+Theorem~\ref{thm:threshold}]
+Given distinct \(u_j>0\), the numbers \(x_j=\sqrt{1+8u_j}\) are distinct and greater than
+\(1\). Condition \eqref{eq:rcondition} holds for all sufficiently large \(r\). For any such
+\(r\) the points \(z_0,\dots,z_{2n-2}\) are positive steady states of one and the same system
+with the same totals, and they are distinct because their ratios \(E/F=u_j\) are. By
+Theorem~\ref{thm:WS} there are no others. If all \(x_j\) are rational, take \(r\) rational;
+then \(N,J,Q,B,D\), the rate constants \eqref{eq:rates}, and the concentrations
+\eqref{eq:states} are rational. The statement about \(x_j=j+2\) is
+Corollary~\ref{cor:arith}. Nondegeneracy is proved in Section~\ref{sec:nondeg}.
+\end{proof}
+
+\begin{remark}
+(a) The map \(x\mapsto(x^2-1)/8\) is increasing on \((1,\infty)\), so lists of ratios with
+rational \(x_j\) are dense among all lists; but we do not claim that an arbitrary list of
+rational ratios \(u_j\) can be realized by rational data.
+(b) Rescaling all concentrations by \(\kappa>0\) and the bimolecular constants
+\(a_i,\alpha_i\) by \(1/\kappa\) gives the totals \(\kappa(2r,2,2r+2)\), and rescaling time
+multiplies all rate constants by a common factor; neither changes the count. The symmetry
+\(E\leftrightarrow F\), \(S_i\leftrightarrow S_{n-i}\) of \eqref{eq:network} gives examples
+with \(\FT/\ET=r\) and prescribed ratios \(F/E\).
+(c) The hypothesis \(r>\max_ju_j\) places all constructed steady states on the branch
+\(u<r\), \(L>0\) of the chart \eqref{eq:chart}.
+\end{remark}
+
+\section{Nondegeneracy, a determinant formula, and stability}\label{sec:nondeg}
+
+\subsection{Slopes}
+\begin{proposition}\label{prop:slope}
+In the construction of Section~\ref{sec:assembly}, for every \(j\),
+\begin{equation}\label{eq:slope}
+ H'(u_j)=-\frac{16\,(1+u_j)\,(\cs x_j+\es)}{(r-u_j)\,(x_j+1)^2\,D_{\raw}(u_j)}\;\Pi'(x_j),
+ \qquad \cs x_j+\es=4rN_r+(x_j-1)J_r>0 .
+\end{equation}
+In particular \(H'(u_j)\ne0\), and if \(u_0<\dots<u_{2n-2}\) then
+\(\sign H'(u_j)=(-1)^{j+1}\).
+\end{proposition}
+\begin{proof}
+By \eqref{eq:ratio}, \(u_j\) lies in \(\mathcal U\cap\{u<r\}\), where
+Lemma~\ref{lem:factor} applies. Dividing \eqref{eq:interpolation} by \((x-1)D_{\raw}(u)\)
+gives
+\[
+ g(u):=\ell-\frac{2v}{x-1}=\frac{(\cs x+\es)\,\Pi(x)}{(x-1)\,D_{\raw}(u)},
+\]
+which vanishes at \(u_j\), and \(H-\ST=G\,g\) with
+\(G=-2(1+u)\bigl(\ell+2v/(x+1)\bigr)/\bigl(\ell(\ell+v)\bigr)\). Hence
+\(H'(u_j)=G(u_j)g'(u_j)\). At \(u_j\) we have \(\ell=2v/(x-1)\), so
+\(\ell+2v/(x+1)=4vx/(x^2-1)\), \(\ell+v=v(x+1)/(x-1)\), and
+\(G(u_j)=-4(1+u)x(x-1)/\bigl(v(x+1)^2\bigr)\). Since \(\Pi(x_j)=0\) and \(dx/du=4/x\),
+\(g'(u_j)=4(\cs x+\es)\Pi'(x)/\bigl(x(x-1)D_{\raw}(u)\bigr)\). Multiplying gives
+\eqref{eq:slope}. All factors other than \(\Pi'(x_j)=\prod_{k\ne j}(x_j-x_k)\) are positive,
+and \(\Pi'(x_j)\) has sign \((-1)^{2m-j}=(-1)^j\) when the roots are ordered increasingly.
+\end{proof}
+
+\subsection{The restricted Jacobian}
+We first fix coordinates. Put \(y=(S_1,\dots,S_n,C_1,\dots,C_n,Y_1,\dots,Y_n)\) and
+\(z=(S_0,E,F)\), and order the totals as \((\ST,\ET,\FT)\). Then \(W=(W_y\;\;I_3)\) in the
+coordinates \((y,z)\), so \(\ker W\) is the graph of \(z=-W_yy\) and \(y\) is a linear
+coordinate system on it. The \(6n\) reaction vectors of \eqref{eq:network} lie in \(\ker W\)
+and span it: in the coordinates \((C,Y,Z)\) on \(\ker W\), with \(Z\) as in \eqref{eq:pools},
+a binding reaction changes only one complex coordinate, and the catalytic reactions at site
+\(i\) change \(Z_i\) and no other \(Z_k\). So \(\ker W\) is the stoichiometric subspace. Let
+\(\JS\) denote the matrix of \(DV|_{\ker W}\) in the coordinates \(y\), that is,
+\(\JS=V_{y,y}-V_{y,z}W_y\), where \(V_y\) are the \(y\)-components of \(V\). A steady state is
+nondegenerate if and only if \(\det\JS\ne0\).
+
+\begin{proposition}[Determinant formula]\label{prop:det}
+For arbitrary positive rate constants, at any positive steady state with \(u=E/F\ne r=\ET/\FT\),
+\begin{equation}\label{eq:det}
+ \det\JS=(-1)^{n+1}\Bigl(\prod_{i=1}^n(b_i+c_i)\,\alpha_i\,\gamma_i\Bigr)\,F^{\,n}\,u\,M(u)\,H'(u),
+\end{equation}
+where \(H\) is formed with the enzyme totals of that steady state. In particular the steady
+state is nondegenerate if and only if \(H'(u)\ne0\).
+\end{proposition}
+\begin{proof}
+By the Schur complement with respect to the block \(I_3\),
+\[
+ \det\JS=\det\begin{pmatrix}V_{y,y}&V_{y,z}\\ W_y&I_3\end{pmatrix}.
+\]
+Let \(g=(g_Z,g_C,g_Y)\) consist of the \(3n\) functions \(g_{Z,i}=c_iC_i-\gamma_iY_i\),
+\(g_{C,i}=\dot C_i\), \(g_{Y,i}=\dot Y_i\). By \eqref{eq:pools}--\eqref{eq:poolcurrent},
+\(g=UV_y\) for a constant unitriangular matrix \(U\), since \(g_{Z,i}\) is \(\dot S_i\) plus
+components of \(V_y\) that come later in the ordering of \(y\). Hence the first \(3n\) rows can
+be replaced by \((g_y\;\;g_z)\) without changing the determinant. In the block form belonging
+to \(y=(S;C,Y)\),
+\[
+ g_y=\begin{pmatrix}0&\ast\\ \ast&\Delta\end{pmatrix},\qquad
+ \Delta=\operatorname{diag}\bigl(-(b_i+c_i);\,-(\beta_i+\gamma_i)\bigr),
+\]
+and the Schur complement of \(\Delta\) is the Jacobian with respect to \(S_1,\dots,S_n\) of
+the reduced currents \(c_ip_iS_{i-1}E-\gamma_iq_iS_iF\). It is lower bidiagonal with diagonal
+entries \(-\gamma_iq_iF\). Therefore
+\[
+ \det g_y=\prod_i(b_i+c_i)(\beta_i+\gamma_i)\cdot(-1)^n\prod_i\gamma_iq_iF
+ =(-1)^nF^n\prod_i(b_i+c_i)\alpha_i\gamma_i\ne0 .
+\]
+In particular the zero set of \(g\) is locally the graph of a function \(y=\varphi(z)\), in
+agreement with Proposition~\ref{prop:param}, and
+\[
+ \det\begin{pmatrix}g_y&g_z\\ W_y&I_3\end{pmatrix}
+ =\det g_y\cdot\det\bigl(I_3-W_yg_y^{-1}g_z\bigr)
+ =\det g_y\cdot\det\frac{\partial(\ST,\ET,\FT)}{\partial(S_0,E,F)},
+\]
+where the last matrix is the derivative of the totals along the steady-state manifold
+\(z\mapsto(\varphi(z),z)\), because \(\varphi_z=-g_y^{-1}g_z\). We compute it in the
+coordinates \((u,s,f)=(E/F,S_0,F)\), for which
+\(\det\partial(u,s,f)/\partial(S_0,E,F)=-1/F\). From \eqref{eq:totalcoords},
+\begin{equation}\label{eq:pivot}
+ \det\frac{\partial(\ET,\FT)}{\partial(s,f)}
+ =\det\begin{pmatrix}ufB&u(1+sB)\\ fuD&1+suD\end{pmatrix}=uf\,(B-uD)=uf\,M(u)\ne0,
+\end{equation}
+so near the given steady state the enzyme totals determine \((s,f)\) as functions of \(u\),
+namely \eqref{eq:chart}, and the Schur complement of the block \eqref{eq:pivot} in
+\(\partial(\ST,\ET,\FT)/\partial(u,s,f)\) is the derivative of \(\ST\) along that curve, which
+is \(H'(u)\). Hence \(\det\partial(\ST,\ET,\FT)/\partial(u,s,f)=ufM(u)H'(u)\), and collecting
+the factors gives \eqref{eq:det}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main} (nondegeneracy)]
+Combine Propositions~\ref{prop:slope} and~\ref{prop:det}.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:open}]
+Let \(k^\circ\) and \(T^\circ\) be the rate constants and totals of Theorem~\ref{thm:main}. In
+the coordinates \(y\) on the compatibility classes, the steady-state equations are
+\(V_y(y,T-W_yy;k)=0\), a system of \(3n\) polynomial equations in \(3n\) unknowns depending
+smoothly on \((k,T)\in\R^{6n+3}_{>0}\), and its derivative in \(y\) is \(\JS\). By the
+implicit function theorem each \(z_j\) continues to a smooth family of nondegenerate positive
+steady states for \((k,T)\) in a neighborhood \(\mathcal O_j\) of \((k^\circ,T^\circ)\), and
+after shrinking the \(\mathcal O_j\) the continued states remain pairwise distinct. On
+\(\bigcap_j\mathcal O_j\) there are at least \(2n-1\) positive steady states, all
+nondegenerate, and by Theorem~\ref{thm:WS} there are no more. The perturbed parameters need
+not satisfy \(A=(1+u)D\) or \(\ST=\ET+\FT\).
+\end{proof}
+
+\begin{corollary}\label{cor:unstablegeneral}
+For arbitrary positive rate constants, a positive steady state with \(u\ne r\) and
+\((r-u)H'(u)>0\) is unstable; more precisely \(\JS\) has an odd number of positive real
+eigenvalues. If \((r-u)H'(u)<0\), this number is even.
+\end{corollary}
+\begin{proof}
+When \(\det\JS\ne0\), its sign is \((-1)^{e_-}\), where \(e_-\) is the number of negative
+real eigenvalues counted with multiplicity, because nonreal eigenvalues come in conjugate
+pairs. For the same reason \(3n-e_-\) has the parity of the number \(e_+\) of positive real
+eigenvalues. So \(\sign\det\JS=(-1)^{n}(-1)^{e_+}\). By
+\eqref{eq:det} and since \(M(u)\) has the sign of \(L(u)\), hence of \(r-u\), we also have
+\(\sign\det\JS=(-1)^{n+1}\sign\bigl((r-u)H'(u)\bigr)\).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:unstable}]
+All constructed steady states have \(u_j<r\), and \(\sign H'(u_j)=(-1)^{j+1}\) by
+Proposition~\ref{prop:slope}. Apply Corollary~\ref{cor:unstablegeneral}.
+\end{proof}
+
+Corollary~\ref{cor:unstablegeneral} is the form taken, for this network, by the general
+principle that the signs of \(\det(-\JS)\) at the nondegenerate steady states of a dissipative
+network without boundary steady states add up to one \cite{CFMW2017}; here it is obtained by
+direct computation, together with the exact value of the determinant. It does not decide the
+stability of the even-indexed steady states, which depends on the \(3n\) kinetic parameters
+that do not enter the steady-state equations.
+
+\section{Further properties of the constructed steady states}\label{sec:properties}
+The formulas of Section~\ref{sec:assembly} give closed expressions for several quantities of
+biochemical interest. We use the normalization \eqref{eq:rates} and order the ratios
+increasingly.
+
+\begin{proposition}\label{prop:properties}
+At the constructed steady state with auxiliary coordinate \(x=x_j\):
+\begin{enumerate}
+\item[\textup{(i)}] \(E=(x-1)/2\), \(F=4/(x+1)\), and the total free substrate equals \(E+F\).
+The fractions of kinase and phosphatase bound in complexes are \(1-(x-1)/(4r)\) and
+\(1-2/(x+1)\).
+\item[\textup{(ii)}] The fully phosphorylated substrate is
+\(S_n=\tfrac12D_{n-1}\,(x-1)\,u^{n-1}/D(u)\), and \(S_n+Y_n=S_n\,(x+5)/(x+1)\). Both are
+strictly increasing functions of \(j\).
+\item[\textup{(iii)}] The total phosphorylation flux is
+\(\sum_ic_iC_i=\sum_i\gamma_iY_i=2(x-1)/(x+1)\), which is strictly increasing in \(j\).
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(i) is \eqref{eq:sf}, \eqref{eq:freeinventory}, and \(\sum C_i=\ET-E\), \(\sum Y_i=\FT-F\).
+(ii) Since \(A=(1+u)D\), \(t_n=D_{n-1}\), so \(S_n=t_nu^ns\) and \eqref{eq:sf} give the first
+formula, and \(Y_n=D_{n-1}u^nsf=fS_n\) gives the second. The function
+\(D(u)/u^{n-1}=\sum_iD_iu^{i-(n-1)}\) is nonincreasing, \(x-1\) is increasing, and
+\((x-1)(x+5)/(x+1)=x+3-8/(x+1)\) is increasing. (iii) With \(\gamma_i=1\) the flux is
+\(\sum Y_i=2-F\).
+\end{proof}
+
+So the \(2n-1\) steady states are distinguished by an output that is commonly measured, the
+amount of fully phosphorylated substrate, and they are ordered in the same way by that
+output, by the free-enzyme ratio, and by the rate at which phosphate is turned over. The
+steady states are not thermodynamic equilibria: opposing catalytic currents are positive and
+equal, and in a model with explicit ATP the flux in (iii) would be the rate of ATP
+consumption needed to hold the state. By (i), in these examples the amount of enzyme equals
+the amount of substrate and most of the kinase is bound; they are far from the
+substrate-excess regime in which Michaelis--Menten reductions apply.
+
+\begin{remark}[Large \(r\)]\label{rem:larger}
+For fixed \(x_j\) and \(r\to\infty\), the coefficient formulas of Appendix~\ref{app:bound}
+give \(D\to J/d_0\) and \(B/r\to(J+N)/d_0\) coefficientwise. Hence \(a_i\) and \(\alpha_i\)
+converge to positive limits, while \(b_i=c_i\) is asymptotic to
+\(r^{-1}d_{i-1}/(d_{i-1}+h_{i-1})\). Increasing the kinase excess therefore slows the kinase
+catalytic step relative to the phosphatase in these examples, and the free concentrations and
+the slopes \eqref{eq:slope} have finite nonzero limits.
+\end{remark}
+
+\section{Examples and exact stability computations}\label{sec:examples}
+
+\subsection{A three-site example}
+Let \(n=3\) and \((x_0,\dots,x_4)=(2,3,4,5,6)\), so that the prescribed ratios are
+\(u_j=\tfrac38,1,\tfrac{15}8,3,\tfrac{35}8\). The recurrence gives
+\[
+ N=1200+1256u+64u^2,\qquad J=60+1852u+608u^2 .
+\]
+By Corollary~\ref{cor:arith} every \(r>35/8\) is admissible. For \(r=5\) we obtain
+\begin{equation}\label{eq:example}
+ D=1+\frac{69002}{3405}u+\frac{9808}{3405}u^2,\qquad
+ B=\frac{34797}{454}+\frac{308833}{2270}u+\frac{5236}{1135}u^2,\qquad A=(1+u)D,
+\end{equation}
+the totals \((\ET,\FT,\ST)=(10,2,12)\), and the rate constants of Table~\ref{tab:rates}. The
+five steady states are listed in Table~\ref{tab:states}; all twelve concentrations of each are
+rational numbers given by \eqref{eq:states} and \eqref{eq:sf}, for instance
+\(E=\tfrac12,1,\tfrac32,2,\tfrac52\) and \(F=\tfrac43,1,\tfrac45,\tfrac23,\tfrac47\).
+Figure~\ref{fig:residual}(a) shows the function \(H-\ST\).
+
+\begin{table}[ht]
+\centering
+\caption{Rate constants of the three-site example \((r=5)\).}\label{tab:rates}
+\begin{tabular}{ccccc}
+\toprule
+Site \(i\) & \(a_i\) & \(b_i=c_i\) & \(\alpha_i\) & \(\beta_i=\gamma_i\)\\
+\midrule
+1 & \(2\) & \(454/34797\) & \(6810/72407\) & \(1\)\\
+2 & \(138004/72407\) & \(138004/926499\) & \(69002/39405\) & \(1\)\\
+3 & \(9808/39405\) & \(2452/3927\) & \(2\) & \(1\)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{The five positive steady states of the three-site example. Decimal entries are
+rounded values of exact rational numbers. The last column is the number of eigenvalues of
+\(\JS\) in the open right half-plane, obtained from an exact Routh array; no eigenvalue lies
+on the imaginary axis.}\label{tab:states}
+\begin{tabular}{cccccccc}
+\toprule
+\(j\) & \(u=E/F\) & \(E\) & \(F\) & \(S_3\) & \(S_3+Y_3\) & \(H'(u_j)\) & unstable\\
+\midrule
+0 & \(3/8\) & \(1/2\) & \(4/3\) & \(0.02249\) & \(0.05248\) & \(-0.13324\) & 0\\
+1 & \(1\) & \(1\) & \(1\) & \(0.11930\) & \(0.23859\) & \(\phantom{-}0.01315\) & 1\\
+2 & \(15/8\) & \(3/2\) & \(4/5\) & \(0.30922\) & \(0.55660\) & \(-0.00561\) & 0\\
+3 & \(3\) & \(2\) & \(2/3\) & \(0.59107\) & \(0.98512\) & \(\phantom{-}0.00780\) & 1\\
+4 & \(35/8\) & \(5/2\) & \(4/7\) & \(0.95195\) & \(1.49591\) & \(-0.06498\) & 0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/residuals.pdf}
+\caption{The scalar function \(H(u)-\ST\) on the branch \(u<r\) for the family \(x_j=j+2\):
+(a) \(n=3\), \(r=5\); (b) \(n=5\), \(r=13\). The vertical axis is
+\(\operatorname{arcsinh}\) of the rescaled residual, labelled by the residual itself. Filled
+markers are asymptotically stable steady states, open markers are saddles
+(Proposition~\ref{prop:census}). The curves are drawn from exact rational evaluations; the
+count is certified by the formulas, not by the plot.}\label{fig:residual}
+\end{figure}
+
+Nondegeneracy guarantees that the count persists under small perturbations but gives no size
+for the neighborhood. The following statement, for one parameter direction, is an example of
+what can be certified by exact evaluation.
+
+\begin{proposition}\label{prop:window}
+With the rate constants of Table~\ref{tab:rates} and \((\ET,\FT)=(10,2)\), the system has
+exactly five positive steady states for every \(\ST\in[12-\tfrac1{500},\,12+\tfrac1{500}]\).
+\end{proposition}
+\begin{proof}
+Here \(L=B-5D\) has a negative leading coefficient and \(L(0),L(5)>0\), so \(L>0\) on
+\([0,5]\) by concavity, and \(H\) is continuous on \((0,5)\). Exact evaluation at
+\(u=\tfrac1{20},\tfrac{69}{128},\tfrac{4327}{3200},\tfrac{7917}{3200},\tfrac{6373}{1600},
+\tfrac{399}{80}\) gives values of \(H-12\) that alternate in sign, starting with a positive
+one, and all exceed \(\tfrac1{500}\) in absolute value (approximately
+\(1.02,\,-0.0080,\,0.0021,\,-0.0021,\,0.0092,\,-2.6\)). The intermediate value theorem gives five
+solutions of \(H(u)=\ST\) in \((0,5)\), hence five positive steady states, and
+Theorem~\ref{thm:WS} excludes a sixth.
+\end{proof}
+
+The window is narrow, about \(0.03\%\) of \(\ST\), because the three interior extrema of
+\(H-\ST\) are small. Correspondingly the relative sensitivities
+\(|d\log u/d\log\ST|=\ST/(u|H'(u)|)\) at the five steady states are approximately
+\(240,\,913,\,1140,\,513,\,42\), and the leading eigenvalues of \(\JS\), computed in floating
+point, are of order \(10^{-4}\) (approximately \(-5.8\times10^{-4}\), \(8.8\times10^{-5}\),
+\(-4.5\times10^{-5}\), \(5.8\times10^{-5}\), \(-1.9\times10^{-4}\)) while the remaining
+eigenvalues are of order \(10^{-1}\) to \(1\). The example is a certified benchmark with exact
+data; it is not tuned for wide separation of the steady states, and we have not tried to
+optimize the \(x_j\), \(r\), or the \(3n\) free kinetic parameters for that purpose.
+
+\subsection{Stability for \texorpdfstring{\(n\le10\)}{n at most 10}}
+\begin{proposition}[Computer-assisted]\label{prop:census}
+Let \(1\le n\le10\), \(x_j=j+2\), \(r=\lfloor(4n^2-1)/8\rfloor+1\), and let the rate constants
+be given by \eqref{eq:normalize} and \eqref{eq:rates}. Then the \(n\) steady states
+\(z_0,z_2,\dots,z_{2n-2}\) are asymptotically stable within their compatibility class: all
+\(3n\) eigenvalues of \(\JS\) have negative real part. At each of the \(n-1\) steady states
+\(z_1,z_3,\dots,z_{2n-3}\), exactly one eigenvalue of \(\JS\) has positive real part and none
+lies on the imaginary axis.
+\end{proposition}
+\begin{proof}
+For each of the \(100\) steady states the matrix \(\JS\) is rational. Its characteristic
+polynomial was computed exactly by the Faddeev--LeVerrier recursion in integer arithmetic,
+with the Cayley--Hamilton identity as a check, and the Routh array \cite[Ch.~XV]{Gantmacher}
+was formed in rational arithmetic. In every case all \(3n+1\) entries of the first column are
+nonzero, so the array is regular, there are no eigenvalues on the imaginary axis, and the
+number of sign changes in the first column is the number of eigenvalues in the open right
+half-plane. It is \(0\) for even \(j\) and \(1\) for odd \(j\).
+\end{proof}
+
+For \(n=3\) and \(n=4\), examples with \(2n-1\) steady states were first given in
+\cite{FHC2014}. The numbers of right half-plane eigenvalues in Proposition~\ref{prop:census}
+agree with the parities required by Theorem~\ref{thm:unstable}.
+
+\begin{conjecture}\label{conj:stable}
+For every \(n\ge1\) there are rate constants and totals for which \eqref{eq:network} has
+\(2n-1\) positive steady states of which \(n\) are asymptotically stable. More specifically,
+the conclusion of Proposition~\ref{prop:census} holds for all \(n\).
+\end{conjecture}
+
+\section{Formal verification and reproducibility}\label{sec:formal}
+The lower bound has been formalized in Lean~4 \cite{Lean4} using Mathlib \cite{Mathlib}. The
+development defines the state space, the six rate constants per site, the mass-action vector
+field of \eqref{eq:network} componentwise, and the three totals, and proves
+\begin{quote}
+\texttt{theorem PhosphorylationSharpness.sharp\_lower\_bound}\\
+\texttt{\ \ \ \ (n :\ $\mathbb N$) (hn :\ 1 $\le$ n) :\ Attains n (2*n-1)}
+\end{quote}
+where \texttt{Attains n k} states that there exist positive rate constants, positive totals
+\(\ET,\FT,\ST\), and an injective family of \(k\) states, each with all coordinates positive,
+at which every component of the vector field vanishes and the three totals take the given
+values. The statement thus concerns the full system of \(3n+3\) equations and contains no
+reduced equation, root count, or numerical input. The proof follows
+Sections~\ref{sec:model}--\ref{sec:assembly} for the family \(x_j=j+2\), with one difference:
+positivity of the coefficients of \(D_{\raw}\) and \(B_{\raw}\) is proved for all sufficiently
+large \(r\) by the elementary coefficient estimate of Appendix~\ref{app:bound}, in the form of
+a limit as \(r\to\infty\), and not by Theorem~\ref{thm:positivity}. It uses raw rather than
+normalized coefficients; multiplying \(A,B,D\) by a positive constant and dividing \(s\) by it
+changes neither the rate constants \eqref{eq:ratesgeneral} nor the concentrations
+\eqref{eq:states}. The five modules (\texttt{Recurrence}, \texttt{Conversion},
+\texttt{Source}, \texttt{Assembly}, \texttt{Resolution}; about 580 lines) compile without
+warnings under Lean \texttt{v4.30.0} with warnings treated as errors, and the theorem depends
+only on the axioms \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}. A
+further module, \texttt{PublicationAlgebra}, verifies the recurrence identity
+\eqref{eq:product} and coefficient positivity for arbitrary lists of roots greater than one,
+the determinant identity \eqref{eq:pivot}, the factorization \eqref{eq:residual} of the
+numerator, and the sign of the prefactor in \eqref{eq:slope}.
+
+The following parts of the paper are proved only in the conventional way and are not covered
+by the formal development: the upper bound (Theorem~\ref{thm:WS}, quoted from
+\cite{WangSontag2008}), arbitrary prescribed ratios and rationality in
+Theorem~\ref{thm:main}, the interlacing lemma and Theorem~\ref{thm:positivity}, the slope and
+determinant formulas, Corollary~\ref{cor:open}, and Theorem~\ref{thm:unstable}.
+Propositions~\ref{prop:window} and~\ref{prop:census} are exact computations that are not
+formalized.
+
+{\sloppy The source package of this paper contains the Lean modules and a Python script,
+\texttt{check\_paper.py}, which uses only the standard library and rational arithmetic. It
+reconstructs the examples for \(n\le8\) for the family \(x_j=j+2\) and checks, for all \(64\)
+steady states, that the vector field vanishes, that the totals agree, and that the slope
+formula \eqref{eq:slope} holds; it checks Lemma~\ref{lem:interlace} by Sturm sequences and
+Theorem~\ref{thm:positivity} at the boundary of the admissible range on several hundred
+random root configurations; it checks the determinant formula \eqref{eq:det} exactly for the
+constructed steady states with \(n\le4\) and at random steady states of random rate
+constants; and it reproduces every number in Section~\ref{sec:examples}, including
+Proposition~\ref{prop:census} (for \(n\le6\) by default, and for \(n\le10\) when run with
+the option \texttt{-{}-full}). These computations test the exposition and the implementation. The proofs
+above do not depend on them, with the exception of Propositions~\ref{prop:window}
+and~\ref{prop:census}.\par}
+
+\section{Discussion and open problems}\label{sec:discussion}
+The maximal number of positive steady states of the sequential distributive \(n\)-site
+phosphorylation cycle is \(2n-1\) for every \(n\), it is attained on an open set of
+parameters, and the locations of the steady states on the axis of the free-enzyme ratio can
+be prescribed arbitrarily. The proof is constructive and produces rational examples of any
+size in \(O(n^2)\) arithmetic operations.
+
+The construction has clear limitations, and we list the questions they suggest.
+
+\emph{Stability.} We prove that \(n-1\) of the constructed steady states are unstable and
+verify for \(n\le10\) that the other \(n\) are stable. A proof of
+Conjecture~\ref{conj:stable} would require control of all \(3n\) eigenvalues. The kinetic
+parameters \(b_i,\beta_i,\gamma_i\) of Proposition~\ref{prop:param}(ii) do not affect the
+steady states and may be chosen to help, for instance in a limit of fast binding, where the
+dynamics reduces to the \(n\) slow variables \(Z_i\) of \eqref{eq:pools}. The argument of
+\cite{FRW2020} relies on a regime that cannot contain more than \(2\lfloor n/2\rfloor+1\)
+steady states, so a different reduction is needed.
+
+\emph{Enzyme levels.} In our examples \(\ST=\ET+\FT\), and the ratio \(\ET/\FT=r\) allowed by
+\eqref{eq:rcondition} is large: of order \(n^2\) for equally spaced \(x_j\), and about
+\(n/2\) when the \(x_j\) cluster near \(1\). Wang and Sontag showed that, generically, there are at
+most \(n+1\) steady states when the enzymes are scarce relative to the substrate, and only
+one when they are in large excess \cite[Theorems~4 and~5]{WangSontag2008}. It would be interesting to know how small the ratios \(\ET/\ST\)
+and \(\FT/\ST\) can be in a system with \(2n-1\) steady states, and whether the enzyme totals
+can be comparable to each other.
+
+\emph{Size of the region.} Corollary~\ref{cor:open} gives an open set without an estimate of
+its size, and Proposition~\ref{prop:window} shows that in the example it is small in at least
+one direction. The descriptions of multistationarity regions in
+\cite{CFMW2017,BihanDickensteinGiaroli2020,GRPD2019,FKdWY2022} are explicit but concern fewer
+steady states. A quantitative description of the region with \(2n-1\) steady states, even
+for \(n=3\), is open. The freedom in the choice of the \(x_j\) and of \(r\) can presumably be
+used to enlarge it.
+
+\emph{Other mechanisms.} The method uses two features of \eqref{eq:network}: the monomial
+parametrization of the steady states, and a parameter locus on which the scalar steady-state
+equation factors after a quadratic change of variable. It is natural to ask whether a
+similar locus exists for related networks, such as cycles with several kinases or
+phosphatases, mixed processive--distributive mechanisms, or cascades, for which sharp bounds
+are not known.
+
+\appendix
+\section{An elementary positivity bound}\label{app:bound}
+The following estimate gives the positivity of \(D_{\raw}\) and \(B_{\raw}\) for large \(r\)
+without the interlacing lemma. It is the route taken in the formal proof. Let
+\(A_\Sigma=\sum_ih_i\), \(D_\Sigma=\sum_id_i\), \(d_\ast=\min_id_i\), and \(\eta=h_m\).
+
+\begin{lemma}\label{lem:crude}
+If
+\begin{equation}\label{eq:rbound}
+ r>\max\Bigl\{1,\ \frac{4A_\Sigma D_\Sigma}{\eta d_\ast},\
+ \frac{2D_\Sigma(A_\Sigma+D_\Sigma)}{\eta d_\ast}\Bigr\},
+\end{equation}
+then \(Q\), \(D_{\raw}\), \(B_{\raw}\) have positive coefficients in degrees \(0,\dots,m\).
+\end{lemma}
+\begin{proof}
+Write \(Q=\sum_iq_iu^i\). Comparing coefficients in \((u-r)Q=uJ_rN-rN_rJ\) gives
+\(q_0=N_rd_0\) and \(q_i=N_rd_i+(q_{i-1}-J_rh_{i-1})/r\), hence
+\begin{equation}\label{eq:qformula}
+ q_i=N_rd_i+\sum_{k<i}r^{k-i}\bigl(N_rd_k-J_rh_k\bigr).
+\end{equation}
+Since \(r>1\), \(\eta r^m\le N_r\le A_\Sigma r^m\) and \(J_r\le D_\Sigma r^m\), and
+\(r^{k-i}\le r^{-1}\) for \(k<i\). So the sum in \eqref{eq:qformula} is at most
+\(r^{-1}(N_rD_\Sigma+J_rA_\Sigma)\le2A_\Sigma D_\Sigma r^{m-1}\) in absolute value, and the
+first bound in \eqref{eq:rbound} gives \(q_i>\tfrac12\eta d_\ast r^m\). The coefficient of
+\(u^i\) in \(B_{\raw}\) is
+\(4rq_i+4rN_rh_i-2J_r(h_i+d_i)>2\eta d_\ast r^{m+1}-2D_\Sigma(A_\Sigma+D_\Sigma)r^m>0\) by
+the second bound.
+\end{proof}
+
+The individual terms in \eqref{eq:qformula} can be negative, so positivity of \(Q\) is not
+visible term by term; Theorem~\ref{thm:positivity}(i) shows that the sum is nevertheless
+positive for every \(r>0\). For the three-site example the right side of \eqref{eq:rbound} is
+\(6615\), whereas Theorem~\ref{thm:threshold} admits every \(r>35/8\). Formula
+\eqref{eq:qformula} also gives the limits used in Remark~\ref{rem:larger}:
+\(q_i/r^m\to\eta d_i\) and \((B_{\raw})_i/r^{m+1}\to4\eta(d_i+h_i)\), while
+\(D_{\raw}(0)=4N_rd_0\).
+
+\bibliographystyle{abbrv}
+\bibliography{refs}
+\end{document}

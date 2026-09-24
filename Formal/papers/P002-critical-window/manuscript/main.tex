@@ -1,0 +1,782 @@
+%% A Nontrivial Critical Window for RAF Emergence in the Binary Polymer Model
+%% arXiv submission source.
+%% Build: pdflatex main; bibtex main; pdflatex main; pdflatex main
+%% (or run build.ps1 in this folder).
+%%
+%% Editable source of truth for the arXiv version lives in
+%%   problem_workspaces/RAF_hordijk_steel_corrected_threshold/publication/arxiv/
+%% The compiled PDF is copied to key_results/RAFs/.
+\documentclass[11pt,reqno]{amsart}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs,array,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+%% Breakable typewriter identifiers for Lean names: \lean{Foo.bar_baz}
+%% typesets in typewriter and allows line breaks after each '.' and '_'.
+%% (Raw underscores are permitted inside the argument.)
+\makeatletter
+\let\lean@us=_
+\let\lean@end\relax
+\DeclareRobustCommand{\lean}[1]{\begingroup\ttfamily\lean@scan#1\lean@end}
+\def\lean@scan#1{\ifx#1\lean@end\endgroup\else\lean@char{#1}\expandafter\lean@scan\fi}
+\def\lean@char#1{\ifx#1\lean@us\char`\_\allowbreak\else\ifx#1.\char`\.\allowbreak\else#1\fi\fi}
+\makeatother
+\usepackage[hidelinks]{hyperref}
+
+%% ---------------------------------------------------------------
+%% Author metadata: fill in before submission.
+%% ---------------------------------------------------------------
+\newcommand{\PaperAuthor}{Author name to be inserted}
+\newcommand{\PaperAffiliation}{Affiliation to be inserted}
+\newcommand{\PaperEmail}{email to be inserted}
+\newcommand{\RepoURL}{[repository URL to be inserted]}
+
+\lstdefinelanguage{Lean}{
+  morekeywords={theorem,def,noncomputable,structure,inductive,namespace,end,import,by,intro,exact,constructor,fun,open,scoped},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]",
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  frame=single,
+  framerule=0.3pt,
+  xleftmargin=1em,
+  xrightmargin=1em,
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Ex}{\mathbb{E}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\Xinf}{X_\infty}
+\newcommand{\clam}{a_\lambda}
+\DeclareMathOperator{\clamp}{clamp}
+
+\title[A nontrivial critical window for RAF emergence]{A nontrivial critical window for RAF emergence in the binary polymer model}
+\author{\PaperAuthor}
+\address{\PaperAffiliation}
+\email{\PaperEmail}
+\date{September 2026}
+
+\subjclass[2020]{Primary 60K35; Secondary 92E20, 05C80, 68V20}
+\keywords{Autocatalytic sets; RAF theory; binary polymer model; reversible reaction closure; critical window; product measure; Peierls contour; Lean 4; formal verification}
+
+\begin{document}
+
+\begin{abstract}
+We determine the limiting probability that a reflexively autocatalytic and food-generated (RAF) reaction set exists in the uniform reversible binary-polymer model. Molecules are the nonempty binary words of length at most $n$, the food set consists of the monomers and dimers, reactions are indexed by product word and split position, and every molecule--reaction catalysis coordinate is present independently with probability $p_n$. Let $f_n=p_n|\cR_n|$ be the mean number of reactions catalyzed by one molecule. If $f_n/n\to\lambda\in(0,\infty)$, then the RAF probability converges to
+\[
+\Theta(\lambda)=S\bigl(1-e^{-\lambda}\bigr),
+\]
+where $S(a)$ is the probability that the reaction closure of the food set in an infinite i.i.d.\ reversible reaction field of openness $a$ is unbounded. We prove that $0<\Theta(\lambda)\le 1-e^{-36\lambda}<1$ for every $\lambda>0$, that $\Theta$ is nondecreasing and continuous, and that $\Theta(\lambda)\to0$ as $\lambda\downarrow0$ and $\Theta(\lambda)\to1$ as $\lambda\to\infty$. Consequently no finite positive constant separates limiting probability zero from limiting probability one inside the linear scaling window, contrary to a conjecture of Hordijk and Steel; the sublinear and superlinear regimes are recovered as corollaries.
+
+The proof combines an exact distributional reduction of catalytic pruning histories, a Peierls-type contour estimate on binary-word geometry that amplifies a fixed finite seed to nearly full molecular mass uniformly in $n$, a record-word argument showing that an unbounded infinite closure almost surely contains every finite word at the same parameter, and a uniform finite-seed approximation of the survival probability which yields continuity of $S$. The complete argument, including the geometric appendix, is formalized and machine-checked in Lean~4 over Mathlib.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+Collectively autocatalytic sets were proposed by Kauffman \cite{kauffman1986autocatalytic,kauffman1993origins}, following Eigen's hypercycle \cite{eigen1971selforganization}, as a route by which a random chemistry could bootstrap a self-sustaining metabolism without any single self-replicating molecule. Their modern combinatorial formalization is the notion of a \emph{reflexively autocatalytic and food-generated} set, or RAF, introduced by Steel \cite{steel2000emergence} and developed with Hordijk \cite{hordijk2004detecting,hordijk2015algorithms,hordijk2017chasing,steel2019autocatalytic}. A RAF is a nonempty family of reactions which can generate all of its required molecules from an ambient food set and can obtain a catalyst for every reaction from the resulting closure. The two requirements express a form of collective self-support; they impose no order in which catalysts must first be synthesized, and mutual catalytic dependence is permitted. Related but distinct notions of autocatalytic sets appear in the evolutionary graph models of Jain and Krishna \cite{jain1998autocatalytic}; see \cite{hordijk2010origin,hordijk2018basis} for surveys.
+
+The binary polymer model \cite{kauffman1986autocatalytic,steel2000emergence,hordijk2004detecting} provides a finite setting in which molecular diversity, reaction geometry, and random catalysis can be varied independently. Molecules are binary strings of length at most $n$, reactions are ligations and their reverse cleavages, and each molecule catalyzes each reaction independently with a probability tuned so that a molecule catalyzes on average $f_n$ reactions. Mossel and Steel \cite{mossel2005random} identified linear growth of $f_n$ in $n$ as the relevant scale for RAF occurrence, and Hordijk, Kauffman and Steel \cite{hordijk2011required} confirmed that scale in simulations across several model variants. Simulations of the model exhibit a steep rise in the finite-$n$ RAF probability within a narrow range of $f_n/n$. Motivated by this, Hordijk and Steel \cite[Eq.~(21)]{hordijk2016variable} proposed a sharper conjecture: there should exist a finite constant $\gamma>0$ such that, when $f_n\sim\lambda n$, the RAF probability tends to $0$ for $\lambda<\gamma$ and to $1$ for $\lambda>\gamma$.
+
+This paper gives an exact replacement law. In the fixed-food, uniform, reversible binary-polymer model with split-position reaction identities, the RAF probability converges at every positive intensity, and the limit is a continuous, nondecreasing function
+\[
+\Theta(\lambda)=S(1-e^{-\lambda})
+\]
+that takes values strictly between zero and one at every finite $\lambda>0$. The function $S$ is the survival probability of a natural infinite reversible reaction-closure process. Thus the entire linear scale $f_n\asymp n$ is a nontrivial critical window, and the finite step conjecture fails on both of its branches. The result does not contradict the simulation observations that motivated the conjecture: a continuous limiting law is compatible with a steep onset at finite $n$. What the theorem rules out is the asymptotic step-law interpretation of those observations.
+
+\subsection*{Why the limit is nontrivial}
+Two elementary facts already show that neither limiting value can be trivial. First, a RAF must contain a reaction that can fire directly from food. With food fixed as the monomers and dimers, there are only $36$ such gateway reaction identities, so the mean number of catalytic opportunities at the entrance stays bounded by $36\lambda$ as $n\to\infty$, and the probability that all of them are absent stays bounded away from zero (Proposition~\ref{prop:gateway}). Second, once the closure has escaped the food boundary, the exponentially growing bulk of the polymer universe offers so many alternative reaction paths that an infinite closure survives with positive probability at every positive effective openness (Section~\ref{sec:amplification}). Neither fact by itself identifies the limit. The difficulty is that a RAF must retain its own catalysts: catalysts available in the ambient universe may disappear during the pruning that defines the maximal RAF. The proof bridges this gap through complete decreasing-pool pruning histories, whose joint laws admit an exact cardinality replacement (Lemma~\ref{lem:cardinality}), and through a finite-seed approximation of infinite survival that is uniform in the parameter (Theorem~\ref{thm:uniform-approx}).
+
+\subsection*{Organization}
+Section~\ref{sec:model} fixes the model and states the main theorem. Section~\ref{sec:infinite} introduces the infinite reversible closure process and the survival function $S$. Section~\ref{sec:gateway} proves the gateway ceiling. Section~\ref{sec:histories} proves the exact law of catalytic pruning histories, and Section~\ref{sec:barrier} converts it into a static mass barrier that produces a literal RAF. Section~\ref{sec:amplification} proves that a fixed rich seed amplifies to nearly full molecular mass uniformly in $n$, using a contour estimate whose geometric ingredients are proved in Appendix~\ref{app:geometry}. Section~\ref{sec:richness} proves that an unbounded infinite closure almost surely contains every word, and Section~\ref{sec:continuity} derives the uniform finite-seed approximation and continuity of $S$. Section~\ref{sec:proof} assembles the proof of the main theorem. Section~\ref{sec:discussion} discusses consequences, scope, and open questions. Appendix~\ref{app:lean} describes the Lean~4 formalization and gives a concordance between the numbered results and the formal declarations.
+
+\subsection*{Scope}
+All probability statements use independent molecule--reaction catalysis, with a single catalysis coordinate shared between the two directions of each split-position reaction. The results concern structural RAF existence; they make no claim about reaction rates, concentrations, inhibition, or kinetic persistence.
+
+\section{Model and main theorem}\label{sec:model}
+
+\subsection{Molecules, reactions and food}
+For $n\ge1$ let
+\[
+X_n=\bigcup_{j=1}^{n}\{0,1\}^{j}
+\]
+be the set of nonempty binary words of length at most $n$, and let $F=X_2$ be the food set, consisting of the two monomers and four dimers. A \emph{reaction} is a pair $(w,i)$ with $w\in X_n$ and $1\le i<|w|$. Writing $w=uv$ with $|u|=i$, the reaction represents the reversible transformation $u+v\leftrightarrow w$: ligation of $u$ and $v$ to $w$, and cleavage of $w$ into $u$ and $v$. Split positions are distinct reaction identities, even when the unordered reactant multisets coincide after forgetting the position. Let $\cR_n$ denote the set of reactions. For $n\ge2$,
+\begin{equation}\label{eq:counts}
+U_n:=|X_n|=2^{n+1}-2,\qquad R_n:=|\cR_n|=\sum_{\ell=2}^{n}(\ell-1)2^{\ell}=(n-2)2^{n+1}+4.
+\end{equation}
+For $n=5$ these give $U_5=62$ and $R_5=196$, matching the model sizes reported in \cite{hordijk2016variable}.
+
+\subsection{Random catalysis}
+For every pair $(x,r)\in X_n\times\cR_n$, independently set $C(x,r)=1$ with probability $p_n$ and $C(x,r)=0$ otherwise. Both directions of a reaction use the same coordinate. The expected number of reactions catalyzed by a molecule is $f_n=p_nR_n$. The food set is deterministic and remains fixed as $n$ increases.
+
+To parametrize by intensity, for real $v$ let
+\begin{equation}\label{eq:clamp}
+p_n(v)=\clamp\Bigl(\frac{vn}{R_n}\Bigr),\qquad \clamp(x)=\min(1,\max(0,x)),
+\end{equation}
+and write $\Prob_{n,v}$ for the product law with $p_n=p_n(v)$. Thus $v=f_n/n$ whenever $0\le vn/R_n\le1$; the clamp only serves to define a measure for every $n$ and every real $v$, and Lemma~\ref{lem:clamp} shows that it is inactive throughout the asymptotic regime of interest.
+
+\subsection{Closure and RAFs}
+For $A\subseteq\cR_n$ let $\cC_n(A;F)$ be the smallest subset of $X_n$ containing $F$ and closed under the following rule: if $(w,i)\in A$ with $w=uv$, $|u|=i$, then $u,v\in\cC_n(A;F)$ implies $w\in\cC_n(A;F)$, and $w\in\cC_n(A;F)$ implies $u,v\in\cC_n(A;F)$. Equivalently, $\cC_n(A;F)$ is the union of the finite stages obtained by repeatedly adding the outputs of any orientation of any reaction in $A$ whose inputs are already present.
+
+\begin{definition}\label{def:raf}
+A nonempty $A\subseteq\cR_n$ is a \emph{RAF} if
+\begin{enumerate}[label=(\roman*)]
+\item (food generation) every reaction in $A$ has at least one complete side contained in $\cC_n(A;F)$; and
+\item (reflexive autocatalysis) every reaction $r\in A$ has a catalyst $x\in\cC_n(A;F)$ with $C(x,r)=1$.
+\end{enumerate}
+Since a reaction with one complete side in the closure has both sides in the closure, condition (i) may equivalently be read as: both sides of every reaction of $A$ belong to $\cC_n(A;F)$.
+\end{definition}
+
+Let $P_n(v)=\Prob_{n,v}\{\text{some RAF exists}\}$, and for a sequence $(f_n)$ write $P_n=P_n(f_n/n)$. The event that a RAF exists is a finite Boolean combination of catalysis coordinates and is therefore measurable.
+
+\subsection{The survival function}
+Let $\Xinf=\bigcup_{j\ge1}\{0,1\}^j$ and let each valid split-position reaction on $\Xinf$ carry an independent Bernoulli mark of parameter $a\in[0,1]$, with product law $\Prob_a$. Let $\cC_2(\omega)$ be the closure of the food set $F=X_2$ under the open reactions in the mark field $\omega$, defined as in Section~\ref{sec:infinite}. The \emph{survival function} is
+\begin{equation}\label{eq:S}
+S(a)=\Prob_a\{\cC_2(\omega)\text{ is unbounded in word length}\}.
+\end{equation}
+Section~\ref{sec:infinite} shows that this event is measurable and that $S$ is nondecreasing.
+
+\subsection{Main results}
+
+\begin{theorem}[Critical-window law]\label{thm:main}
+Let $(f_n)$ be a real sequence with $f_n/n\to\lambda\in(0,\infty)$, and set $\clam=1-e^{-\lambda}$. Then
+\begin{equation}\label{eq:main}
+P_n\longrightarrow\Theta(\lambda):=S(\clam),\qquad\text{and}\qquad 0<\Theta(\lambda)\le1-e^{-36\lambda}<1.
+\end{equation}
+The function $\Theta$ is nondecreasing and continuous on $(0,\infty)$, with $\Theta(\lambda)\to0$ as $\lambda\downarrow0$ and $\Theta(\lambda)\to1$ as $\lambda\to\infty$. Moreover, for all sufficiently large $n$ the catalysis parameter is exactly $p_n=f_n/R_n$.
+\end{theorem}
+
+\begin{corollary}[No finite step threshold]\label{cor:nostep}
+There is no $\gamma>0$ such that $P_n(\lambda)\to0$ for all $\lambda\in(0,\gamma)$ and $P_n(\lambda)\to1$ for all $\lambda>\gamma$. In fact, for every $\lambda>0$ the limit $\lim_nP_n(\lambda)$ exists and lies strictly between $0$ and $1$.
+\end{corollary}
+
+\begin{corollary}[Outer scaling regimes]\label{cor:outer}
+Let $(v_n)$ be a real sequence. If $v_n\to0$ then $P_n(v_n)\to0$. If $v_n\to\infty$ then $P_n(v_n)\to1$.
+\end{corollary}
+
+Corollary~\ref{cor:nostep} refutes the conjecture of \cite[Eq.~(21)]{hordijk2016variable} for the fixed-food uniform model on both branches: at $\lambda=\gamma/2$ the limit is positive, and at any finite $\lambda>\gamma$ the limit is below one. Together with Corollary~\ref{cor:outer}, the three regimes identify the whole linear scale as the nontrivial window, rather than dividing its interior by a second positive constant.
+
+\begin{remark}
+The theorem covers arbitrary sequences $(f_n)$ with $f_n/n\to\lambda$, not only $f_n=\lambda n$. It is an exact limit theorem; no finite-size convergence rate is established here, and the proof does not rely on any numerical approximation to $\Theta$.
+\end{remark}
+
+\section{Infinite reversible closure}\label{sec:infinite}
+
+Give each valid split-position reaction $(w,i)$ on $\Xinf$ an independent Bernoulli mark of parameter $a\in[0,1]$; the resulting field is $\omega$ and its product law is $\Prob_a$. A reaction is \emph{open} when its mark equals $1$. For a food cutoff $L\ge1$ put $F_L=X_L$ and let $\cC_L(\omega)\subseteq\Xinf$ be the least set containing $F_L$ and closed under open ligations and open cleavages. Every membership assertion $w\in\cC_L(\omega)$ has a finite derivation: a finite sequence of open reaction applications starting from $F_L$. The \emph{cap} of a derivation is the maximal length of a word occurring in it. For $n\ge L$, let $\cC_{n,L}(\omega)$ denote the closure of $F_L$ in which all intermediate molecules are restricted to $X_n$; it depends only on the marks of reactions with product in $X_n$.
+
+An unbounded closure is infinite, and a closure contained in some $X_K$ is finite. The reaction index set is countable, and membership of a fixed word in $\cC_L(\omega)$ is a countable union of finite-coordinate events; hence the survival event in \eqref{eq:S} is measurable.
+
+\begin{lemma}[Finite witnesses and first escape]\label{lem:witness}
+\leavevmode
+\begin{enumerate}[label=(\alph*)]
+\item Every finite set of words in $\cC_L(\omega)$ has a common finite derivation cap.
+\item If $\cC_L(\omega)$ contains a word of length greater than $K\ge L$, then some word of length greater than $K$ is generated by a derivation of cap at most $2K$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) Take the maximum of the finitely many intermediate word lengths in finitely many derivations.
+
+(b) Induct on a derivation of a word longer than $K$, proving the alternative: either the derivation contains an escape witness of cap at most $2K$, or all of its words have length at most $K$. Food words have length at most $L\le K$. A cleavage produces words shorter than its input, so it cannot be the first step to cross length $K$. For a ligation, either one input derivation already supplies a witness, or both input derivations stay within length $K$; in the latter case the product has length at most $2K$, and if it is longer than $K$ it is itself a witness generated within cap $2K$. This also covers the case in which a short target word is obtained by cleavage from a longer intermediate.
+\end{proof}
+
+For $K\ge2$ let $E_K$ be the event that, starting from $F_2$, some word of length greater than $K+2$ is generated by a derivation of cap at most $2(K+2)$. By Lemma~\ref{lem:witness}(b), $E_K$ coincides with the event that $\cC_2(\omega)$ contains a word longer than $K+2$. The events $E_K$ decrease in $K$, and their intersection is the event that $\cC_2(\omega)$ is unbounded. Hence
+\begin{equation}\label{eq:escape-limit}
+\Prob_a(E_K)\downarrow S(a)\qquad(K\to\infty).
+\end{equation}
+Each $E_K$ is determined by the finitely many marks of reactions with product length at most $2(K+2)$, so $\Prob_a(E_K)$ is a polynomial in $a$, in particular continuous. Coupling all parameters by common uniform marks shows that $\cC_L(\omega)$, $E_K$ and the survival event are increasing in $a$; thus $S$ is nondecreasing. These finite approximations will always be used with their caps fixed before any parameter limit is taken.
+
+\section{The finite food boundary}\label{sec:gateway}
+
+Call $r\in\cR_n$ a \emph{gateway reaction} if at least one of its sides is contained in $F$. Because a RAF must eventually leave the food set, it must use a gateway.
+
+\begin{lemma}\label{lem:gateway-needed}
+Every nonempty food-generated reaction set, and in particular every RAF, contains a gateway reaction.
+\end{lemma}
+
+\begin{proof}
+Suppose $A$ is nonempty and contains no gateway reaction. Then no reaction in $A$ has a complete side in $F$, so the first closure stage adds nothing to $F$, and by induction $\cC_n(A;F)=F$. But food generation requires each reaction of $A$ to have a complete side in $\cC_n(A;F)=F$, which would make it a gateway reaction, a contradiction.
+\end{proof}
+
+For $n\ge4$, the gateway reactions with a food side consisting of two food words are indexed exactly by the ordered pairs $(u,v)\in F\times F$: the reaction is $(uv,|u|)$. There are $6^2=36$ such identities. A reaction whose product is itself food has both of its factors in $F$ as well, so it already appears in this list and is not counted again.
+
+\begin{proposition}[Gateway ceiling]\label{prop:gateway}
+If $f_n/n\to\lambda\in(0,\infty)$, then
+\begin{equation}\label{eq:gateway}
+\limsup_{n\to\infty}P_n\le1-e^{-36\lambda}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+By Lemma~\ref{lem:gateway-needed}, if every catalysis coordinate $(x,r)$ with $r$ among the $36$ gateway identities is absent, no RAF exists. There are $36U_n$ such coordinates, and independence gives
+\begin{equation}\label{eq:gateway-finite}
+P_n\le1-(1-p_n)^{36U_n}.
+\end{equation}
+By \eqref{eq:counts}, $nU_n/R_n\to1$, so $p_nU_n=(f_n/n)\cdot nU_n/R_n\to\lambda$ and $p_n\to0$. Since $\log(1-p_n)/p_n\to-1$, the right side of \eqref{eq:gateway-finite} converges to $1-e^{-36\lambda}$.
+\end{proof}
+
+\begin{remark}[Why the boundary does not disappear]
+Although the number of molecule types grows exponentially, the number of gateway identities stays fixed, so the total mean number of catalytic opportunities at the entrance tends to $36\lambda$ rather than to infinity. This leaves positive extinction probability at every finite intensity, and refutes the upper branch of a step law without any assumption about the subsequent bulk. Four of the $36$ identities concatenate two monomers into a dimer that is already food; in the static reaction model only $32$ of them enlarge the closure of $F$. The count $36$ is the correct catalytic entrance count for RAF existence, but \eqref{eq:gateway} is only a ceiling: subsequent finite traps also contribute to extinction, and the proposition does not identify the leading asymptotics of $1-\Theta(\lambda)$. An earlier version of this obstruction, with the cruder bound $|R_4|=68$ on the number of gateway identities, was the first machine-checked refutation of the upper branch and is retained in the formal development (Appendix~\ref{app:lean}).
+\end{remark}
+
+The main difficulty is the opposite inequality. Catalysts available in the ambient universe may disappear during pruning, so the closure under ambient-catalyzed reactions is only an upper bound for the RAF closure. The next two sections treat this dependence exactly.
+
+\section{Exact laws of catalytic pruning histories}\label{sec:histories}
+
+Fix a finite molecule universe $X$ of cardinality $U$, a finite reaction universe $\cR$, and a deterministic monotone operator $\Phi\colon2^{\cR}\to2^{X}$ (that is, $A\subseteq A'$ implies $\Phi(A)\subseteq\Phi(A')$). Let $C(x,r)$, $(x,r)\in X\times\cR$, be independent Bernoulli($p$) variables, and write $q=1-p$. The \emph{pruning process} is
+\begin{equation}\label{eq:pruning}
+C_0=X,\qquad A_t=\{r\in\cR:\exists x\in C_t,\ C(x,r)=1\},\qquad C_{t+1}=\Phi(A_t).
+\end{equation}
+Since $C_1\subseteq X=C_0$ and $\Phi$ is monotone, induction shows that both $(C_t)$ and $(A_t)$ are decreasing. In the application $\Phi(A)=\cC_n(A;F)$, and $C_t$ is the pool of potential catalysts after $t$ rounds of pruning.
+
+Fix an enumeration $X=\{x_1,\dots,x_U\}$ and let $I_k=\{x_1,\dots,x_k\}$. The \emph{canonical process} replaces each pool by an initial segment of the same cardinality:
+\begin{equation}\label{eq:canonical}
+\widehat C_0=X,\qquad \widehat A_t=\{r:\exists x\in\widehat C_t,\ C(x,r)=1\},\qquad \widehat C_{t+1}=I_{|\Phi(\widehat A_t)|}.
+\end{equation}
+By the same induction the canonical pools are nested initial segments and the canonical active sets decrease.
+
+\begin{lemma}[Cardinality replacement]\label{lem:cardinality}
+For every $T\ge0$, the random sequences $(A_0,\dots,A_T)$ and $(\widehat A_0,\dots,\widehat A_T)$ have the same law. Consequently the sequences of pool cardinalities $(|C_t|)_{t\le T}$ and $(|\widehat C_t|)_{t\le T}$ have the same law.
+\end{lemma}
+
+\begin{proof}
+Fix a candidate history $A_0^*,\dots,A_T^*\subseteq\cR$. The proposed pools $C_0^*=X$, $C_{t+1}^*=\Phi(A_t^*)$ are deterministic. The process follows this history exactly when, for each $t\le T$, the response at the proposed pool $C_t^*$ equals $A_t^*$:
+\[
+\{A_t=A_t^*\ \forall t\le T\}=\bigl\{\{r:\exists x\in C_t^*,\ C(x,r)=1\}=A_t^*\ \forall t\le T\bigr\}.
+\]
+This equivalence is proved successively in $t$; there is no further random consistency condition. If the proposed pools are not nested the history has probability zero in both processes, so assume $C_0^*\supseteq C_1^*\supseteq\dots\supseteq C_T^*$.
+
+The right-hand event is an intersection over reaction columns $r$ of events that depend only on the column $(C(x,r))_{x\in X}$, and different columns are independent. Because the pools are nested, the indicator $\mathbf 1\{\exists x\in C_t^*: C(x,r)=1\}$ is nonincreasing in $t$, so a column event has positive probability only if $r$ belongs to $A_t^*$ for $t<d$ and not for $t\ge d$, for some $d\in\{0,\dots,T+1\}$. Its probability is
+\begin{equation}\label{eq:column}
+q^{|C_0^*|}\ (d=0),\qquad q^{|C_d^*|}-q^{|C_{d-1}^*|}\ (1\le d\le T),\qquad 1-q^{|C_T^*|}\ (d=T+1).
+\end{equation}
+The middle case says that there is no catalyst in $C_d^*$ but there is one in $C_{d-1}^*\supseteq C_d^*$, which justifies the subtraction. The probability of the history is the product over columns of \eqref{eq:column}, and it depends on the proposed pools only through their cardinalities. The canonical process has proposed pools $I_{|C_t^*|}$, nested initial segments with the same cardinalities, so it assigns the same probability to the same history. Equality on every atom of the history space proves equality of the laws, and the cardinality statement follows because $|C_{t+1}|=|\Phi(A_t)|$ and $|\widehat C_{t+1}|=|\Phi(\widehat A_t)|$ are the same function of the histories.
+\end{proof}
+
+\begin{remark}
+Lemma~\ref{lem:cardinality} is a distributional statement about complete dynamics. It does not condition on a selected terminal pool and then declare its coordinates independent, nor does it identify the original catalysis matrix pathwise with a reaction-percolation field. This distinction is what permits a static comparison in the next section without losing the endogenous catalytic constraint.
+\end{remark}
+
+\section{A static mass barrier produces a RAF}\label{sec:barrier}
+
+Apply the previous section with $X=X_n$, $\cR=\cR_n$ and $\Phi(A)=\cC_n(A;F)$. In the canonical representation let $O_k$ be the set of reactions catalyzed by at least one molecule of $I_k$. The indicators $\mathbf 1\{r\in O_k\}$ are independent across reactions with parameter
+\begin{equation}\label{eq:apk}
+a_{p,k}=1-(1-p)^k,
+\end{equation}
+so $\Phi(O_k)=\cC_n(O_k;F)$ has the law of the restricted closure $\cC_{n,2}$ of Section~\ref{sec:infinite} under $\Prob_{a_{p,k}}$.
+
+\begin{lemma}[Static barrier]\label{lem:barrier}
+If $k>|F|=6$ and $p=p_n$, then
+\begin{equation}\label{eq:barrier}
+\Prob_{a_{p,k}}\{|\cC_{n,2}|\ge k\}\le P_n.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+First, in the canonical process, $|\Phi(O_k)|\ge k$ implies $|\widehat C_t|\ge k$ for every $t$. Indeed $\widehat C_0=X_n\supseteq I_k$; and if $\widehat C_t\supseteq I_k$ then $\widehat A_t\supseteq O_k$, so $|\widehat C_{t+1}|=|\Phi(\widehat A_t)|\ge|\Phi(O_k)|\ge k$, whence $\widehat C_{t+1}\supseteq I_k$ because it is an initial segment. Let $T=|\cR_n|$. A decreasing sequence of subsets of $\cR_n$ can make at most $T$ strict deletions, so $A_t$ and $C_t$ are constant for $t\ge T$. By Lemma~\ref{lem:cardinality}, the probability that $|C_T|\ge k$ in the original process equals the probability that $|\widehat C_T|\ge k$, which is at least the left side of \eqref{eq:barrier}.
+
+It remains to show that $|C_T|\ge k>6$ forces the existence of a RAF. Let $C=C_T$ be the stabilized pool and $A=A_T$ its active reactions, so that $\Phi(A)=C$ and every reaction of $A$ has a catalyst in $C$. Remove from $A$ every reaction with neither side contained in $C$, obtaining $A'\subseteq A$. Deletion cannot enlarge the closure, so $\Phi(A')\subseteq C$; conversely each reaction used in a derivation of a molecule of $C$ has an input side contained in $C$ and is therefore retained, so $\Phi(A')=C$. Thus every reaction of $A'$ has a complete side in $\cC_n(A';F)=C$ and a catalyst in $C$. Since $|C|>6=|F|$, some non-food molecule was generated, so $A'$ is nonempty. Hence $A'$ is a RAF.
+\end{proof}
+
+\subsection*{Asymptotic use of the barrier}
+For fixed $m\ge2$ take $k_n=(m-1)\lfloor U_n/m\rfloor$. Then $k_n>6$ eventually, and since $p_nU_n\to\lambda$,
+\begin{equation}\label{eq:apk-limit}
+a_{p_n,k_n}\longrightarrow1-e^{-\lambda(1-1/m)}.
+\end{equation}
+By monotonicity in the openness, any fixed parameter $b$ strictly below the limit in \eqref{eq:apk-limit} can be used in \eqref{eq:barrier} for large $n$. It remains to show that closure from $F_2$ attains nearly full static mass with a probability approaching the infinite survival probability. This is where the finite-seed amplification theorem enters.
+
+\section{Amplification from a fixed rich seed}\label{sec:amplification}
+
+\begin{theorem}[Uniform supplied-seed amplification]\label{thm:amplification}
+For every $a>0$ and every integer $m\ge2$ there is a cutoff $L=L(a,m)$ such that, for every $n\ge L$,
+\begin{equation}\label{eq:amplification}
+\Prob_{a'}\bigl\{m|\cC_{n,L}|<(m-1)U_n\bigr\}\le\frac1m\qquad\text{for all }a'\ge a.
+\end{equation}
+\end{theorem}
+
+The cutoff $L$ depends on $a$ and $m$ but not on $n$. The distinction between a fixed supplied seed $F_L$ and the moving ambient cap $n$ is essential: generation of every fixed word by itself does not imply \eqref{eq:amplification}.
+
+\subsection{The host graph and effective edges}
+Fix $L$ and $n\ge L$. Contract all words of length at most $L$ to a single root vertex $o$; every other vertex is a word $s$ with $L<|s|\le n$. Let $\ell(s)$ and $r(s)$ denote deletion of the first and of the last bit followed by contraction. The \emph{basic edges} are the indexed pairs $(s,0)$ and $(s,1)$ with endpoints $\{s,\ell(s)\}$ and $\{s,r(s)\}$ respectively.
+
+Fix $w\le L/2$. A basic edge from $s$ to its one-bit truncation at a chosen end is made \emph{effective} by any one of $w$ \emph{detours}: for $j\in\{1,\dots,w\}$, delete $j$ bits at that end to reach a common descendant $s_j$; the $j$-th detour is \emph{open} when the reaction joining $s$ to $s_j$ and (for $j>1$) the reaction joining the one-bit truncation to $s_j$ are both open. The removed factors have length at most $w\le L$ and therefore belong to the supplied food $F_L$, so an open detour is a genuine reversible path in the chemistry: if either endpoint lies in $\cC_{n,L}$ then so does the other. The support of a detour consists of at most two literal reaction identities (Lemma~\ref{lem:support-overlap}). Effective edges therefore connect vertices lying in a common closure component, and every vertex in the effective component of the root lies in $\cC_{n,L}$.
+
+\subsection{Cuts, envelopes and the contour estimate}
+A \emph{cut} is the set of basic edges whose endpoints receive different values under a Boolean vertex labelling; a \emph{bond} is an inclusion-minimal nonempty cut. Two basic edges are \emph{diamond-adjacent} if they lie in a common diamond \eqref{eq:diamond}. Appendix~\ref{app:geometry} proves the following deterministic facts.
+\begin{enumerate}[label=(G\arabic*)]
+\item\label{G1} Every bond is connected in the diamond adjacency, whose degree is at most $9$ (Lemma~\ref{lem:bond-connected}).
+\item\label{G2} For every actual molecule $s\in X_n$ and every $b\ge1$, the bonds of size $b$ having $s$ on a \emph{molecularly smaller side} (sides counted by actual molecules, each contracted food word counted separately) number at most $A^b$, where
+\begin{equation}\label{eq:A}
+A=2\cdot7^{64}\cdot81
+\end{equation}
+(Lemma~\ref{lem:envelope}).
+\item\label{G3} Each literal reaction belongs to the supports of at most three detours; consequently among the $wb$ detours of a size-$b$ bond one can select at least $wb/5$ with pairwise disjoint supports (Lemma~\ref{lem:support-overlap}).
+\item\label{G4} If two vertices lie in distinct effective components, some bond separates them and all of its edges are non-effective (Lemma~\ref{lem:separation}).
+\end{enumerate}
+Treating the food root as a single vertex of weight one in \ref{G2} would not give the needed estimate; the molecular count is what makes the envelope uniform over all actual molecules including the root's constituents.
+
+Fix a bond of size $b$ and take $w=5k$. By \ref{G3}, at least $kb$ of its detours have pairwise disjoint supports, each support is open with probability at least $a^2$, and disjoint supports are independent. Hence
+\begin{equation}\label{eq:bond-fail}
+\Prob_a\{\text{every detour of the bond fails}\}\le(1-a^2)^{kb}.
+\end{equation}
+Independence is used only after selecting disjoint literal supports. Different bonds may overlap arbitrarily; their probabilities will be added, not multiplied.
+
+\begin{proof}[Proof of Theorem~\ref{thm:amplification}]
+Let $\theta=A(1-a^2)^k$ and choose $k$ so large that $\theta<1$; set $w=5k$ and $L=10k$, so that $w\le L/2$. Call a molecule $s$ \emph{bad} if it lies on a molecularly smaller side of some bond all of whose detours fail. By \ref{G2} and \eqref{eq:bond-fail},
+\begin{equation}\label{eq:bad}
+\Prob_a\{s\text{ is bad}\}\le\sum_{b\ge1}A^b(1-a^2)^{kb}=\sum_{b\ge1}\theta^b=\frac{\theta}{1-\theta}=:\delta .
+\end{equation}
+If two molecules are both not bad, they lie in the same effective component: otherwise by \ref{G4} a bond with all detours failing separates them, and at least one of them lies on a molecularly smaller side of it and would be bad. Fix a monomer $s_0$ as root representative. If $s_0$ is not bad, every molecule that is not bad lies in the effective component of the root and hence in $\cC_{n,L}$.
+
+Let $B$ be the number of bad molecules. Linearity of expectation gives $\Ex_aB\le U_n\delta$ without any independence between bad events, and the root failure costs at most $\delta$. Markov's inequality yields, for every integer $d>0$,
+\begin{equation}\label{eq:markov}
+\Prob_a\{|\cC_{n,L}|+d\le U_n\}\le\delta+\frac{U_n\delta}{d}.
+\end{equation}
+Given $m$, choose $k$ so large that $\delta\le1/[m(m+1)]$ and put $d=\lfloor U_n/m\rfloor+1$. The event in \eqref{eq:amplification} implies a deficit $U_n-|\cC_{n,L}|>U_n/m$, hence a deficit of at least $d$, and $U_n/d\le m$. So \eqref{eq:markov} bounds the probability in \eqref{eq:amplification} by $(m+1)\delta\le1/m$. Finally, the failure event is decreasing in the openness (common-mark coupling), so the same $L$ works for every $a'\ge a$.
+\end{proof}
+
+\subsection{A positive probability of ignition}
+
+\begin{proposition}\label{prop:positivity}
+$S(a)>0$ for every $a\in(0,1]$.
+\end{proposition}
+
+\begin{proof}
+Let $L=L(a,2)$ from Theorem~\ref{thm:amplification}. Force the finitely many reactions with product length at most $L$ to be open; there are $R_L$ of them, and successive monomer ligations then generate $F_L$ from $F_2$. The supplied-seed closure $\cC_{n,L}$ does not depend on these coordinates, since both sides of such a reaction already lie in $F_L$. Hence the event $\{2|\cC_{n,L}|\ge U_n\}$ is independent of the forced coordinates, and
+\[
+\Prob_a\bigl\{2|\cC_{n,2}|\ge U_n\bigr\}\ \ge\ \Prob_a\bigl\{\text{all }R_L\text{ short reactions open}\bigr\}\cdot\Prob_a\bigl\{2|\cC_{n,L}|\ge U_n\bigr\}\ \ge\ \frac{a^{R_L}}{2},
+\]
+uniformly in $n\ge L$, because on the forced event $\cC_{n,2}\supseteq\cC_{n,L}$. Fix $K$. Since only finitely many words have length at most $K+2$ and $U_n\to\infty$, half mass forces a word longer than $K+2$ once $n$ is large, and by Lemma~\ref{lem:witness}(b) applied inside $X_n$ the escape event $E_K$ occurs. Hence $\Prob_a(E_K)\ge a^{R_L}/2$ for every $K$, and \eqref{eq:escape-limit} gives $S(a)\ge a^{R_L}/2>0$.
+\end{proof}
+
+In particular the infinite reversible closure process has zero critical openness.
+
+\section{Record words and same-parameter richness}\label{sec:richness}
+
+The lower bound in Section~\ref{sec:proof} needs more than survival: it needs the closure from $F_2$ to acquire a prescribed rich finite seed $F_L$. This section shows that survival already implies acquisition of every finite word, almost surely, at the same parameter.
+
+\begin{lemma}[Own-cap records]\label{lem:records}
+If $\cC_2(\omega)$ is unbounded, then for every $B\ge2$ there is a word $w\in\cC_2(\omega)$ with $|w|>B$ that is generated by a derivation of cap $|w|$.
+\end{lemma}
+
+\begin{proof}
+Induct on a finite derivation to prove the alternative: either all words of the derivation have length at most $B$, or the derivation contains such a record. A food derivation fits within $B$. At a ligation, retain a record supplied by either input derivation if one exists; otherwise both input derivations fit within $B$, and then either the product has length at most $B$ and the whole derivation fits, or the product is longer than $B$ and is generated within its own length cap. A cleavage inherits the alternative from the derivation of its input. Apply this to a derivation of any word longer than $B$.
+\end{proof}
+
+\begin{lemma}[Fresh repair support]\label{lem:repair}
+Fix a nonempty target $v$ of length $\ell$ and a word $w$. There is a deterministic set of at most $\ell+1$ valid reaction identities, all with product length greater than $|w|$, whose simultaneous opening implies $v\in\cC_2(\omega)$ whenever $w\in\cC_2(\omega)$. Its all-open probability under $\Prob_a$ is at least $a^{\ell+1}$.
+\end{lemma}
+
+\begin{proof}
+Write $v=v_1\cdots v_\ell$. Successively append the monomer $v_j$ to $wv_1\cdots v_{j-1}$ using the split immediately before the appended letter; these are valid ligations with a food factor. Then cleave $wv$ at the split $wv\to w+v$. Every product is strictly longer than $w$. There are at most $\ell+1$ reaction identities (coincident identities are counted once), and they are open simultaneously with probability at least $a^{\ell+1}$.
+\end{proof}
+
+The record condition is what makes these coordinates \emph{fresh}. A word found by an escape search may be shorter than the cap already examined, and appending to it could reuse inspected coordinates. By contrast, the generation of an own-cap record is certified entirely by coordinates with product length at most $|w|$, and every repair product lies strictly above that boundary.
+
+To exploit this probabilistically, fix $B\ge2$ and let $M$ be the least length of an own-cap record beyond $B$, that is, the least $M>B$ such that some word of length $M$ is generated within cap $M$. Whether a given $M'$ has this property depends only on the marks of reactions with product length at most $M'$. Partition the event $\{M<\infty\}$ according to the value of $M$ and the complete assignment of marks to reactions with product length at most $M$. There are countably many such \emph{prefix atoms}: finitely many assignments for each finite value of $M$. Every nonempty atom $D$ fixes a record word $w_D$ of length $M_D$, and $D$ is determined by the coordinates with product length at most $M_D$.
+
+\begin{theorem}[Same-parameter richness]\label{thm:richness}
+Let $a>0$. Almost surely under $\Prob_a$, either $\cC_2(\omega)$ is bounded (hence finite) or $\cC_2(\omega)=\Xinf$. In particular, on the survival event every prescribed finite set of words is contained in $\cC_2(\omega)$ almost surely, and
+\begin{equation}\label{eq:S-complete}
+S(a)=\Prob_a\{\cC_2(\omega)=\Xinf\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Fix a nonempty target $v$ and let $A_v$ be the event that $\cC_2(\omega)$ is unbounded but $v\notin\cC_2(\omega)$. Let $C$ be any event determined by the marks of finitely many reactions, and choose $B\ge2$ so that all these reactions have product length at most $B$. Partition $A_v\cap C$ by the prefix atoms $D$ of the first record beyond $B$; by Lemma~\ref{lem:records} the atoms cover every unbounded configuration, and they are disjoint.
+
+On an atom $D$ with record $w_D$ of length $M_D>B$, the repair support of Lemma~\ref{lem:repair} for the pair $(v,w_D)$ consists of reactions with product length greater than $M_D$. It is therefore disjoint from the coordinates defining $D$ (product length at most $M_D$) and from those defining $C$ (product length at most $B<M_D$). On $A_v\cap C\cap D$ the word $w_D$ is generated but $v$ is not, so the repair must fail; independence of the product measure on the deterministic disjoint support gives
+\begin{equation}\label{eq:atom}
+\Prob_a(A_v\cap C\cap D)\le\bigl(1-a^{|v|+1}\bigr)\Prob_a(C\cap D).
+\end{equation}
+Summing \eqref{eq:atom} over the disjoint atoms incurs no multiplicity and yields
+\begin{equation}\label{eq:deficit}
+\Prob_a(A_v\cap C)\le q_v\Prob_a(C),\qquad q_v=1-a^{|v|+1}<1.
+\end{equation}
+Finite-coordinate cylinder events form an algebra generating the product $\sigma$-algebra, so every measurable event is approximated in symmetric-difference probability by cylinders. Given $\varepsilon>0$ choose a cylinder $C$ with $\Prob_a(C\triangle A_v)<\varepsilon$. Then \eqref{eq:deficit} gives
+\[
+\Prob_a(A_v)\le\Prob_a(A_v\cap C)+\varepsilon\le q_v\Prob_a(C)+\varepsilon\le q_v\Prob_a(A_v)+(1+q_v)\varepsilon.
+\]
+Letting $\varepsilon\downarrow0$ gives $(1-q_v)\Prob_a(A_v)\le0$, so $\Prob_a(A_v)=0$. There are countably many nonempty words, so almost surely on survival every word is generated. Conversely the complete closure is unbounded, and a bounded closure is contained in some finite $X_K$. This proves the dichotomy and \eqref{eq:S-complete}.
+\end{proof}
+
+\begin{remark}
+The proof never conditions on the entire survival event and asserts independence of a selected future. Independence is invoked only on deterministic finite-prefix atoms, and the cylinder approximation supplies the passage to the measurable event $A_v$.
+\end{remark}
+
+\section{Uniform finite-seed approximation and continuity}\label{sec:continuity}
+
+Let $G_L(a)=\Prob_a\{F_L\subseteq\cC_2(\omega)\}$ be the probability that the closure from $F_2$ acquires the seed $F_L$, and let $G_{n,L}(a)$ be the probability of the same event with all derivations restricted to cap $n$. By Lemma~\ref{lem:witness}(a), monotonicity in the cap, and Theorem~\ref{thm:richness},
+\begin{equation}\label{eq:GL}
+G_{n,L}(a)\uparrow G_L(a)\quad(n\to\infty),\qquad S(a)\le G_L(a)\qquad(a>0).
+\end{equation}
+Each $G_{n,L}$ is a polynomial in $a$, hence continuous.
+
+\begin{theorem}[Uniform approximation]\label{thm:uniform-approx}
+For every $a_0>0$ and integer $m\ge2$ there is a cutoff $L$ such that, simultaneously for all $a\ge a_0$,
+\begin{equation}\label{eq:uniform-approx}
+S(a)\le G_L(a)\le S(a)+\frac1m.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Choose $L=L(a_0,m)$ from Theorem~\ref{thm:amplification}; the supplied-seed estimate \eqref{eq:amplification} then holds for all $a\ge a_0$. Work in a single field $\omega$. If $F_2$ generates $F_L$ within cap $n$, then $\cC_{n,2}\supseteq\cC_{n,L}$, because the closure operator is monotone and idempotent. Hence
+\[
+\{F_L\subseteq\cC_{n,2}\}\subseteq\{m|\cC_{n,2}|\ge(m-1)U_n\}\cup\{m|\cC_{n,L}|<(m-1)U_n\},
+\]
+and a union bound with \eqref{eq:amplification} gives
+\begin{equation}\label{eq:mass-union}
+G_{n,L}(a)\le\Prob_a\{m|\cC_{n,2}|\ge(m-1)U_n\}+\frac1m .
+\end{equation}
+This is an event inclusion and a union bound, not a product of dependent probabilities. Fix an escape cutoff $K$. For $n$ large, the mass event in \eqref{eq:mass-union} forces a word longer than $K+2$, because $U_n\to\infty$ while only finitely many words have length at most $K+2$; by Lemma~\ref{lem:witness}(b) this implies $E_K$. Thus $G_{n,L}(a)\le\Prob_a(E_K)+1/m$ for large $n$. Let $n\to\infty$ using \eqref{eq:GL} to get $G_L(a)\le\Prob_a(E_K)+1/m$, and then $K\to\infty$ using \eqref{eq:escape-limit}. The lower inequality in \eqref{eq:uniform-approx} is \eqref{eq:GL}.
+\end{proof}
+
+Theorem~\ref{thm:uniform-approx} describes an approximate finite ignition event. Reaching $F_L$ is not a deterministic finite certificate of infinite survival; rather, the probability of reaching $F_L$ without surviving is at most $1/m$, uniformly above any fixed positive openness. This is what allows finite information to approximate an infinite event.
+
+\begin{theorem}[Continuity of survival]\label{thm:continuity}
+$S$ is nondecreasing on $[0,1]$ and continuous at every $a\in(0,1]$ (with the relative topology at $1$). Moreover $S(1)=1$.
+\end{theorem}
+
+\begin{proof}
+Monotonicity was noted in Section~\ref{sec:infinite}. Let $a_j\to a\in(0,1]$.
+
+\emph{Upper semicontinuity.} For each $K$, $S(a_j)\le\Prob_{a_j}(E_K)$ and $\Prob_a(E_K)$ is continuous in $a$, so
+\begin{equation}\label{eq:usc}
+\limsup_{j\to\infty}S(a_j)\le\Prob_a(E_K).
+\end{equation}
+Let $K\to\infty$ and use \eqref{eq:escape-limit}.
+
+\emph{Lower semicontinuity.} Fix $a_0\in(0,a)$ and $m\ge2$, and choose $L$ from Theorem~\ref{thm:uniform-approx} at $a_0$. Eventually $a_j\ge a_0$, so $G_{n,L}(a_j)\le G_L(a_j)\le S(a_j)+1/m$ for every $n$. At fixed $n$, continuity of $G_{n,L}$ gives
+\begin{equation}\label{eq:lsc}
+G_{n,L}(a)\le\liminf_{j\to\infty}S(a_j)+\frac1m .
+\end{equation}
+Let $n\to\infty$ and use $S(a)\le G_L(a)$ from \eqref{eq:GL}; then let $m\to\infty$.
+
+\emph{Endpoint.} At $a=1$ all countably many reactions are open almost surely, and successive monomer ligations generate every word, so $S(1)=1$.
+\end{proof}
+
+The order of choices in \eqref{eq:lsc} matters. The seed cutoff is fixed using a positive lower openness; the witness cap $n$ is fixed while the parameter varies; only afterwards is the cap enlarged. No uniform convergence of finite witness probabilities over all parameters is assumed. This is also why monotonicity alone, which permits jumps, would not suffice to identify the critical-window limit.
+
+\section{Proof of the main theorem}\label{sec:proof}
+
+Throughout this section $\lambda>0$ is fixed and $\clam=1-e^{-\lambda}$. We first treat the exact sequence $f_n=\lambda n$, so that $p_n=p_n(\lambda)$, and then pass to arbitrary sequences.
+
+\subsection{The lower transition bound}
+
+\begin{proposition}\label{prop:lower}
+If $f_n=\lambda n$ then $\liminf_{n\to\infty}P_n\ge S(\clam)$.
+\end{proposition}
+
+\begin{proof}
+Fix $b\in(0,\clam)$ and take $m\ge2$ so large that
+\begin{equation}\label{eq:b-choice}
+b<1-e^{-\lambda(1-1/m)} .
+\end{equation}
+Let $L=L(b,m)$ from Theorem~\ref{thm:amplification}. The event inclusion behind \eqref{eq:mass-union}, now read as a lower bound on mass, gives
+\begin{equation}\label{eq:mass-lower}
+\Prob_b\{m|\cC_{n,2}|\ge(m-1)U_n\}\ge G_{n,L}(b)-\frac1m .
+\end{equation}
+Let $k_n=(m-1)\lfloor U_n/m\rfloor$. The mass event on the left implies $|\cC_{n,2}|\ge k_n$. For large $n$, \eqref{eq:apk-limit} and \eqref{eq:b-choice} give $a_{p_n,k_n}\ge b$ while $k_n>6$. Monotonicity of the closure in the openness and the static barrier \eqref{eq:barrier} therefore give
+\begin{equation}\label{eq:Pn-lower}
+P_n\ \ge\ \Prob_{a_{p_n,k_n}}\{|\cC_{n,2}|\ge k_n\}\ \ge\ \Prob_b\{|\cC_{n,2}|\ge k_n\}\ \ge\ G_{n,L}(b)-\frac1m .
+\end{equation}
+Let $n\to\infty$ with $b,m,L$ fixed; by \eqref{eq:GL}, $\liminf_nP_n\ge S(b)-1/m$. For fixed $b<\clam$, condition \eqref{eq:b-choice} holds for every sufficiently large $m$, so $\liminf_nP_n\ge S(b)$. Finally let $b\uparrow\clam$ and use continuity of $S$ (Theorem~\ref{thm:continuity}).
+\end{proof}
+
+The lower bound preserves the full survival probability. It does not pay a fixed all-open nucleus cost, which would only establish a possibly tiny positive lower bound, and it does not assume that every viable first food reaction ignites the bulk: all finite traps are retained in the survival event whose probability appears in the bound. A retained catalyst fraction $1-1/m$ produces effective openness approaching $\clam$ as $m$ grows; supplied-seed amplification controls the mass deficit at this fraction, and continuity removes the fraction loss.
+
+\subsection{The upper transition bound}
+
+\begin{proposition}\label{prop:upper}
+If $f_n=\lambda n$ then $\limsup_{n\to\infty}P_n\le S(\clam)$.
+\end{proposition}
+
+\begin{proof}
+Let $O$ be the set of reactions catalyzed by at least one molecule of the full universe $X_n$. Its indicators are i.i.d.\ with openness
+\[
+a_n=1-(1-p_n)^{U_n}\longrightarrow\clam .
+\]
+Every RAF $A$ satisfies $A\subseteq O$, so its closure is contained in the ambient closure $\cC_n(O;F)$, which has the law of $\cC_{n,2}$ under $\Prob_{a_n}$. This inclusion is used only for an upper bound.
+
+Fix $K$ with $n\ge2(K+2)$. Either the ambient closure contains a word longer than $K+2$, an event of probability $\Prob_{a_n}(E_K)$ by Lemma~\ref{lem:witness}(b); or the ambient closure is contained in $X_{K+2}$. In the second case a RAF, if one exists, must by Lemma~\ref{lem:gateway-needed} contain a gateway reaction catalyzed by a molecule of the deterministic bounded set $X_{K+2}$. There are at most $68$ gateway identities (every gateway has product length at most $4$, and $|\cR_4|=68$), so a union bound over the deterministic finite set of coordinates gives
+\begin{equation}\label{eq:upper-finite}
+P_n\le\Prob_{a_n}(E_K)+68\,|X_{K+2}|\,p_n .
+\end{equation}
+No catalytic independence conditional on a bounded selected RAF is needed. At fixed $K$, continuity of the finite event, $a_n\to\clam$ and $p_n\to0$ give $\limsup_nP_n\le\Prob_{\clam}(E_K)$; now let $K\to\infty$ and use \eqref{eq:escape-limit}.
+\end{proof}
+
+The two propositions use boundedness in complementary ways. A bounded infinite static closure is a legitimate extinction mechanism, and a RAF trapped in a fixed bounded universe becomes improbable in the finite catalytic source because each required coordinate has probability tending to zero. The comparison uses both facts without conflating the two probability spaces. Before continuity is invoked, the same argument already yields the sandwich $S(\clam^-)\le\liminf P_n\le\limsup P_n\le S(\clam)$; the finite-seed argument of Section~\ref{sec:continuity} is exactly what closes the remaining gap.
+
+\subsection{Arbitrary intensities and exact normalization}
+
+\begin{lemma}\label{lem:mono}
+For each $n$, $v\mapsto P_n(v)$ is nondecreasing.
+\end{lemma}
+
+\begin{proof}
+Couple all catalysis coordinates by common uniform marks. Increasing $v$ increases $p_n(v)$ and adds catalysis coordinates without removing any. Food generation is unaffected and every catalytic witness remains present, so every existing RAF is preserved.
+\end{proof}
+
+\begin{lemma}[Exact source normalization]\label{lem:clamp}
+If $f_n/n\to\lambda>0$, then for all sufficiently large $n$ the clamp in \eqref{eq:clamp} is inactive and $p_n(f_n/n)=f_n/R_n$.
+\end{lemma}
+
+\begin{proof}
+Eventually $0<f_n/n<2\lambda$. The raw parameter $(f_n/n)n/R_n$ is then nonnegative and bounded by $2\lambda n/R_n$, which tends to zero and is eventually at most one. Hence the clamp is inactive, and for $n>0$ cancellation gives $(f_n/n)\,n/R_n=f_n/R_n$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Propositions~\ref{prop:lower} and~\ref{prop:upper} give $P_n(\lambda)\to S(\clam)=\Theta(\lambda)$ for the exact sequence $f_n=\lambda n$. By Propositions~\ref{prop:positivity} and~\ref{prop:gateway}, $0<\Theta(\lambda)\le1-e^{-36\lambda}<1$. Since $\lambda\mapsto\clam$ is increasing and continuous from $(0,\infty)$ onto $(0,1)$, Theorem~\ref{thm:continuity} shows that $\Theta$ is nondecreasing and continuous. The gateway ceiling gives $\Theta(\lambda)\to0$ as $\lambda\downarrow0$, and since $\clam\uparrow1$ and $S$ is continuous at $1$ with $S(1)=1$, $\Theta(\lambda)\to1$ as $\lambda\to\infty$.
+
+Now let $(f_n)$ be arbitrary with $v_n=f_n/n\to\lambda>0$. For fixed $0<l<\lambda<h$, eventually $l\le v_n\le h$, so by Lemma~\ref{lem:mono}
+\begin{equation}\label{eq:squeeze}
+P_n(l)\le P_n(v_n)\le P_n(h).
+\end{equation}
+The fixed-intensity result gives $\Theta(l)\le\liminf P_n(v_n)\le\limsup P_n(v_n)\le\Theta(h)$; sending $l\uparrow\lambda$ and $h\downarrow\lambda$ and using continuity of $\Theta$ proves $P_n\to\Theta(\lambda)$. The final assertion is Lemma~\ref{lem:clamp}.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:nostep}]
+Suppose $\gamma>0$ had the step property. Then $P_n(\gamma/2)\to0$, but by Theorem~\ref{thm:main} $P_n(\gamma/2)\to\Theta(\gamma/2)>0$. (Likewise any finite $\lambda>\gamma$ contradicts the upper branch because $\Theta(\lambda)<1$.)
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:outer}]
+If $v_n\to0$, then for every fixed $l>0$ eventually $P_n(v_n)\le P_n(l)$ by Lemma~\ref{lem:mono}, so $\limsup P_n(v_n)\le\Theta(l)$; let $l\downarrow0$. If $v_n\to\infty$, then for every fixed $l>0$ eventually $P_n(v_n)\ge P_n(l)$, so $\liminf P_n(v_n)\ge\Theta(l)$; let $l\to\infty$. The second case uses the clamp \eqref{eq:clamp} if a raw parameter exceeds one; for genuine Bernoulli models with $f_n\le R_n$ no totalization is needed.
+\end{proof}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection*{Interpretation of the scaling function}
+The map $\lambda\mapsto1-e^{-\lambda}$ aggregates the independent catalytic opportunities of a single reaction: the probability that at least one of the $U_n$ molecules catalyzes a fixed reaction tends to $\clam$. The function $S$ then measures whether the corresponding infinite reversible closure escapes every finite length cap, and by Theorem~\ref{thm:richness}, conditional on escape no word remains permanently absent. The finite catalytic source acquires the same limiting probability through the history barrier of Sections~\ref{sec:histories}--\ref{sec:barrier} and the bounded-core comparison of Proposition~\ref{prop:upper}. Entrance and bulk should not be represented as an independent product of probabilities: the food boundary is part of the same infinite closure event that defines $S$, and the gateway ceiling of Proposition~\ref{prop:gateway} is a ceiling rather than a formula for $1-\Theta$.
+
+\subsection*{Relation to simulations}
+A continuous nontrivial limiting law is compatible with a steep onset in finite simulations, and the theorem does not estimate the steepness of $\Theta$ or the rate at which $P_n$ approaches it. The finite-size observations that motivated \cite{hordijk2016variable} therefore need not be in error; it is the asymptotic step-law reading of them that the theorem rules out. The value of $\Theta$ at moderate $\lambda$, its differentiability, and the asymptotics of $1-\Theta(\lambda)$ as $\lambda\to\infty$ remain open.
+
+\subsection*{Method}
+The contour argument of Section~\ref{sec:amplification} is a Peierls-type estimate \cite{peierls1936ising,grimmett1999percolation} adapted to a host graph whose vertices are binary words and whose bonds are controlled through diamond parity and end-edit distance. Its distinctive features are the molecular weighting of the contracted food root, which yields a uniform envelope count for every actual molecule, and the strict separation between end-edit walks, used only for counting, and literal reaction detours, used only for chemistry. The record-word argument of Section~\ref{sec:richness} avoids any conditioning on the survival event by locating a fresh set of coordinates above a stopping cap. The uniformity in Theorem~\ref{thm:uniform-approx} is the decisive ingredient: monotonicity alone permits jumps of $S$, and it is the uniform finite-seed approximation that converts survival into a continuous function of the parameter.
+
+\subsection*{Scope}
+The scope is deliberately fixed. Different alphabets, food sets of other lengths, quotient reaction identities that merge split positions, dependent or directional catalysis assignments, and inhibition define different models; they may change constants or require new arguments, and the present theorem does not transfer its conclusions to them. The constant $36$ refers to the split-position identity convention with $F=X_2$. Nothing here concerns mass-action kinetics, concentrations, or dynamical persistence of a RAF once it exists.
+
+\subsection*{What the proof requires}
+Only the logical chain displayed above is used: literal reaction geometry, finite-history equality, a static mass barrier, supplied-seed amplification, same-parameter richness, uniform finite-seed approximation, and a limiting squeeze. The formal development described in Appendix~\ref{app:lean} contains reusable infrastructure from proof discovery, but none of its exploratory assertions is a premise of the publication theorem.
+
+\appendix
+
+\section{Finite word geometry: cuts, diamonds and detours}\label{app:geometry}
+
+This appendix proves the deterministic statements \ref{G1}--\ref{G4} used in Section~\ref{sec:amplification}. Fix $L\ge1$ and $n\ge L$. Words of length at most $L$ are contracted to the root vertex $o$; every other vertex is a word $s$ with $L<|s|\le n$. The maps $\ell$ and $r$ (deletion of the first, respectively last, bit followed by contraction) fix $o$, commute, and decrease the height $\max(|s|-L,0)$.
+
+\subsection{Diamonds and cuts}
+The basic edges are $(s,0)$ with endpoints $s,\ell(s)$ and $(s,1)$ with endpoints $s,r(s)$, for non-root $s$. A Boolean vertex labelling $h$ determines the cut consisting of edges whose endpoint labels differ. For each non-root $s$, its \emph{diamond} has the four indexed slots
+\begin{equation}\label{eq:diamond}
+(s,0),\qquad(s,1),\qquad(r(s),0),\qquad(\ell(s),1),
+\end{equation}
+joining $s$ to $\ell(s)$, $s$ to $r(s)$, $r(s)$ to $\ell(r(s))$ and $\ell(s)$ to $r(\ell(s))$. Since $\ell$ and $r$ commute, the last two edges share their lower endpoint, so the four slots form the $4$-cycle $s,\ell(s),\ell r(s),r(s)$. Slots at the root are empty and are not basic edges. A cut indicator has even parity across each diamond, because each of the four vertex labels appears twice around the cycle. Repeated slots near the contracted food boundary are counted with multiplicity.
+
+\begin{lemma}[Integration]\label{lem:integration}
+Any basic-edge indicator with even parity on every diamond is the cut of some vertex labelling.
+\end{lemma}
+
+\begin{proof}
+Set the label of $o$ to zero and define the label at $s$ as the parity sum of the indicator along the path of repeated right deletions from $s$ to $o$. By construction the label difference across each right edge $(s,1)$ equals its indicator. For a left edge $(s,0)$, apply diamond parity at $s$ together with the induction hypothesis one height level below: commutation identifies the two lower paths, so the difference across the left edge equals its indicator as well. Induction on height terminates at the root and uses only diamonds inside the finite cap.
+\end{proof}
+
+\begin{lemma}[Connected bonds]\label{lem:bond-connected}
+Every bond is connected in the graph whose vertices are the basic edges and in which two edges are adjacent when they share a diamond. This adjacency has degree at most $9$, and the number of connected sets of $b$ basic edges containing a specified edge is at most $81^{b-1}$.
+\end{lemma}
+
+\begin{proof}
+Let $Q$ be a connected component of a bond in the diamond adjacency, and restrict the cut indicator to $Q$. On each diamond either all cut slots are retained or none are, so parity remains even, and Lemma~\ref{lem:integration} makes $Q$ a cut. Minimality forces $Q$ to be the whole bond.
+
+A basic edge occurs in at most three diamonds: once as an upper edge of its own word's diamond, and at most twice as a lower edge, because a non-root word has at most two one-bit preimages for either deletion direction. Each diamond contributes at most three neighbours, so the degree is at most $9$. A rooted depth-first traversal of a spanning tree of a connected $b$-set uses $2(b-1)$ steps, each with at most $9$ choices, giving at most $9^{2(b-1)}=81^{b-1}$ connected sets containing a specified edge.
+\end{proof}
+
+\subsection{Locating a bond near a molecule}
+Let \emph{end-edit distance} count insertions or deletions of one bit at either end of a word, allowing passage through the empty word. Each word has at most six one-step neighbours, so a ball of radius $\rho$ contains at most $7^{\rho}$ words (allow an idle step in a code of length $\rho$). These walks are only a counting device; they need not be chemical derivations.
+
+If two basic edges share a diamond, their product words differ by a bounded number of end edits. Connecting the edges of a size-$b$ bond by at most $b-1$ diamond steps yields an end-edit walk of length at most $4(b-1)$ between any two boundary products. Consequently a substring of one boundary product that is protected by $4b$ bits on both sides persists as a substring of every boundary product.
+
+\begin{lemma}[Molecular anchoring]\label{lem:anchor}
+Fix a bond of size $b$ and any edge $e$ of it with product word $s_e$. Count the two sides of the bond by actual molecules of $X_n$, each contracted food word counted separately. Every molecule on a smaller side has end-edit distance at most $64b$ from $s_e$.
+\end{lemma}
+
+\begin{proof}
+\emph{Short-product case: $|s_e|\le8b$.} Put $M=|s_e|+4b\le12b$; every boundary product has length at most $M$. If $M\ge n$ every molecule has length at most $M$. If $M<n$, all words in the length band $[M,n]$ receive the same cut label: a one-bit shift at length $M$ is an insertion to length $M+1$ followed by a deletion, and neither step crosses an edge whose product has length at most $M$; repeated shifts connect all length-$M$ words, and truncation connects the rest of the band. The high band contains more than half of the actual molecules, so its label is not the label of a smaller side, and every molecule on a smaller side has length at most $M$. Delete it to the empty word and insert $s_e$: at most $M+|s_e|\le20b<64b$ end edits.
+
+\emph{Long-product case: $|s_e|>8b$.} Remove $\rho=4b$ bits from each end of $s_e$ to leave a nonempty core $z$. By the locality observation, $z$ is a substring of every boundary product, and every boundary product has length at most $|z|+3\rho$. A word avoiding $z$ cannot cross the bond during right deletion to food, so every word on the non-food side contains $z$. Above all boundary products the high-band connectivity applies, and a constant word opposite to the first bit of $z$ avoids $z$; hence the entire high band carries the food label, and every non-food-side word has length at most $|z|+3\rho$.
+
+If the non-food side is a smaller side: a non-food-side word and $s_e$ both contain $z$; delete their exterior bits to $z$ and insert the exterior bits of $s_e$. The exterior lengths are at most $3\rho$ and $2\rho$, so the distance is at most $5\rho=20b$.
+
+If the food side is a smaller side: for any nonempty core $z$, the number of words containing $z$ with length at most $|z|+k$ is at most
+\begin{equation}\label{eq:core-count}
+\sum_{j=0}^{k}(j+1)2^{j}<2^{2(k+1)},
+\end{equation}
+by choosing one occurrence of $z$, its left padding length, and the $j$ exterior bits (counting all occurrences only overcounts, and the bound is independent of $|z|$). The non-food side has at least $U_n/2$ molecules and is contained in the set counted by \eqref{eq:core-count} with $k=3\rho$, so $2^{n+1}-2=U_n\le2\cdot2^{2(3\rho+1)}$, which forces $n\le2(3\rho+1)$. Also $|s_e|\le n$. Any molecule can therefore be connected to $s_e$ through the empty word in at most $2n\le12\rho+4$ end edits, which is at most $64b$ since $\rho=4b$ and $b\ge1$.
+\end{proof}
+
+\begin{lemma}[Uniform contour envelope]\label{lem:envelope}
+For every molecule $s\in X_n$ and every $b\ge1$, the bonds of size $b$ having $s$ on a molecularly smaller side number at most $A^{b}$, with $A$ as in \eqref{eq:A}.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:anchor} the product of any edge of such a bond lies within end-edit radius $64b$ of $s$, so there are at most $7^{64b}$ candidate product words and at most two edge directions for an anchor edge. For each anchor edge, Lemma~\ref{lem:bond-connected} gives at most $81^{b-1}$ connected sets of size $b$ containing it. Hence the number of bonds is at most
+\[
+2\cdot7^{64b}\cdot81^{b-1}\le(2\cdot7^{64}\cdot81)^{b}=A^{b}.
+\]
+The argument applies to molecules of the contracted food as well: their weight has not been replaced by the weight of one graph vertex, because the smaller-side comparison used $U_n$ throughout. This is why the envelope controls a uniform bad-event marginal for every actual molecule, including the root representative.
+\end{proof}
+
+\begin{lemma}[Separation]\label{lem:separation}
+If two vertices lie in distinct effective components, then some bond separates them and every edge of that bond is non-effective.
+\end{lemma}
+
+\begin{proof}
+Contract each effective component of the basic graph to a point. The two vertices become distinct points of a connected quotient graph. Choose an inclusion-minimal cut separating them in the quotient and lift it back to the basic graph. Both sides are connected in the quotient, so the lifted cut is a bond of the basic graph, and all of its edges join distinct effective components and are therefore non-effective.
+\end{proof}
+
+\subsection{Literal detours}
+Fix a basic edge joining a word $s$ to the word obtained by deleting one bit at a chosen end, and $w\le L/2$. For $j\in\{1,\dots,w\}$, deleting $j$ bits at that end yields a common descendant $s_j$. The $j$-th detour support consists of the reaction joining $s$ to $s_j$ (removed factor of length $j$) and, for $j>1$, the reaction joining the one-bit truncation to $s_j$ (removed factor of length $j-1$). If the one-bit truncation is contracted food, the descendant is food too and the second reaction is unnecessary. Both removed factors have length at most $w\le L$ and belong to the supplied food, so an open support gives genuine reversible reachability using only reactions with product in $X_n$.
+
+\begin{lemma}[Bounded support overlap]\label{lem:support-overlap}
+Each detour support contains at most two literal reaction identities, and each literal reaction belongs to at most three supports over all edges and all $j$. Consequently among the $wb$ detours of a size-$b$ bond there are at least $wb/5$ with pairwise disjoint supports.
+\end{lemma}
+
+\begin{proof}
+A short reaction is identified by its product, the deletion end, and the removed factor length. It is the upper reaction of at most one edge (the edge at its product). If it is a lower reaction, its owner is a one-bit preimage of the product on that side, and there are at most two such preimages. This accounts for at most three supports. The two end descriptions cannot identify the same split when the product is non-food: that would make both factor lengths at most $w$, hence the product length at most $2w\le L$, and such products are contracted. Food contractions only remove lower support coordinates and do not increase incidence.
+
+A support meets at most four other supports, since each of its at most two reactions is used by at most two further supports. Greedily choose a support, discard it and its at most four neighbours, and repeat; at least $wb/5$ pairwise disjoint supports remain.
+\end{proof}
+
+With $w=5k$, Lemma~\ref{lem:support-overlap} gives at least $kb$ disjoint supports, each open with probability at least $a^2$, which is \eqref{eq:bond-fail}. Only literal reaction identities enter the probability calculation. End-edit walks used for anchoring do not assert open chemistry; conversely, detours used for chemical reachability explicitly supply their short factors. Keeping the two roles separate avoids importing a graph path as an unsupported chemical derivation.
+
+\section{Formal verification in Lean 4}\label{app:lean}
+
+The complete argument is formalized in Lean~4 \cite{demoura2021lean4} over Mathlib \cite{mathlib2020}. The development defines the concrete model of Section~\ref{sec:model} literally (binary words, split-position reactions, the food set $X_2$, reversible closure, the RAF predicate, and the product Bernoulli measure on catalysis coordinates), defines the infinite product measure of Section~\ref{sec:infinite}, and proves Theorem~\ref{thm:main} and its corollaries as theorems whose statements quantify over the actual RAF-existence event and the actual infinite survival event. No exploratory assumption from proof discovery enters as a premise.
+
+\subsection{Root declarations}
+All declarations below live in the namespace \lean{HordijkSteelThreshold}, with the model definitions in \lean{RAF.Concrete} and \lean{RAF.Polymer}; module names refer to files under \lean{proofs/HordijkSteelThreshold/} of the source repository \RepoURL. The publication interface is the following declaration (\lean{PublicationResolution.lean}), shown in ASCII notation:
+
+\begin{lstlisting}
+theorem publication_resolution {f : Nat -> Real} {lambda : Real}
+    (hlambda : 0 < lambda)
+    (hf : Tendsto (fun n => f n / (n : Real)) atTop (nhds lambda)) :
+    Tendsto (fun n => rafProbability n (f n / (n : Real))) atTop
+      (nhds ((infiniteStaticMeasure (transitionOpenness lambda hlambda)
+        {field | ReversibleUnbounded 2 field}).toReal)) /\
+    0 < transitionLimit lambda hlambda /\
+    transitionLimit lambda hlambda < 1 /\
+    Continuous (fun x : {x : Real // 0 < x} =>
+      transitionLimit x.val x.property) /\
+    (forall x y : Real, forall hx : 0 < x, forall hy : 0 < y,
+      x <= y -> transitionLimit x hx <= transitionLimit y hy)
+\end{lstlisting}
+
+Here \texttt{rafProbability n v} is $P_n(v)$ with the clamped parameter \eqref{eq:clamp}, \texttt{transitionOpenness lambda} is $1-e^{-\lambda}$ as an element of the unit interval, \texttt{infiniteStaticMeasure a} is the product measure $\Prob_a$ on mark fields, \texttt{ReversibleUnbounded 2} is the event that $\cC_2(\omega)$ is unbounded, and \texttt{transitionLimit lambda} unfolds definitionally to the real value of $S(1-e^{-\lambda})$. The mathematical root \lean{full_corrected_transition} (\lean{CriticalWindowSource.lean}) adds the eventual identity $p_n=f_n/R_n$ of Lemma~\ref{lem:clamp} and the gateway ceiling $\Theta(\lambda)\le1-e^{-36\lambda}$. The refutation of the step conjecture is the separately authenticated declaration
+\begin{lstlisting}
+theorem no_finite_step_threshold :
+    Not (Exists fun gamma : Real => 0 < gamma /\
+      (forall l : Real, 0 < l -> l < gamma ->
+         Tendsto (fun n => rafProbability n l) atTop (nhds 0)) /\
+      (forall l : Real, gamma < l ->
+         Tendsto (fun n => rafProbability n l) atTop (nhds 1)))
+\end{lstlisting}
+in \lean{TransitionConsequences.lean}, and the outer regimes of Corollary~\ref{cor:outer} are \lean{sublinear_regime} and \lean{superlinear_regime} in \lean{OuterScalingRegimes.lean}. The earlier gateway-only refutation of the upper branch is the declaration \lean{hordijkSteel_fixedFood_uniform_upper_false} in the module \lean{RAF.Conjecture.ConcreteRefutation}.
+
+\subsection{Concordance}
+Tables~\ref{tab:concordance} and~\ref{tab:concordance2} list, for each numbered result of the paper, the principal Lean declarations that establish it. Several constants and inequalities in the displayed proofs are elementary specializations of the listed declarations rather than separately named theorems; the table records the correspondence at the level of the mathematical result.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\begin{tabular}{@{}p{0.28\linewidth}p{0.68\linewidth}@{}}
+\toprule
+Paper result & Lean module and declaration(s)\\
+\midrule
+Counts \eqref{eq:counts} & \lean{PolymerCounts}; \lean{RAF.Polymer.Counts}\\
+Definition~\ref{def:raf}, $P_n$ & \lean{RAF.Concrete.SeedGateway.IsRevRAF}; \lean{RAF.Concrete.Events.HasRAFEvent}, \lean{rafProbability}\\
+Survival \eqref{eq:S} & \lean{SprinkledSeedLowerBound.staticSurvival}; \lean{ReversibleMeasurableEvents}\\
+Lemma~\ref{lem:witness}, \eqref{eq:escape-limit} & \lean{ReversibleFiniteCertificates}; \lean{ReversibleEscape.reversible_escape_iff_cap}; \lean{ReversibleEscapeProbability.finite_static_escape_probability_tendsto}\\
+Lemma~\ref{lem:gateway-needed} & \lean{RAF.Concrete.SeedGateway.polymer_raf_implies_seedOpen}\\
+Proposition~\ref{prop:gateway} & \lean{GatewayProbability.rafProbability_limsup_le_gateway_ceiling}, \lean{card_seedCoord_exact}, \lean{seedClosedProbability_tendsto_exp}\\
+Lemma~\ref{lem:cardinality} & \lean{ScalarHistoryDistribution.activeTrace_map_eq_scalar}; \lean{NestedColumnHistory}; \lean{HistoryProductLaw}\\
+Lemma~\ref{lem:barrier} & \lean{SourceStaticRAFBound.canonical_raf_ge_static_barrier}; \lean{SourceTerminalRAF}; \lean{PeelingStabilization}\\
+Limit \eqref{eq:apk-limit} & \lean{TransitionLowerBound.source_probability_eventually_above}\\
+Theorem~\ref{thm:amplification} & \lean{StaticBulk.static_bulk_near_full}; \lean{WordContourProbability.staticReaction_contour_failure}; \lean{WordRootedMass.measure_rootedMolecularWords_deficit}; \lean{StaticClosureMass}\\
+Proposition~\ref{prop:positivity} & \lean{TransitionConsequences.staticSurvival_pos}; \lean{StaticFoodTwoBulk}\\
+Lemmas~\ref{lem:records}, \ref{lem:repair} & \lean{ReversibleRecordWords.unbounded_record_words}; \lean{RecordTargetTrial.record_target_support}\\
+Theorem~\ref{thm:richness} & \lean{SameParameterRichness.same_parameter_target_ae}, \lean{unbounded_missing_target_null}; \lean{InfiniteClosureDichotomy.survival_iff_complete_ae}, \lean{finite_or_complete_ae}, \lean{staticSurvival_eq_complete}\\
+\eqref{eq:GL} & \lean{InfiniteStaticLaw.finite_static_seed_probability_tendsto}; \lean{SameParameterRichness.staticSurvival_le_same_parameter_seed}\\
+Theorem~\ref{thm:uniform-approx} & \lean{SeedSurvivalApproximation.seed_probability_le_survival_add_error}; \lean{InfiniteClosureDichotomy.uniform_seed_survival_approximation}\\
+\bottomrule
+\end{tabular}
+\caption{Concordance between the numbered results of Sections~\ref{sec:model}--\ref{sec:continuity} and the Lean declarations.}
+\label{tab:concordance}
+\end{table}
+
+\begin{table}[htbp]
+\centering\footnotesize
+\begin{tabular}{@{}p{0.28\linewidth}p{0.68\linewidth}@{}}
+\toprule
+Paper result & Lean module and declaration(s)\\
+\midrule
+Theorem~\ref{thm:continuity} & \lean{StaticSurvivalContinuity.staticSurvival_tendsto}; \lean{StaticSurvivalLeftContinuity.staticSurvival_le_left}; \lean{OuterScalingRegimes.staticSurvival_one}\\
+Proposition~\ref{prop:lower} & \lean{TransitionLowerBound.transition_liminf_lower}\\
+Proposition~\ref{prop:upper} & \lean{TransitionUpperBound.transition_limsup_le_finite_escape}, \lean{transition_limsup_upper}\\
+Fixed-intensity limit & \lean{CorrectedTransition.rafProbability_tendsto_transitionLimit}, \lean{corrected_transition}\\
+Lemma~\ref{lem:mono}, \eqref{eq:squeeze} & \lean{CanonicalParameterMonotonicity}; \lean{VariableIntensityTransition.variable_intensity_transition}, \lean{critical_window_transition}\\
+Lemma~\ref{lem:clamp} & \lean{CriticalWindowSource.critical_window_parameter_exact}\\
+Theorem~\ref{thm:main} & \lean{CriticalWindowSource.full_corrected_transition}; \lean{PublicationResolution.publication_resolution}; \lean{TransitionConsequences.continuous_transitionLimit}, \lean{transitionLimit_mono}, \lean{transitionLimit_mem_Ioo}, \lean{transitionLimit_zero}\\
+Corollary~\ref{cor:nostep} & \lean{TransitionConsequences.no_finite_step_threshold}\\
+Corollary~\ref{cor:outer} & \lean{OuterScalingRegimes.sublinear_regime}, \lean{superlinear_regime}, \lean{transitionLimit_infinity}\\
+Lemma~\ref{lem:integration} & \lean{WordDiamondCuts.wordDiamond_integrate}\\
+Lemma~\ref{lem:bond-connected} & \lean{WordBondConnected.wordBond_diamond_connected}; \lean{WordDiamondDegree}; \lean{WordContourCounting}\\
+Lemma~\ref{lem:anchor} & \lean{WordMolecularAnchors.wordBond_molecular_anchor_radius}\\
+Lemma~\ref{lem:envelope} & \lean{WordMoleculeContourCount.wordMoleculeContourEnvelope_card}, \lean{wordBond_mem_molecule_envelope}\\
+Lemma~\ref{lem:separation} & \lean{FiniteBondSeparation}\\
+Lemma~\ref{lem:support-overlap} & \lean{WordDetourLiteralPaths.wordDetourSource_reach_parent}; \lean{WordDetourIncidence}; \lean{DisjointDetourSelection.exists_disjoint_detours}\\
+\bottomrule
+\end{tabular}
+\caption{Concordance (continued): Sections~\ref{sec:continuity}--\ref{sec:proof}, the main results, and Appendix~\ref{app:geometry}.}
+\label{tab:concordance2}
+\end{table}
+
+The formal lower bound was first compiled with an independent-sprinkling intermediate; the same-parameter richness theorem now available in the dependency chain replaces that intermediate in the prose of Proposition~\ref{prop:lower}. Both routes yield the same limiting inequalities, and the displayed proof needs no sprinkling lemma.
+
+\subsection{Verification record}
+The root declarations were checked with Lean \lean{v4.30.0} against a pinned Mathlib revision (\lean{c5ea0035}) with warnings treated as errors; \lean{sorry} and \lean{admit} are rejected. The dependency closure of \lean{publication_resolution} comprises $151$ local modules, which were rebuilt from source in an isolated cache separate from any shared proof cache. The axiom report for every root declaration lists exactly \lean{propext}, \lean{Classical.choice} and \lean{Quot.sound}, the standard classical and quotient principles used throughout Mathlib; no project-specific axiom occurs. Source hashes, compiled-artifact hashes, exported declaration interfaces and the axiom reports are recorded in a machine-readable verification manifest distributed with the source. Kernel verification establishes the encoded declarations; source-model fidelity additionally rests on the definitions of Section~\ref{sec:model}, which are part of the stated theorem surface.
+
+\bibliographystyle{amsplain}
+\bibliography{refs}
+
+\end{document}

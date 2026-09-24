@@ -1,0 +1,144 @@
+\section{A small constructed source with two interacting modules}\label{sec:constructed}
+
+This section gives the first result: a hypothetical but fully specified chemistry that copies four concentration-state labels with at most $874$ resident molecules per newborn module. The mechanism is deliberately small so that its one-cycle probability can be certified in exact integer arithmetic on a finite state space. Its physical assumptions are equally explicit: an ideal external controller prescribes the volume, holds food and waste pools at fixed activities, and resets those pools at division without inspecting the stored label.
+
+\subsection{Chemistry}\label{sec:chem}
+There are two resident modules $i=0,1$, each with two resident species $X_i,Y_i$, a shared growth marker with count $m$, and, for each module, a controlled food pool $F_i$ and a controlled waste pool $W_i$. The resident reactions of each module are
+\begin{equation}\label{eq:resident}
+ F\rightleftharpoons X,\qquad Y+F\rightleftharpoons2X,\qquad
+ 2X\rightleftharpoons X+Y,\qquad X+Y\rightleftharpoons Y+W,\qquad X\rightleftharpoons W.
+\end{equation}
+Read chemically: food is converted to $X$ directly and, autocatalytically, by $Y$; two $X$ molecules convert one of them to $Y$; $Y$ catalyses the degradation of $X$ to waste; and $X$ leaks to waste. Every reaction is reversible. At the maintained food and waste activities the effective count propensities are those of Table~\ref{tab:rates}; repeated reactants use falling factorials with no additional factorial divisor, so $2X\to X+Y$ has propensity $15x(x-1)/m$.
+
+\begin{table}[t]
+\centering
+\caption{Effective propensities per module in model time. $x,y$ are the module's resident counts and $m$ is the shared marker count, which also sets the volume. The reverse coefficients are chosen so that the effective ratios $K_{FX}=150000$, $K_{YX}=1$ and $K_{XW}=100000$ are consistent around every cycle of \eqref{eq:resident}; these define a hypothetical chemistry.}\label{tab:rates}
+\begin{tabular}{@{}lll@{}}\toprule
+Reaction pair & Forward propensity & Reverse propensity\\\midrule
+$F\rightleftharpoons X$ & $(193/5)\,m$ & $(193/750000)\,x$\\
+$Y+F\rightleftharpoons2X$ & $1555\,y$ & $(311/30000)\,x(x-1)/m$\\
+$2X\rightleftharpoons X+Y$ & $15\,x(x-1)/m$ & $15\,xy/m$\\
+$X+Y\rightleftharpoons Y+W$ & $100\,xy/m$ & $y/1000$\\
+$X\rightleftharpoons W$ & $(105/2)\,x$ & $(21/40000)\,m$\\\bottomrule
+\end{tabular}
+\end{table}
+
+The modules interact in two ways. Each module contributes to growth through $X_i\to M$ at propensity $x_i/10$: one resident molecule is consumed and the shared marker $m$ increases by one, which dilutes both modules. The reverse channel $M\to X_i$ has propensity $\rho m$. Cross-catalysis $X_i+Y_j\rightleftharpoons Y_i+Y_j$ for $j\ne i$ has propensities $\epsilon x_iy_j/m$ forward and $\epsilon y_iy_j/m$ backward. The two parameters $\epsilon\ge0$ and $\rho\ge0$ are the interaction strength and the growth-reversal rate; the theorem below is uniform over an interval of each.
+
+Assigning equal positive masses to $F,X,Y,W$ and $M$ makes every displayed reaction mass-balanced. The imposed food-to-waste affinity at the stipulated pool activities is $\log(K_{FX}K_{XW})=\log(1.5\times10^{10})\simeq23.43$ in units of $k_BT$. This is the driving affinity of the reservoir pair, not a dissipation per copied bit.
+
+\paragraph{Dimensional calibration.}
+Take a concentration scale $C_0=1\,\micro\Molar$, one second per model-time unit, and food and waste concentrations $1000\,C_0$. The controller prescribes the volume $V=m/(N_AC_0)$ and holds each local pool at $1000\,m$ molecules after every event. A newborn has $m=N=53$, corresponding to a volume of about $0.0880$\,fL, and divides at the first arrival at $m=2N=106$. The corresponding physical rate table has, for example, $Y+F\to2X$ at $1.555\times10^6\,\Molar^{-1}\mathrm s^{-1}$ at $1$\,mM food and $X\to W$ at $52.5\,\mathrm s^{-1}$. The marker is a chemical growth product coupled to the prescribed volume; it is not asserted to be a membrane, and exact instantaneous pool adjustment, prescribed volume and well-mixed equal-volume division are assumptions of the protocol rather than consequences of the chemistry.
+
+\subsection{Protocol, regions and the theorem}\label{sec:protocol}
+The protocol counts every model event, including an auxiliary rate-one self-event that keeps the total jump rate positive, and rejects the cycle when the counter reaches the quota $J=10^8$. It monitors exits from the certified resident domain $\{x_i\le16m,\ y_i\le4m\}$ and every reverse-growth event; both are counted as failure. At division, the residents of each module undergo the complementary allocation of Section~\ref{sec:partition}. The controller then sets each daughter's marker to $53$ and each local pool to $53000$ molecules, without changing the allocated resident counts or inspecting the label.
+
+At birth the admitted boxes of the two labels are
+\begin{equation}\label{eq:boxes}
+ B_0=\{6\le x\le106,\ 0\le y\le8\},\qquad B_1=\{371\le x\le742,\ 6\le y\le132\},
+\end{equation}
+with integer counts. A word $\sigma\in\{0,1\}^2$ means $(x_i,y_i)\in B_{\sigma_i}$ for both modules, so the admitted region of the word is $B_\sigma=B_{\sigma_0}\times B_{\sigma_1}$. The decoder is the threshold $x>212$, applied to each module separately. The preparations $(53,0)\in B_0$ and $(530,53)\in B_1$ show that every word has admitted states. A newborn module in $B_1$ has at most $742+132=874$ resident molecules, and one in $B_0$ at most $114$.
+
+\begin{theorem}[Finite-drive concentration-state copying]\label{thm:constructed}
+For the quota-controlled source above, every admitted newborn of every word has probability at least $0.9901$ of first division by $T=20$ with both complementary daughters returned to the same word's admitted boxes and no monitor triggered. This holds uniformly for
+\[
+ 0\le\epsilon\le0.1,\qquad0\le\rho\le2\times10^{-7},
+\]
+in particular on the strictly positive rectangle $10^{-4}\le\epsilon\le0.1$, $10^{-7}\le\rho\le2\times10^{-7}$. Each newborn module has at most $874$ resident molecules. Ten inspected lineage cycles succeed with probability at least $0.9901^{10}>0.905$.
+\end{theorem}
+
+The success event is Definition~\ref{def:cycle} with inspection at birth: the restart state of daughter A is its birth count vector, and the marker, pools and counter are reset by the controller. The first actual division can be preceded by histories that the conservative monitors reject; the theorem bounds the probability of the monitored successful subset, which is contained in the event ``first division by $T$ with both daughters in $B_\sigma$''. The last sentence is Lemma~\ref{lem:iteration}.
+
+\subsection{The proof: a finite generator certificate}\label{sec:certificate}
+For a finite jump model with channels $r$, propensities $a_r(z)$ and jumps $\nu_r$, write
+\[
+ \cL f(z)=\sum_r a_r(z)\bigl(f(z+\nu_r)-f(z)\bigr).
+\]
+The following comparison converts generator inequalities into a deadline bound. It is the only probabilistic tool needed for the constructed source.
+
+\begin{lemma}[Deadline comparison]\label{lem:deadline}
+Let $Z$ be a finite-state jump process with generator $\cL$, and let $h,v,w$ be functions on its state space with $v\le h+w$, $w\ge0$. If $\cL v\ge-\delta$ and $\cL w\le-sw+\eta$ with $s>0$, $\eta\ge0$, then for every state $n$ and $T\ge0$,
+\begin{equation}\label{eq:deadline}
+ \EE_n h(Z_T)\ \ge\ v(n)-T\delta-e^{-sT}w(n)-\eta/s.
+\end{equation}
+\end{lemma}
+\begin{proof}
+On a finite state space $u(t)=\EE_nv(Z_t)$ is differentiable with $u'(t)=\EE_n\cL v(Z_t)\ge-\delta$, so $\EE_nv(Z_T)\ge v(n)-T\delta$. Likewise $g(t)=\EE_nw(Z_t)$ satisfies $g'\le-sg+\eta$, and Gr\"onwall's inequality gives $g(T)\le e^{-sT}w(n)+\eta/s$. Subtracting, $\EE_nh(Z_T)\ge\EE_nv(Z_T)-\EE_nw(Z_T)$ gives \eqref{eq:deadline}. The finite law may be realized by uniformization or by the matrix exponential; the identity $u'=\EE\cL v$ holds for either.
+\end{proof}
+
+\paragraph{Local certificates with the other module as a control.}
+The state of the pair has four resident coordinates and the marker; a direct backward solve on the joint space is unnecessary. Instead, for each module and each label, rational backward certificates are computed on the volume layers $m=53,\dots,106$ with proposal caps $x\le16m$, $y\le4m$. The other module's influence, its cross-catalytic propensity and its contribution to growth, enters the local generator through affine controls whose ranges are the admissible values on the other module's certified domain. Checking the control extremes covers every admissible neighbouring state, so the local computation makes no independence assumption; it is a worst case over the other module.
+
+Let $h_i$ be the exact terminal payoff of module $i$ at $m=106$: the probability, under complementary allocation of that module's residents, that both daughters' module-$i$ counts lie in $B_{\sigma_i}$, an exact finite binomial sum. Let $h=h_0h_1$ be the joint payoff, which is exactly the probability that both daughters return. Combine the local certificates as
+\[
+ v=v_0+v_1-1,\qquad w=w_0+w_1 .
+\]
+This is valid because $h_0+h_1-1\le h_0h_1$ for $h_0,h_1\in[0,1]$, so $v\le h+w$ follows from the local inequalities $v_i\le h_i+w_i$, and the generator of the sum is controlled by the local generators evaluated at the control extremes. Exact exit comparisons handle joint killing: an exit of either module kills the pair, and the local certificates are compared with zero continuation at their own exits.
+
+The checked integer rows establish, for every state of the finite model,
+\begin{align}
+ v&\le1,& w&\ge0,& v&\le h+w,\label{eq:cert1}\\
+ \cL v&\ge-2\times10^{-6},& \cL w&\le-\tfrac58w+\tfrac1{50000},\label{eq:cert2}
+\end{align}
+and at every admitted newborn $n$ the birth row
+\begin{equation}\label{eq:birthcert}
+ 500000\,v(n)-2\,w(n)\ \ge\ 495550 .
+\end{equation}
+The numerically proposed certificate is not assumed correct: every row of \eqref{eq:cert1}--\eqref{eq:birthcert} is an integer inequality on exact rational data (about $2.2\times10^7$ transient rows), and the terminal payoffs are exact binomial sums. Appendix~\ref{app:verification} states the trust boundary of the arithmetic.
+
+\paragraph{Pre-monitor bound.}
+Apply Lemma~\ref{lem:deadline} with $T=20$, $\delta=2\times10^{-6}$, $s=5/8$, $\eta=1/50000$. Since $e^{-sT}=e^{-25/2}\le1/250000$, \eqref{eq:birthcert} gives $v(n)-e^{-sT}w(n)\ge0.9911$, and hence
+\[
+ \EE_nh(Z_T)\ \ge\ 0.9911-20\cdot2\times10^{-6}-\tfrac{8}{5}\cdot\tfrac1{50000}=0.991028\ \ge\ 0.991 .
+\]
+
+\paragraph{Reverse-growth monitor.}
+Every reverse-growth event $M\to X_i$ is rejected. Before division $m\le2N$, so the combined hazard of the two reverse channels is at most $2\rho\cdot2N=4\rho N$, and the probability that such an event occurs by $T=20$ is at most $80\rho N\le0.000848$ at $\rho=2\times10^{-7}$. Killing at these events lowers the generator of $v$ by at most the hazard, since $v\le1$ and the killed continuation is $0\ge v-1$; it can only improve the nonnegative witness $w$. No new backward solve is needed.
+
+\paragraph{Event quota.}
+The total event rate of the stopped model, including the self-event and the monitored reverse channels, is at most $\Lambda=4\times10^6$ on the certified domain; rates after an already failed exit are immaterial because the process is frozen there.
+
+\begin{lemma}[Stopped exponential counter bound]\label{lem:quota}
+Let $C_t$ count all events of a finite jump process whose total intensity is at most $\Lambda$, stopped at the quota $J$, with $C_0=0$. For every $a\ge1$,
+\begin{equation}\label{eq:tail}
+ \PP(C_T=J)\le a^{-J}\exp\bigl(\Lambda(a-1)T\bigr).
+\end{equation}
+For $\Lambda=4\times10^6$, $T=20$, $J=10^8$ and $a=1+10^{-6}$ the right side is at most $2\times10^{-7}$.
+\end{lemma}
+\begin{proof}
+Put $f(c)=a^c/a^J$. Before exhaustion, $\cL f=\lambda(z)(a-1)f\le\Lambda(a-1)f$, where $\lambda(z)$ is the total intensity, and at exhaustion the generator vanishes, so the inequality persists. Gr\"onwall for the finite law gives $\EE f(C_T)\le e^{\Lambda(a-1)T}/a^J$, and $\mathbf1_{\{C_T=J\}}\le f(C_T)$ proves \eqref{eq:tail}, including state-dependent intensities and self-events. For the constants: Bernoulli's inequality gives $a^{10000}\ge1.01$, exact rational arithmetic gives $1.01^{100}\ge2.7$, hence $a^{10^8}\ge2.7^{100}$; with $e<11/4$, $e^{80}/a^{10^8}\le(11/4)^{80}/2.7^{100}<2\times10^{-7}$.
+\end{proof}
+
+To attach the quota to the copying bound, lift $v$ unchanged to the state augmented by the counter, including the frozen exhausted states; its drift lower bound is preserved. Set $w$ to zero at exhaustion; its upper drift bound is preserved. The cover inequality $v\le h+w$ then holds with $h$ replaced by $h+\mathbf1_{\{C=J\}}$, because $v\le1$. Applying \eqref{eq:deadline} to the augmented model and subtracting Lemma~\ref{lem:quota} gives the actual quota-controlled payoff
+\[
+ 0.991-0.000848-0.0000002=0.9901518>0.9901 .
+\]
+The same finite model, with its monitors and quota, is the one whose first-division output defines the offspring kernel; Lemma~\ref{lem:iteration} then gives the ten-cycle statement and completes the proof of Theorem~\ref{thm:constructed}.
+
+\subsection{Resource accounting}\label{sec:resources}
+The $874$-molecule figure counts residents of one newborn module. The other inventories are part of the protocol and are charged separately.
+
+\begin{proposition}[Complete-cycle reservoir capacity]\label{prop:capacity}
+Each event changes a local pool and the marker by at most one molecule, so restoring a pool to $1000\,m$ after an event requires at most $1001$ supplied or removed molecules. Including startup of the pool at $1000N$, the reset of both daughters' pools after an arbitrary complementary allocation, and decommissioning, a conservative gross supply capacity and a conservative gross disposal capacity per food or waste pool and per cycle are each
+\begin{equation}\label{eq:capacity}
+ 4000N+1001J=100{,}100{,}212{,}000\ \text{molecules}\approx0.1662\ \mathrm{pmol}.
+\end{equation}
+Four pools over ten inspected cycles need about $6.65$\,pmol of capacity. The marker allowance for startup, reset and removal is $4N=212$ molecules per cycle. The initial local inventory is $213{,}801$ molecules: at most $1748$ residents, $212{,}000$ food and waste molecules, and $53$ marker molecules.
+\end{proposition}
+\begin{proof}
+If a pool with parent count $2q$ is split as $(a,2q-a)$, restoring both daughters to $q$ needs at most $q$ supplied and $q$ removed molecules; with $q=1000N$ this is the $2\cdot1000N$ reset term, and startup and decommissioning contribute $1000N$ each. Every counted event contributes at most $1001$, and there are at most $J$ events per cycle. The identities are checked in Lean (Appendix~\ref{app:verification}).
+\end{proof}
+
+These are worst-case capacities, not estimates of consumption. Compared with a crude linear exhaustion estimate, which would require a quota of $2\times10^{12}$ for the same probability loss, Lemma~\ref{lem:quota} reduces the conservative capacity by a factor of about $2\times10^4$. Finite capacity is compatible with the construction; it does not establish that the ideal controller is physically realizable.
+
+\subsection{What the labels measure}\label{sec:ratio}
+The decoder $x>212$ is a count threshold at the prescribed birth volume, so it distinguishes concentration states. It is natural to ask whether the labels are also distinguished by the resident composition alone, that is, by the normalized proportions $x:y$. They are not.
+
+\begin{proposition}[Concentration memory, not ratio memory]\label{prop:ratio}
+The states $(10,1)\in B_0$ and $(400,40)\in B_1$ have identical normalized resident compositions. Hence no decoder depending only on the proportions of $X$ and $Y$ separates all admitted low states from all admitted high states.
+\end{proposition}
+\begin{proof}
+$(400,40)=40\cdot(10,1)$, and both points satisfy \eqref{eq:boxes}.
+\end{proof}
+
+Proposition~\ref{prop:ratio} leaves Theorem~\ref{thm:constructed} intact and fixes its interpretation: the constructed source stores which of two concentration states each module occupies at the controlled volume. An externally controlled reference pool does not change this. The Semenov regions of Section~\ref{sec:semenov} and the redundancy construction of Section~\ref{sec:redundancy} do admit a relative-composition readout; the difference lies in the geometry of the admitted regions, not in the copying theorem.

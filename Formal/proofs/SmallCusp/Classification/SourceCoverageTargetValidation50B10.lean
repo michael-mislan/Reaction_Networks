@@ -1,0 +1,422 @@
+import proofs.SmallCusp.Classification.CoverageTypes
+import proofs.SmallCusp.Classification.SourceCoverageBatch50
+
+namespace SmallCusp
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 2000000
+
+def sourceCoverageTargetSlice50B10PartA : List SourceCoverageRecord :=
+  [
+  { sourceIndices := ![6, 12, 18, 21, 24]
+    targetIndices := ![6, 12, 18, 21, 24]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8218
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 21, 25]
+    targetIndices := ![6, 12, 18, 21, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8220
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 21, 26]
+    targetIndices := ![6, 12, 18, 21, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8219
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 21, 27]
+    targetIndices := ![6, 12, 18, 21, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8220
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 21, 28]
+    targetIndices := ![6, 12, 18, 21, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8221
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 21, 29]
+    targetIndices := ![6, 12, 18, 21, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8221
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 23]
+    targetIndices := ![6, 12, 18, 22, 23]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8222
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 24]
+    targetIndices := ![6, 12, 18, 22, 24]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8225
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 25]
+    targetIndices := ![6, 12, 18, 22, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8227
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 26]
+    targetIndices := ![6, 12, 18, 22, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8226
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 27]
+    targetIndices := ![6, 12, 18, 22, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8227
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 28]
+    targetIndices := ![6, 12, 18, 22, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8228
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 22, 29]
+    targetIndices := ![6, 12, 18, 22, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8228
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 23, 25]
+    targetIndices := ![6, 12, 18, 23, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8224
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 23, 26]
+    targetIndices := ![6, 12, 18, 23, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8223
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 23, 27]
+    targetIndices := ![6, 12, 18, 23, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8224
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 24, 25]
+    targetIndices := ![6, 12, 18, 24, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8230
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 24, 26]
+    targetIndices := ![6, 12, 18, 24, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8229
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 24, 27]
+    targetIndices := ![6, 12, 18, 24, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8230
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 25, 26]
+    targetIndices := ![6, 12, 18, 25, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8231
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 25, 27]
+    targetIndices := ![6, 12, 18, 25, 27]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8233
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 25, 28]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 25, 29]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 26, 27]
+    targetIndices := ![6, 12, 18, 25, 26]
+    matching := ![0, 1, 2, 4, 3]
+    outcome := .determinant
+    targetIndex := 8231
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 26, 28]
+    targetIndices := ![6, 12, 18, 26, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8232
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 26, 29]
+    targetIndices := ![6, 12, 18, 26, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8232
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 27, 28]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 18, 27, 29]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 21]
+    targetIndices := ![6, 12, 18, 20, 21]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8209
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 22]
+    targetIndices := ![6, 12, 18, 20, 22]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8211
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 23]
+    targetIndices := ![6, 12, 18, 20, 23]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8210
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 24]
+    targetIndices := ![6, 12, 18, 20, 24]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8212
+    swapTarget := false },
+]
+
+def sourceCoverageTargetSlice50B10PartB : List SourceCoverageRecord :=
+  [
+  { sourceIndices := ![6, 12, 19, 20, 25]
+    targetIndices := ![6, 12, 18, 20, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8214
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 26]
+    targetIndices := ![6, 12, 18, 20, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8213
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 27]
+    targetIndices := ![6, 12, 18, 20, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8214
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 28]
+    targetIndices := ![6, 12, 18, 20, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8215
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 20, 29]
+    targetIndices := ![6, 12, 18, 20, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8215
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 22]
+    targetIndices := ![6, 12, 18, 21, 22]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8217
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 23]
+    targetIndices := ![6, 12, 18, 21, 23]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8216
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 24]
+    targetIndices := ![6, 12, 18, 21, 24]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8218
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 25]
+    targetIndices := ![6, 12, 18, 21, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8220
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 26]
+    targetIndices := ![6, 12, 18, 21, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8219
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 27]
+    targetIndices := ![6, 12, 18, 21, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8220
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 28]
+    targetIndices := ![6, 12, 18, 21, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8221
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 21, 29]
+    targetIndices := ![6, 12, 18, 21, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8221
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 23]
+    targetIndices := ![6, 12, 18, 22, 23]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8222
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 24]
+    targetIndices := ![6, 12, 18, 22, 24]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8225
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 25]
+    targetIndices := ![6, 12, 18, 22, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8227
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 26]
+    targetIndices := ![6, 12, 18, 22, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8226
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 27]
+    targetIndices := ![6, 12, 18, 22, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8227
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 28]
+    targetIndices := ![6, 12, 18, 22, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8228
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 22, 29]
+    targetIndices := ![6, 12, 18, 22, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8228
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 23, 25]
+    targetIndices := ![6, 12, 18, 23, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8224
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 23, 26]
+    targetIndices := ![6, 12, 18, 23, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8223
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 23, 27]
+    targetIndices := ![6, 12, 18, 23, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8224
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 24, 25]
+    targetIndices := ![6, 12, 18, 24, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8230
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 24, 26]
+    targetIndices := ![6, 12, 18, 24, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8229
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 24, 27]
+    targetIndices := ![6, 12, 18, 24, 25]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8230
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 25, 26]
+    targetIndices := ![6, 12, 18, 25, 26]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8231
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 25, 27]
+    targetIndices := ![6, 12, 18, 25, 27]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8233
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 25, 28]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 25, 29]
+    targetIndices := ![6, 12, 18, 25, 28]
+    matching := ![0, 1, 2, 3, 4]
+    outcome := .determinant
+    targetIndex := 8234
+    swapTarget := false },
+  { sourceIndices := ![6, 12, 19, 26, 27]
+    targetIndices := ![6, 12, 18, 25, 26]
+    matching := ![0, 1, 2, 4, 3]
+    outcome := .determinant
+    targetIndex := 8231
+    swapTarget := false }]
+
+def sourceCoverageTargetSlice50B10 : List SourceCoverageRecord :=
+  sourceCoverageTargetSlice50B10PartA ++ sourceCoverageTargetSlice50B10PartB
+
+theorem sourceCoverageTargetSlice50B10PartA_targetConsistent :
+    sourceCoverageTargetSlice50B10PartA.all (fun R => decide R.TargetConsistent) = true := by
+  decide
+
+theorem sourceCoverageTargetSlice50B10PartB_targetConsistent :
+    sourceCoverageTargetSlice50B10PartB.all (fun R => decide R.TargetConsistent) = true := by
+  decide
+
+theorem sourceCoverageTargetSlice50B10PartA_length : sourceCoverageTargetSlice50B10PartA.length = 32 := by
+  decide
+
+theorem sourceCoverageTargetSlice50B10PartB_length : sourceCoverageTargetSlice50B10PartB.length = 31 := by
+  decide
+
+theorem sourceCoverageTargetSlice50B10_targetConsistent :
+    sourceCoverageTargetSlice50B10.all (fun R => decide R.TargetConsistent) = true := by
+  simp [sourceCoverageTargetSlice50B10,
+    sourceCoverageTargetSlice50B10PartA_targetConsistent,
+    sourceCoverageTargetSlice50B10PartB_targetConsistent]
+
+theorem sourceCoverageTargetSlice50B10_length : sourceCoverageTargetSlice50B10.length = 63 := by
+  simp [sourceCoverageTargetSlice50B10,
+    sourceCoverageTargetSlice50B10PartA_length,
+    sourceCoverageTargetSlice50B10PartB_length]
+
+end SmallCusp

@@ -1,0 +1,375 @@
+\section{Finite-molecule operation}\label{sec:finite}
+Stable equilibria of the rate equations become usable labels only if a finite number of
+molecules stays near them, returns after a disturbance, and can be told apart. This section
+formulates such a contract for the full stochastic model of \eqref{eq:source} and proves
+computable sufficient conditions. No diffusion approximation and no stochastic
+quasi-steady-state reduction is used; such reductions need additional hypotheses
+\cite{KimJosicBennett2014}.
+
+\subsection{The Markov chain and exact lumping}
+At system size \(\Omega>0\) the state is a vector \(N\) of molecule counts, and
+\(X=N/\Omega\) is the vector of concentrations. A binding reaction with constant \(k\) and
+reactant counts \(N_i,N_j\) has propensity \(kN_iN_j/\Omega\); the two reactants are always
+distinct species, so no combinatorial correction arises. A unimolecular reaction has
+propensity \(kN_i\). With \(a_\rho(x)\) the mass-action rate of reaction \(\rho\) and
+\(\nu_\rho\) its reaction vector, the generator is
+\begin{equation}\label{eq:generator}
+ \cL_\Omega\varphi(x)=\Omega\sum_\rho a_\rho(x)\,
+ \bigl[\varphi(x+\nu_\rho/\Omega)-\varphi(x)\bigr]
+\end{equation}
+\cite{AndersonKurtz2015}. The totals \eqref{eq:totals} are conserved, so for \(\Omega\) such
+that \(\Omega\ET,\Omega\FT,\Omega\ST\) are integers the chain lives on a finite set, and it is
+nonexplosive. We use the class chart of the proof of Theorem~\ref{thm:upper}: the \(d\)
+coordinates are the \(S_I\) with \(I\ne\varnothing\) and all complexes, and
+\(S_\varnothing,E,F\) are recovered from the totals. In this chart \(\nu_\rho\in\R^d\), \(H\)
+denotes the vector field, \(J\) its Jacobian, and \(\|\cdot\|\) the Euclidean norm.
+
+\begin{proposition}[Exact stochastic reduction]\label{prop:lump}
+For the symmetric lift \eqref{eq:lift}, and for every initial distribution, the aggregated
+process \(\Pi N(t)\) is a Markov chain whose generator is that of the sequential chain at the
+same \(\Omega\). Consequently any event defined by the aggregated path has the same
+probability in both models.
+\end{proposition}
+\begin{proof}
+The reactions of the cube that induce a given jump of \(\Pi N\) are those of one type at one
+level. Their propensities add up to
+\(\sum_{|\tl e|=k}\frac{a_{k+1}}{n-k}N_EN_{S_{\tl e}}/\Omega
+=a_{k+1}N_E\bigl(\sum_{|I|=k}N_{S_I}\bigr)/\Omega\) for kinase binding, similarly for
+phosphatase binding, and to a level constant times an aggregated complex count for the
+unimolecular reactions. These sums depend on \(N\) only through \(\Pi N\), which is the
+criterion for strong lumpability \cite{KemenySnell1960}.
+\end{proof}
+The reduction is exact, not asymptotic, but it is limited to observations that factor through
+\(\Pi\) and to the lifted rates; independently perturbed site-specific rates or site-specific
+readouts are not covered.
+
+\subsection{Retention and recovery}
+\begin{theorem}[Computable finite memory]\label{thm:finite}
+Let \(x^*\) be a positive hyperbolic sink with chart Jacobian \(J\). Let \(P\) be a symmetric
+matrix and \(\underline p,\overline p,\mu,K,\varrho>0\) constants such that
+\begin{equation}\label{eq:lyap-hyp}
+ \underline pI\le P\le\overline pI,\qquad -(J^TP+PJ)\ge\mu I,\qquad
+ \|H(x^*+h)-Jh\|\le K\|h\|^2\ \ (\|h\|\le\varrho),
+\end{equation}
+the ball \(\|h\|\le\varrho\) lies in the positive class, and
+\(\varrho\le\mu/(4\overline pK)\). Put
+\[
+ V(x)=h^TPh\ \ (h=x-x^*),\qquad v=\underline p\varrho^2,\qquad
+ \lambda=\frac{\mu}{2\overline p},\qquad D=\{V<v\},
+\]
+and let \(C\ge\sup_{x\in D}\sum_\rho a_\rho(x)\,\nu_\rho^TP\nu_\rho\). Let \(\tau\) be the
+first exit time of \(X\) from \(D\). Then for every \(\Omega\), every \(X_0\in D\) and every
+\(t\ge0\),
+\begin{align}
+ \Pr(\tau\le t)&\le\frac{V(X_0)+Ct/\Omega}{v},\label{eq:retention}\\
+ \mathbb E\bigl[V(X_t)\,\mathbf 1_{\{\tau>t\}}\bigr]
+ &\le e^{-\lambda t}V(X_0)+\frac{C}{\lambda\Omega}.\label{eq:recovery}
+\end{align}
+In particular, with the preparation set \(\mathsf B=\{V\le v/4096\}\) and the disturbance set
+\(\mathsf A=\{V\le v/1024\}\), for every \(X_0\in\mathsf A\) and \(t\ge8/\lambda\),
+\begin{equation}\label{eq:recfailure}
+ \Pr\bigl(\tau\le t\ \text{or}\ X_t\notin\mathsf B\bigr)
+ \le\frac1{1024}+\frac{Ct}{\Omega v}+\frac1{256}+\frac{4096\,C}{\lambda\Omega v}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+Since \(V\) is quadratic, \eqref{eq:generator} gives the exact identity
+\begin{equation}\label{eq:LV}
+ \cL_\Omega V(x)=2h^TPH(x)+\frac1\Omega\sum_\rho a_\rho(x)\,\nu_\rho^TP\nu_\rho ,
+\end{equation}
+with no remainder. On \(D\) we have \(\underline p\|h\|^2\le V<\underline p\varrho^2\), so
+\(\|h\|<\varrho\), and by \eqref{eq:lyap-hyp}
+\(2h^TPH\le-\mu\|h\|^2+2\overline pK\|h\|^3\le-\tfrac\mu2\|h\|^2\le-\lambda V\). Hence
+\(\cL_\Omega V\le-\lambda V+C/\Omega\) on \(D\). Dynkin's formula for the stopped process gives
+\(\mathbb EV(X_{t\wedge\tau})\le V(X_0)+Ct/\Omega\). At the exit time the chain has jumped out
+of \(D\), so \(V(X_\tau)\ge v\) whatever the overshoot, and Markov's inequality gives
+\eqref{eq:retention}. Applying Dynkin's formula to \(e^{\lambda s}V(X_s)\) gives
+\[
+ \mathbb E\bigl[e^{\lambda(t\wedge\tau)}V(X_{t\wedge\tau})\bigr]
+ \le V(X_0)+\frac C\Omega\int_0^te^{\lambda s}\,\dd s ,
+\]
+and \(e^{\lambda t}V(X_t)\mathbf 1_{\{\tau>t\}}\) is bounded by the integrand on the left, which
+gives \eqref{eq:recovery}. Finally, by Markov's inequality,
+\(\Pr(\tau>t,\ V(X_t)>v/4096)\le(4096/v)\bigl(e^{-\lambda t}v/1024+C/(\lambda\Omega)\bigr)\), and
+\(4e^{-8}<1/256\); adding \eqref{eq:retention} with \(V(X_0)\le v/1024\) gives
+\eqref{eq:recfailure}.
+\end{proof}
+The scalar form of the identity \eqref{eq:LV} and the multiplicity identity used in
+Proposition~\ref{prop:lump} are among the machine-checked algebraic facts
+(Appendix~\ref{app:certificates}).
+
+\begin{corollary}[Operational contract]\label{cor:contract}
+Let \(x_1^*,\dots,x_{N_{\mathrm{lab}}}^*\) be hyperbolic sinks in one class with data
+\((P_i,\varrho_i,v_i,\lambda_i,C_i)\) as in Theorem~\textup{\ref{thm:finite}}. Let
+\(\ell\) be a linear readout and \(\varepsilon_{\mathrm{obs}}\ge0\) a bound for the observation
+error, and assume that the intervals
+\([\ell(x_i^*)-\|\ell\|\varrho_i-\varepsilon_{\mathrm{obs}},\
+\ell(x_i^*)+\|\ell\|\varrho_i+\varepsilon_{\mathrm{obs}}]\) are pairwise disjoint. Put
+\(\trec=\max_i8/\lambda_i\), \(T=100\,\trec\), and let \(\Omega\) be compatible with the totals
+and satisfy
+\begin{equation}\label{eq:budget}
+ \Omega\ \ge\ \max_i\max\Bigl\{\frac{1000\,C_iT}{v_i},\ \frac{10^6C_i}{\lambda_iv_i},\
+ \frac{1024\,d\,\overline p_i}{v_i},\ 1\Bigr\}.
+\end{equation}
+Then: \textup{(a)} each \(\mathsf B_i\) contains a lattice point of the class, obtained by
+rounding the chart coordinates of \(x_i^*\); \textup{(b)} from every state of \(\mathsf B_i\)
+the chain stays in \(D_i\) during \([0,T]\) with probability at least \(1-0.0013\), and on this
+event the interval decoder returns \(i\) at all times; \textup{(c)} from every state of
+\(\mathsf A_i\) the chain is in \(\mathsf B_i\) at time \(\trec\), without having left \(D_i\),
+with probability at least \(1-0.009\); \textup{(d)} recovery from \(\mathsf A_i\) followed by
+storage for time \(T\) fails with probability less than \(0.011\).
+\end{corollary}
+\begin{proof}
+(a) Rounding each chart coordinate of \(\Omega x_i^*\) to a nearest integer changes \(x\) by at
+most \(1/(2\Omega)\) per coordinate, so \(V_i\le\overline p_id/(4\Omega^2)\le v_i/4096\) by the
+third term of \eqref{eq:budget} and \(\Omega\ge1\); the dependent counts are then integers by
+compatibility and positive because the ball lies in the positive class. When \(x_i^*\) is
+irrational one rounds a sufficiently accurate enclosure instead. (b) and (c) follow from
+\eqref{eq:retention} and \eqref{eq:recfailure}: the terms are at most
+\(1/4096+10^{-3}\) and \(1/1024+10^{-5}+1/256+0.0041\). On \(\{\tau_i>T\}\) the readout differs
+from \(\ell(x_i^*)\) by at most \(\|\ell\|\varrho_i\). (d) is the Markov property at time
+\(\trec\) and a union bound.
+\end{proof}
+
+\begin{remark}[Three limits of the contract]\label{rem:contract}
+(a) Retention is continuous: an excursion out of \(D_i\) counts as a failure even if the chain
+returns. (b) Recovery is from the local disturbance sets \(\mathsf A_i\), not from arbitrary
+states. (c) Labels are \emph{prepared}. No protocol that switches the system from one label to
+another with a common finite control is analysed, and the corollary does not describe a
+complete write--store--read device. The individual guarantees (b) and (c) exceed \(0.99\); the
+composite guarantee (d) is what may be quoted for recovery followed by storage.
+\end{remark}
+
+\begin{proposition}[A common clock does not change the budget]\label{prop:clock}
+Multiply all rate constants by \(\varsigma>0\) and keep the totals, the matrices \(P_i\) and
+the radii \(\varrho_i\). Then the hypotheses \eqref{eq:lyap-hyp} hold with
+\((\mu_i,K_i,C_i,\lambda_i)\) replaced by \(\varsigma(\mu_i,K_i,C_i,\lambda_i)\), the times
+\(\trec\) and \(T\) are divided by \(\varsigma\), and the right-hand side of \eqref{eq:budget}
+is unchanged.
+\end{proposition}
+\begin{proof}
+The generator becomes \(\varsigma\cL_\Omega\), so the new process is the old one run at time
+\(\varsigma t\). The ratio \(\mu_i/K_i\), and hence the admissible radius and \(v_i\), are
+unchanged, and \(C_iT\) and \(C_i/\lambda_i\) are invariant.
+\end{proof}
+Thus slowing a design to respect physical upper limits on rate constants changes the reported
+times but not the molecule budget of the matched protocol \(T=100\,\trec\); at a fixed absolute
+storage time the bound would change, and recovery would have to be charged on the same clock.
+
+\section{Crowding, restoration, and observation}\label{sec:crowding}
+
+\subsection{The exit barrier of crowded states}
+The chain attains its \(n\) sinks in \cite{Companion} by splitting one equilibrium of
+multiplicity \(2n-1\). For \(n\ge2\) and real numbers \(\xi_0<\dots<\xi_{2n-2}\), that paper
+constructs rate constants \(\kappa(\delta)\), analytic in a small parameter \(\delta\ge0\),
+with fixed totals, such that for \(\delta>0\) the class contains exactly the \(2n-1\)
+equilibria \(X_j(\delta)\), with \(E=1+\delta\xi_j/2\) at \(X_j(\delta)\), all converging to
+one point \(X_\circ\) as \(\delta\to0\); the \(X_j\) with \(j\) even are hyperbolic sinks, and
+the Jacobian at \(X_j(\delta)\) has \(3n-1\) eigenvalues with real parts below a negative
+constant and one eigenvalue
+\begin{equation}\label{eq:split}
+ \lambda_j(\delta)=-a\,\delta^{2n-2}\prod_{k\ne j}(\xi_j-\xi_k)\,(1+O(\delta)),\qquad a>0
+\end{equation}
+(Appendix~\ref{app:sequential}). We call this the \emph{crowded family}. By
+Propositions~\ref{prop:lift} and~\ref{prop:lump} everything below applies verbatim to the
+symmetric lift of the family to the cube and to events defined through the aggregation
+\(\Pi\).
+
+For a path \(\phi:[0,t]\to\) class chart, the reaction-path action is
+\(\int_0^t\cI(\phi,\dot\phi)\,\dd s\), where \(\cI(x,\cdot)\) is the Legendre transform of the
+Hamiltonian
+\begin{equation}\label{eq:hamiltonian}
+ \mathcal H(x,\theta)=\sum_\rho a_\rho(x)\bigl(e^{\theta\cdot\nu_\rho}-1\bigr),
+\end{equation}
+the large-deviation rate function of the chain \eqref{eq:generator}
+\cite{ShwartzWeiss1995,FreidlinWentzell,AgazziDemboEckmann2018}.
+
+\begin{theorem}[Local action and iterated exit law]\label{thm:action}
+Consider the crowded family for some \(n\ge2\), and let \(i\) be even. For every
+\(k\ge1\) and all sufficiently small \(\delta\) there are \(C^k\) coordinates \((z,w)\in
+\R\times\R^{3n-1}\) on a fixed neighbourhood of \(X_\circ\) in the class, depending \(C^k\) on
+\(\delta\), such that the rate equations read
+\begin{equation}\label{eq:normalform}
+ \dot z=f(z,\delta)=-a\prod_{j=0}^{2n-2}(z-\delta\xi_j)\,\bigl(1+O(|z|+\delta)\bigr),\qquad
+ \dot w=\mathsf B(z,w,\delta)\,w ,
+\end{equation}
+with \(a\) as in \eqref{eq:split} and \(\mathsf B(0,0,0)\) Hurwitz; \(X_j(\delta)\) is the point
+\((\delta\xi_j,0)\). Let \(l<\xi_i<r_{\mathrm c}\) be cuts with
+\(\xi_{i-1}<l\) and \(r_{\mathrm c}<\xi_{i+1}\) (when these neighbours exist), let \(P_t\) be a
+positive definite matrix with \(\mathsf B(0,0,0)^TP_t+P_t\mathsf B(0,0,0)<0\), let
+\(1<\alpha_t<n\), and put
+\[
+ D_\delta=\bigl\{\delta l<z<\delta r_{\mathrm c},\ \ w^TP_tw<\delta^{2\alpha_t}\bigr\}.
+\]
+\textup{(i)} The infimum \(I_\delta\) of the action over all paths from \(X_i(\delta)\) to the
+complement of \(D_\delta\) satisfies
+\begin{equation}\label{eq:action}
+ I_\delta=c_i\,\delta^{2n}\,(1+O(\delta)),\qquad
+ c_i=\frac{2a}{b_0}\ \min_{s\in\{l,r_{\mathrm c}\}}\ \int_{\xi_i}^{s}\prod_{j}(y-\xi_j)\,\dd y\ >0,
+\end{equation}
+where \(b_0=\omega^TQ(X_\circ)\,\omega\), \(Q(x)=\sum_\rho a_\rho(x)\nu_\rho\nu_\rho^T\), and
+\(\omega=\dd z\) at \(X_\circ\) is the left null covector of the Jacobian normalized by the
+choice of \(z\). \textup{(ii)} Let \(\tau_\delta\) be the exit time from \(D_\delta\) of the
+chain started at lattice points \(X_0^\Omega\to X_i(\delta)\). Then for every \(\zeta>0\),
+\begin{equation}\label{eq:iterated}
+ \lim_{\delta\downarrow0}\ \liminf_{\Omega\to\infty}\
+ \Pr\Bigl(\Bigl|\frac{\log\tau_\delta}{\Omega\,\delta^{2n}}-c_i\Bigr|<\zeta\Bigr)=1 .
+\end{equation}
+\end{theorem}
+The proof is in Appendix~\ref{app:action}. The inner limit is taken at fixed \(\delta\); the
+theorem is not uniform along joint sequences \((\delta,\Omega)\), and it concerns the declared
+tube \(D_\delta\), not the basin of attraction. The action in (i) is the full reaction-path
+action: paths may vary all enzyme, substrate and complex coordinates, and the transverse bound
+\(\alpha_t<n\) is what excludes a cheaper escape through those coordinates.
+
+\begin{corollary}[Barrier, recovery and resolution]\label{cor:tradeoff}
+In the crowded family, the linear recovery time \(\trec=1/|\lambda_i|\), the gap
+\(\Delta R\) between neighbouring values of any observable with nonzero derivative along the
+equilibrium curve, and the barrier satisfy
+\[
+ \trec=\Theta(\delta^{-(2n-2)}),\quad \Delta R=\Theta(\delta),\quad
+ I_\delta=\Theta(\delta^{2n})
+ \quad\Longrightarrow\quad
+ I_\delta=\Theta\bigl(\trec^{-n/(n-1)}\bigr)=\Theta\bigl((\Delta R)^{2n}\bigr),
+\]
+with constants depending on the family.
+\end{corollary}
+\begin{proof}
+The first relation is \eqref{eq:split}, the second is \cite[Corollary~8.4]{Companion} or
+follows from the analyticity of \(X_j(\delta)\), and the third is \eqref{eq:action}.
+\end{proof}
+The linear-noise estimate \(\Var(z)\simeq b_0/(2\Omega|\lambda_i|)\) gives a squared
+separation-to-noise ratio of order \(\Omega\delta^{2n}\), in agreement with the exponent in
+\eqref{eq:action}; it is a consistency check, not a substitute for the theorem. These relations
+describe \emph{one} mechanism by which many states can be expensive, namely crowding. They do
+not say that every multi-label source is crowded: the four labels of
+Section~\ref{sec:example} are well separated, and their cost has other origins.
+
+\subsection{Observation}
+\begin{proposition}[Bounded-error packing]\label{prop:packing}
+Suppose label \(i\) has ideal observation \(y_i\in\prod_{j=1}^{d_{\mathrm{obs}}}[\alpha_j,\alpha_j+R_j]\), the
+observed vector is \(y_i+e\) with an arbitrary error satisfying
+\(|e_j|\le\varepsilon_j\), \(\varepsilon_j>0\), and a decoder identifies the label for every
+admissible error. Then the number of labels satisfies
+\[
+ N_{\mathrm{lab}}\ \le\ \prod_{j=1}^{d_{\mathrm{obs}}}\Bigl(1+\Bigl\lfloor\frac{R_j}{2\varepsilon_j}\Bigr\rfloor\Bigr).
+\]
+\end{proposition}
+\begin{proof}
+The closed error boxes around different ideal observations must be disjoint. Let
+\(m_j=1+\lfloor R_j/2\varepsilon_j\rfloor>R_j/2\varepsilon_j\) and cut the \(j\)-th range into
+\(m_j\) consecutive intervals of length \(R_j/m_j<2\varepsilon_j\), assigning endpoints to one
+side. Two ideal observations in the same product cell differ by less than \(2\varepsilon_j\)
+in every coordinate, so their boxes share the midpoint. Hence each cell contains at most one
+ideal observation.
+\end{proof}
+Variation of the readout within the safe sets \(D_i\) enlarges the boxes. The bound is of order
+\((R/\varepsilon)^{d_{\mathrm{obs}}}\), which is why several independent channels can help; it is an
+upper bound, not an attainment result, and correlated channels, or phosphoform fractions
+constrained to a simplex, give less.
+
+\begin{proposition}[Passive and bounded-gain observation]\label{prop:passive}
+\textup{(a)} If an observation is a function of the chemical path, possibly randomized, that
+does not feed back on the chemistry, then the law of every chemical exit time, and hence every
+barrier of Theorem~\textup{\ref{thm:action}}, is the same for all such observations.
+\textup{(b)} If equilibria satisfy \(\|x_i(\delta)-x_j(\delta)\|=O(\delta)\) and the
+observation map has a Lipschitz constant bounded independently of \(\delta\), then the
+observations differ by \(O(\delta)\), for any number of channels.
+\end{proposition}
+\begin{proof}
+(a) The exit time is a functional of the chemical path, whose law is unchanged. (b) is the
+Lipschitz inequality.
+\end{proof}
+A richer decoder can change which excursions count as failures; that defines a new event, which
+needs its own retention proof. A reporter that binds the substrate is not passive: it
+sequesters substrate and belongs in the reaction network. Thus multichannel readout is a
+promising direction for well-spread states, but it does not repair crowding.
+
+\section{Finite thermodynamic driving and robustness}\label{sec:driving}
+The catalytic steps of \eqref{eq:source} are irreversible, which corresponds to infinite
+driving by ATP hydrolysis. We show that the sinks survive in a thermodynamically consistent
+model with finite driving, and that effective affinities present no obstruction; see
+\cite{Hill1989,Qian2007,RaoEsposito2016} for background and \cite{LiLiaoOuyangLi2024} for a
+study of finite driving in other biochemical switches.
+
+\begin{theorem}[Finite-driving persistence]\label{thm:driving}
+Let ATP, ADP and inorganic phosphate be chemostatted with activities \(1\), \(\vartheta\) and
+\(\vartheta\), and replace \eqref{eq:source} on every edge by
+\begin{equation}\label{eq:reversible}
+ S_{\tl e}+E+\mathrm{ATP}\ \underset{b_e}{\overset{a_e}{\rightleftharpoons}}\ C_e
+ \ \underset{d_e}{\overset{c_e}{\rightleftharpoons}}\ S_{\hd e}+E+\mathrm{ADP},
+ \qquad
+ S_{\hd e}+F\ \underset{\beta_e}{\overset{\alpha_e}{\rightleftharpoons}}\ Y_e
+ \ \underset{h_e}{\overset{\gamma_e}{\rightleftharpoons}}\ S_{\tl e}+F+\mathrm P_{\mathrm i},
+\end{equation}
+with \(d_e=a_ec_e/b_e\) and \(h_e=\alpha_e\gamma_e/\beta_e\). \textup{(i)} There are standard
+chemical potentials for which every reaction of \eqref{eq:reversible} satisfies local
+detailed balance; hence all Wegscheider cycle conditions hold, including those for cycles
+through different paths of the cube, and the chemical potential difference of ATP hydrolysis,
+\(-2\log\vartheta\) in units of \(\kB T\), is the same for every turnover on every edge.
+\textup{(ii)} The vector field of \eqref{eq:reversible} is \(H+\vartheta G\) with a polynomial
+\(G\), and the totals \eqref{eq:totals} are still conserved. Consequently every finite set of
+hyperbolic sinks of \eqref{eq:source} in one class continues, for all sufficiently small
+\(\vartheta>0\), to hyperbolic sinks of \eqref{eq:reversible} in the same class, and disjoint
+readout neighbourhoods remain disjoint.
+\end{theorem}
+\begin{proof}
+(i) Set the standard potentials, in units of \(\kB T\), to zero for all free species
+\(S_I,E,F\) and for the three chemostatted species, to \(\log(b_e/a_e)\) for \(C_e\) and to
+\(\log(\beta_e/\alpha_e)\) for \(Y_e\). Then each of the four reaction pairs has ratio of
+forward to backward constant equal to \(\exp(-\Delta\mu^\circ)\): for the binding steps by
+definition, and for the catalytic steps because \(c_e/d_e=b_e/a_e\) and
+\(\gamma_e/h_e=\beta_e/\alpha_e\). Around any closed cycle of reactions the increments of a
+potential telescope, so the product of the ratios is one \cite{SchusterSchuster1989}. With the
+stated activities the hydrolysis potential is \(\log[1/(\vartheta\cdot\vartheta)]\). (ii) The
+forward propensities are unchanged, and the new reverse propensities are
+\(\vartheta d_eES_{\hd e}\) and \(\vartheta h_eFS_{\tl e}\). The \(C^1\) convergence on compact
+sets is immediate, and hyperbolic equilibria and their spectra persist by the implicit
+function theorem.
+\end{proof}
+
+\begin{remark}
+(a) The three notions that occur in this paper are different: effective square balance
+\eqref{eq:balance-intro}, which concerns the irreversible network; detailed balance of the
+closed reversible network, which holds for \eqref{eq:reversible} by construction; and the
+maintained hydrolysis potential. An arbitrary effective affinity is compatible with (i)
+because it compares kinetic pathways, not equilibrium constants. (b) The choice of zero
+standard potentials for the phosphoforms is a normalization of convenience; other potentials
+change \(d_e,h_e\) by bounded factors and leave (ii) unchanged. (c) The theorem concerns a
+chemostatted system. A finite closed fuel pool needs a depletion argument, and a quantitative
+design needs feasible chemostat concentrations and ATP throughput. (d) The finite-molecule
+constants of Theorem~\ref{thm:finite} do not transfer automatically: the added reactions change
+the drift, the noise and the equilibria, and the contract must be recomputed.
+\end{remark}
+
+The following estimate makes ``sufficiently small'' explicit, and also gives a robustness
+margin for the rate constants.
+
+\begin{proposition}[Explicit perturbation bound]\label{prop:robust}
+Assume the hypotheses of Theorem~\textup{\ref{thm:finite}} and let
+\(D'=\{V\le v/4\}\). Let \(G\) be a \(C^1\) field on \(D'\), tangent to the class, with
+\(\|G\|\le b_G\) and \(\|DG\|\le d_G\) there, and let
+\(\ell_0=\min\{v/(4\overline p),1\}\). If
+\begin{equation}\label{eq:robust}
+ 0\le\vartheta\le\min\Bigl\{\frac{\mu}{8\overline p\,d_G},\ \frac{\mu\,\ell_0}{8\overline p\,b_G}\Bigr\},
+\end{equation}
+then \(H+\vartheta G\) has exactly one equilibrium in \(D'\), and it is a hyperbolic sink.
+\end{proposition}
+\begin{proof}
+On \(D'\) we have \(\|h\|\le\varrho/2\). For the mass-action field the remainder is a
+quadratic form bounded by \(K\|h\|^2\) through a bound on its bilinear form, so
+\(\|DH(x^*+h)-J\|\le2K\|h\|\le K\varrho\), and
+\(DH^TP+PDH\le-\mu I+2\overline pK\varrho I\le-\tfrac\mu2I\) on \(D'\). Integrating along the
+segment from \(x^*\) gives \(h^TPH(x^*+h)\le-\tfrac\mu4\|h\|^2\). On \(\partial D'\),
+\(\|h\|^2\ge v/(4\overline p)\), so \(\|h\|\ge\ell_0\) because \(\min\{t,1\}\le\sqrt t\), and
+\(\vartheta|h^TPG|\le\vartheta\overline pb_G\|h\|\le\tfrac\mu8\|h\|^2\). Thus the perturbed
+field points strictly inward on \(\partial D'\), and a zero exists by degree. Moreover
+\(D(H+\vartheta G)^TP+PD(H+\vartheta G)\le-\tfrac\mu2I+2\vartheta\overline pd_GI\le-\tfrac\mu4I\)
+on the convex set \(D'\), so the flow contracts the metric \(P\) there: the zero is unique and
+its Jacobian is Hurwitz by Lyapunov's theorem.
+\end{proof}
+For independent relative errors \(|\Delta k_\rho|\le\vartheta k_\rho\) of the rate constants one
+may take \(b_G=\sum_\rho\sup a_\rho\|\nu_\rho\|\) and the analogous bound for \(d_G\); for the
+reversible extension, \(G\) consists of the reverse catalytic reactions. In both cases rational
+upper bounds on \(D'\) are computable, and the perturbed equilibrium stays in \(D'\), hence
+within the decoder interval of Corollary~\ref{cor:contract}.

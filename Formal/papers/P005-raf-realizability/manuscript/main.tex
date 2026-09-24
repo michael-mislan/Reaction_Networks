@@ -1,0 +1,587 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Interior operators realizable by autocatalytic networks:
+% an antimatroid characterization
+%
+% Author metadata: set the three macros below before submission.
+% ---------------------------------------------------------------------------
+\newcommand{\PaperAuthor}{Anonymous manuscript}
+\newcommand{\PaperAffiliation}{}
+\newcommand{\PaperDate}{September 7, 2026}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+
+\setlist{itemsep=2pt,topsep=3pt}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{construction}[theorem]{Construction}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\Fix}{\operatorname{Fix}}
+\newcommand{\cl}{\operatorname{cl}}
+\newcommand{\Bl}{\operatorname{Bl}}
+\newcommand{\RAF}{\mathrm{RAF}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\pw}[1]{2^{#1}}
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\Nin}{N^{-}}
+\newcommand{\Cplus}[1]{\cC^{+}_{#1}}
+
+\title{Interior operators realizable by autocatalytic networks:\\ an antimatroid characterization}
+\author{\PaperAuthor\\ \PaperAffiliation}
+\date{\PaperDate}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A catalytic reaction system with a food set determines an interior operator on the subsets of its reaction set: each set of reactions is sent to the largest reflexively autocatalytic and food-generated (RAF) subset it contains. Steel (\emph{Acta Biotheoretica}, 2023) showed that not every interior operator arises in this way when the reaction set is required to be the given ground set, and asked for a set-theoretic characterization of the set systems that are realizable as the RAFs of a catalytic reaction system. We answer this question for same-ground realizations. An interior operator $\psi$ on a finite set $E$ is the maxRAF operator of a catalytic reaction system with reaction set $E$ if and only if its family of fixed sets is the intersection of an antimatroid on $E$ with the family $\cC(D)$ of vertex sets of a directed graph $D$ on $E$ in which every vertex has an in-neighbour. The antimatroid records food generation and the digraph records catalysis. Necessity rests on two observations: the food-generated subsets of any catalytic reaction system form an antimatroid, and on a food-generated set the catalysis condition reduces to a fixed digraph. Sufficiency is proved by an explicit construction with exactly one reaction per element of $E$, in which ``blocker marker'' molecules encode the antimatroid and private catalyst molecules encode the digraph. As consequences, finite antimatroids are exactly the food-generated families of finite catalytic reaction systems; the interior operator whose fixed sets are the empty set and all sets of size at least three has a same-ground realization if and only if $|E|\le 4$, which sharpens Steel's bound of twelve to the exact threshold; and every interior operator is realizable if two reactions per element are permitted. The main theorem and its corollaries have been formalized and checked in the Lean~4 proof assistant.
+\end{abstract}
+
+\noindent\textbf{Keywords.} autocatalytic sets; RAF theory; interior operators; union-closed families; antimatroids; catalytic reaction systems; formal verification.
+
+\medskip
+\noindent\textbf{MSC 2020.} 05B35, 05C20, 06A15, 92E20, 68V20.
+
+\section{Introduction}
+
+Reflexively autocatalytic and food-generated sets (RAFs) are a finite combinatorial model of collectively self-sustaining reaction networks. The concept goes back to Kauffman's autocatalytic sets of proteins~\cite{kauffman1986autocatalytic,kauffman1993origins}, was formalized by Hordijk and Steel~\cite{hordijk2004detecting}, and has since been developed into a structural theory with efficient algorithms~\cite{hordijk2015algorithms,steel2019autocatalytic,steel2020structure} and applications ranging from the origin of metabolism~\cite{xavier2020autocatalytic,hordijk2018life} to cognition and cultural evolution~\cite{gabora2017autocatalytic}. A catalytic reaction system (CRS) consists of molecule types, reactions with reactants and products, a food set of freely available molecules, and a catalysis relation. A nonempty set of reactions is a RAF if it can be built up from the food set in some order and every reaction in it is catalysed by a food molecule or by a product of the set. Unions of RAFs are RAFs, so every set of reactions contains a unique largest RAF, and the map sending a set of reactions to that largest RAF (or to the empty set) is an interior operator on the Boolean lattice of reaction subsets: it is contractive, monotone and idempotent. Steel~\cite{steel2023interior} observed that most generic results of RAF theory are consequences of this interior-operator property alone, and asked to what extent the converse holds.
+
+Steel's question has a precise form. Since finite interior operators are in bijection with union-closed families containing the empty set (the family of fixed sets), one may ask which such families are the fixed families of maxRAF operators. Steel defined an interior operator $\psi$ on a finite set $Y$ to have a \emph{RAF-realisation} if there is a CRS whose reaction set is in bijection with $Y$ and whose maxRAF operator agrees with $\psi$ under that bijection; auxiliary molecules, food and catalysts are unrestricted. He proved that for $|Y|\ge 12$ the interior operator whose fixed sets are the empty set and all sets of size at least three has no RAF-realisation, and in his concluding remarks he posed two problems: a set-theoretic characterization of the union-closed families realizable by a directed graph, and the ``more difficult task'' of characterizing the set systems realizable as the RAFs of some CRS~\cite[Section~4]{steel2023interior}.
+
+This paper solves the second problem for realizations on the given ground set. The answer combines two classical objects. An \emph{antimatroid} on $E$ is a family of subsets of $E$ that contains the empty set, is closed under union, and is \emph{accessible}: every nonempty member has an element whose removal leaves a member. Antimatroids are the combinatorial abstraction of ``feasible orderings''~\cite{korte1984shelling,edelman1985theory,korte1991greedoids,bjorner1992greedoids}. For a directed graph $D$ on $E$, with loops permitted, let $\cC(D)$ denote the family consisting of the empty set together with the nonempty $S\subseteq E$ in which every vertex has an in-neighbour inside $S$; these are Steel's digraph families~\cite{steel2023interior}.
+
+\begin{theorem}[Main theorem]\label{thm:main-intro}
+Let $E$ be a finite set and let $\psi$ be an interior operator on $\pw{E}$. Then $\psi$ has a RAF-realisation with reaction set $E$ if and only if there are an antimatroid $\cA$ on $E$ and a directed graph $D$ on $E$ such that
+\[
+\Fix(\psi)=\cA\cap\cC(D).
+\]
+Moreover, from $(\cA,D)$ one can write down an explicit realizing CRS with exactly $|E|$ reactions.
+\end{theorem}
+
+The two factors have transparent meanings. The antimatroid is the family of food-generated reaction sets: it records the order-sensitive way in which reactants become available. The digraph is the ``product catalysis'' graph: it records the order-insensitive fact that once a set is food-generated, every product of the set is present, so catalysis becomes a static requirement that each selected reaction has a selected predecessor. The content of the theorem is that these two layers are independent and that nothing else is recorded by the fixed family. The necessity direction is short. The sufficiency direction requires constructing, for an arbitrary antimatroid $\cA$, a CRS with exactly one reaction per element whose food-generated sets are precisely the members of $\cA$. We do this with marker molecules indexed by ``blockers'': a set $B$ blocks $e$ if no feasible set containing $e$ avoids $B$. Reaction $e$ requires the marker $m_{e,B}$ for every blocker $B$ of $e$, and every reaction in $B$ produces $m_{e,B}$. The marker is therefore available exactly when the selected set hits $B$, which is exactly the feasibility test for $e$. A provenance argument shows that no cyclic bootstrapping is possible.
+
+\subsection*{Consequences}
+
+The theorem has several corollaries, proved in Section~\ref{sec:consequences}.
+
+\begin{itemize}
+\item \emph{Antimatroids are food-generation families.} A family of subsets of $E$ is the family of food-generated sets of some finite CRS with reaction set $E$ if and only if it is an antimatroid (Theorem~\ref{thm:antimatroid-fg}).
+\item \emph{Digraph families are the elementary case.} A union-closed family containing $\emptyset$ is of the form $\cC(D)$ if and only if it is the fixed family of a CRS on $E$ in which every reaction set is food-generated, for instance an elementary CRS in the sense of Steel (Proposition~\ref{prop:elementary}).
+\item \emph{Steel's obstruction, sharpened.} Let $\Cplus{k}$ be the family consisting of $\emptyset$ and all subsets of $E$ of size at least $k$. Steel showed that for $k=3$ and $|E|\ge 12$ this family is not RAF-realizable, and exhibited a realization on four reactions. Theorem~\ref{thm:main-intro} gives a short proof that $\Cplus{k}$ is not realizable on the same ground set once $|E|\ge k^2-2k+3$, and for $k=3$ the exact threshold: $\Cplus{3}$ has a RAF-realisation on $E$ if and only if $|E|\le 4$ (Theorem~\ref{thm:cplus3}).
+\item \emph{Two reactions per element suffice for everything.} Every interior operator on $E$ is realized exactly, up to the doubling $S\mapsto S\times\{\mathrm{p},\mathrm{g}\}$, by a CRS with reaction set $E\times\{\mathrm{p},\mathrm{g}\}$ (Theorem~\ref{thm:pair}). In particular Steel's question of whether some reaction always lies in at least half of the RAFs of a CRS implies the union-closed sets conjecture up to an additive constant of one.
+\end{itemize}
+
+\subsection*{Formal verification}
+
+The main theorem and the corollaries in Sections~\ref{sec:consequences} have been formalized in Lean~4~\cite{demoura2021lean4} on top of Mathlib~\cite{mathlib2020}; details are given in Section~\ref{sec:verification}. The formal development uses the closure-based semantics of food generation and catalysis, which agrees with the ordering-based definitions of~\cite{hordijk2004detecting,steel2023interior} (Section~\ref{sec:crs}). The proofs in this paper are complete and self-contained; the formalization is an additional guarantee, not a substitute. Before the formal proof was attempted, the construction was tested exhaustively on all labelled antimatroids with at most four elements and all digraphs with at most three vertices; those computations are reported in Section~\ref{sec:verification} for reproducibility and play no role in the proofs.
+
+\subsection*{Organization}
+
+Section~\ref{sec:prelim} fixes definitions. Section~\ref{sec:necessity} proves the necessity direction. Section~\ref{sec:blockers} introduces blockers and the marker construction and proves that it realizes any antimatroid as a food-generation family. Section~\ref{sec:catalysis} adds catalysis and completes the proof of the main theorem. Section~\ref{sec:consequences} derives the consequences listed above. Section~\ref{sec:verification} describes the Lean formalization and the computational checks, and Section~\ref{sec:discussion} discusses limitations and open problems.
+
+\section{Preliminaries}\label{sec:prelim}
+
+All sets are finite. For a set $E$ we write $\pw{E}$ for its power set. For a family $\cF\subseteq\pw{E}$, $\bigcup\cF$ denotes the union of its members.
+
+\subsection{Catalytic reaction systems and RAFs}\label{sec:crs}
+
+\begin{definition}[CRS]
+A \emph{catalytic reaction system} (CRS) is a tuple $\cQ=(X,R,\rho,\pi,F,C)$ where $X$ is a finite set of molecule types, $R$ is a finite set of reactions, $\rho,\pi\colon R\to\pw{X}$ assign to each reaction its set of \emph{reactants} and its set of \emph{products}, $F\subseteq X$ is the \emph{food set}, and $C\subseteq X\times R$ is the \emph{catalysis relation}; $(x,r)\in C$ is read ``$x$ catalyses $r$''. For $S\subseteq R$ we write $\pi(S)=\bigcup_{r\in S}\pi(r)$.
+\end{definition}
+
+Steel~\cite{steel2023interior} writes reactions as pairs of multisets and assumes that $\rho(r)$ and $\pi(r)$ are nonempty. Multiplicities play no role in any notion considered here, so we ignore them. We do not impose nonemptiness in the definition, which only enlarges the class of systems for which the necessity direction of the main theorem is proved; the CRS constructed in the sufficiency direction has nonempty reactant and product sets for every reaction.
+
+\begin{definition}[Closure]\label{def:closure}
+Let $\cQ$ be a CRS and $S\subseteq R$. Define $W_0(S)=F$ and
+\[
+W_{i+1}(S)=W_i(S)\cup\bigcup\{\pi(r): r\in S,\ \rho(r)\subseteq W_i(S)\}\qquad(i\ge 0).
+\]
+The sequence is increasing and stabilizes after at most $|X|$ steps; its union is the \emph{closure} $\cl_S(F)$. A reaction $r$ is \emph{enabled} at stage $i$ if $\rho(r)\subseteq W_i(S)$.
+\end{definition}
+
+\begin{definition}[Food-generated sets and RAFs]\label{def:raf}
+Let $\cQ$ be a CRS and $S\subseteq R$.
+\begin{enumerate}[label=(\roman*)]
+\item $S$ is \emph{food-generated} ($F$-generated) if $\rho(r)\subseteq\cl_S(F)$ for every $r\in S$.
+\item $S$ is \emph{reflexively autocatalytic} if for every $r\in S$ there is $x\in\cl_S(F)$ with $(x,r)\in C$.
+\item $S$ is a \emph{RAF} if it is nonempty, food-generated and reflexively autocatalytic.
+\end{enumerate}
+We write $\RAF(\cQ)$ for the set of RAFs of $\cQ$ and $\cA_{\cQ}=\{S\subseteq R: S\text{ is food-generated}\}$.
+\end{definition}
+
+Hordijk and Steel~\cite{hordijk2004detecting} define $S$ to be $F$-generated when its reactions admit a linear ordering $r_1,\dots,r_k$ with $\rho(r_j)\subseteq F\cup\pi(\{r_1,\dots,r_{j-1}\})$ for each $j$, and define $S$ to be reflexively autocatalytic when each $r\in S$ has a catalyst in $F\cup\pi(S)$. It is standard that the ordering condition is equivalent to (i)~\cite[Section~3.1]{steel2023interior}, and Lemma~\ref{lem:provenance}(ii) below shows that for a food-generated set $\cl_S(F)=F\cup\pi(S)$, so the two catalysis conditions agree on food-generated sets. Hence the RAFs of Definition~\ref{def:raf} are exactly the RAFs of~\cite{hordijk2004detecting,steel2023interior}.
+
+\begin{lemma}[Provenance and monotonicity]\label{lem:provenance}
+Let $\cQ$ be a CRS and $S,T\subseteq R$.
+\begin{enumerate}[label=(\roman*)]
+\item Every $x\in\cl_S(F)$ lies in $F$ or in $\pi(r)$ for some $r\in S$.
+\item If $S$ is food-generated then $\cl_S(F)=F\cup\pi(S)$.
+\item If $S\subseteq T$ then $W_i(S)\subseteq W_i(T)$ for all $i$; hence $\cl_S(F)\subseteq\cl_T(F)$.
+\item If $S$ and $T$ are food-generated, so is $S\cup T$. If $S$ and $T$ are RAFs, so is $S\cup T$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) By induction on $i$: $W_0(S)=F$, and every element added at stage $i+1$ is a product of a reaction in $S$. (ii) The inclusion $\subseteq$ is (i). Conversely, if $r\in S$ then $\rho(r)\subseteq\cl_S(F)=W_i(S)$ for some $i$, so $\pi(r)\subseteq W_{i+1}(S)$. (iii) By induction on $i$, using that a reaction enabled at stage $i$ for $S$ is in $T$ and enabled at stage $i$ for $T$. (iv) For $r\in S$ we have $\rho(r)\subseteq\cl_S(F)\subseteq\cl_{S\cup T}(F)$ by (iii), and similarly for $r\in T$; catalysts are handled in the same way.
+\end{proof}
+
+By Lemma~\ref{lem:provenance}(iv), every $T\subseteq R$ contains a unique inclusion-maximal RAF or no RAF at all. Following Steel we define the \emph{maxRAF operator} $\varphi_{\cQ}\colon\pw{R}\to\pw{R}$ by
+\begin{equation}\label{eq:maxraf}
+\varphi_{\cQ}(T)=\bigcup\{S\subseteq T: S\in\RAF(\cQ)\},
+\end{equation}
+so that $\varphi_{\cQ}(T)$ is the largest RAF contained in $T$, or $\emptyset$ if there is none. Since the closure and catalysis conditions for $S$ refer only to reactions in $S$, the RAFs of the restricted system $\cQ|_T$ are exactly the RAFs of $\cQ$ contained in $T$, so \eqref{eq:maxraf} agrees with Steel's definition $\varphi_{\cQ}(T)=\mathrm{maxRAF}(\cQ|_T)$~\cite[Eq.~(3)]{steel2023interior}.
+
+\subsection{Interior operators and fixed families}
+
+\begin{definition}
+An \emph{interior operator} on $\pw{E}$ is a map $\psi\colon\pw{E}\to\pw{E}$ such that for all $S,T\subseteq E$: $\psi(S)\subseteq S$; $S\subseteq T$ implies $\psi(S)\subseteq\psi(T)$; and $\psi(\psi(S))=\psi(S)$. Its \emph{fixed family} is $\Fix(\psi)=\{S\subseteq E:\psi(S)=S\}$.
+\end{definition}
+
+The following facts are elementary; see~\cite[Lemma~1]{steel2023interior} for proofs.
+
+\begin{lemma}\label{lem:interior}
+Let $E$ be finite.
+\begin{enumerate}[label=(\roman*)]
+\item If $\psi$ is an interior operator on $\pw{E}$ then $\Fix(\psi)$ contains $\emptyset$ and is closed under unions, and $\psi(S)=\bigcup\{U\in\Fix(\psi): U\subseteq S\}$ for all $S$.
+\item Conversely, if $\cD\subseteq\pw{E}$ contains $\emptyset$ and is union-closed, then $\psi_{\cD}(S)=\bigcup\{U\in\cD: U\subseteq S\}$ is the unique interior operator with $\Fix(\psi_{\cD})=\cD$.
+\end{enumerate}
+In particular two interior operators on $\pw{E}$ are equal if and only if their fixed families are equal.
+\end{lemma}
+
+For a CRS $\cQ$ the map $\varphi_{\cQ}$ is the interior operator $\psi_{\cD}$ for $\cD=\{\emptyset\}\cup\RAF(\cQ)$, and
+\begin{equation}\label{eq:fixraf}
+\Fix(\varphi_{\cQ})=\{\emptyset\}\cup\RAF(\cQ).
+\end{equation}
+
+\subsection{RAF-realisations}
+
+\begin{definition}[Steel~\cite{steel2023interior}]\label{def:realisation}
+An interior operator $\psi$ on $\pw{E}$ has a \emph{RAF-realisation} if there are a CRS $\cQ=(X,R,\rho,\pi,F,C)$ and a bijection $b\colon E\to R$ such that $\psi(S)=b^{-1}(\varphi_{\cQ}(b(S)))$ for every $S\subseteq E$. Nothing is assumed about $X$, $F$ or $C$ beyond finiteness.
+\end{definition}
+
+Relabelling reactions along $b$, we may and shall assume that the realizing CRS has reaction set exactly $E$; we then say $\psi$ is \emph{same-ground realizable}. By Lemma~\ref{lem:interior} and \eqref{eq:fixraf}, $\psi$ is same-ground realizable if and only if there is a CRS $\cQ$ with reaction set $E$ and $\Fix(\psi)=\{\emptyset\}\cup\RAF(\cQ)$. The qualification ``same ground'' is essential: each element of $E$ must correspond to a single reaction, not to a gadget of several reactions (compare Theorem~\ref{thm:pair}).
+
+\subsection{Antimatroids}
+
+\begin{definition}[Antimatroid]\label{def:antimatroid}
+A family $\cA\subseteq\pw{E}$ is an \emph{antimatroid} on $E$ if $\emptyset\in\cA$, $\cA$ is closed under unions, and $\cA$ is \emph{accessible}: for every nonempty $S\in\cA$ there is $e\in S$ with $S\setminus\{e\}\in\cA$.
+\end{definition}
+
+This is the standard definition~\cite{korte1991greedoids,bjorner1992greedoids}, except that we do not require $\bigcup\cA=E$: elements of $E$ that belong to no member of $\cA$ are allowed. Accessibility is equivalent, given union-closure and $\emptyset\in\cA$, to the existence for every $S\in\cA$ of a chain $\emptyset=S_0\subset S_1\subset\dots\subset S_{|S|}=S$ of members of $\cA$ with $|S_i|=i$. Antimatroids are also known as the feasible-set systems of convex geometries~\cite{edelman1985theory} (by complementation), as learning spaces in the theory of knowledge spaces~\cite{doignon1999knowledge,falmagne2011learning}, and as the closure systems described by Horn rules with singleton premises~\cite{yoshikawa2017representation,wild2017joy}. For an antimatroid $\cA$ we write $\psi_{\cA}$ for its interior operator (Lemma~\ref{lem:interior}(ii)).
+
+\subsection{Digraph families}
+
+Let $D=(E,A)$ be a directed graph with vertex set $E$; loops $(v,v)$ are allowed. For $v\in E$ let $\Nin_D(v)=\{u\in E:(u,v)\in A\}$ be the set of in-neighbours of $v$ (so $v\in\Nin_D(v)$ if and only if $v$ has a loop). Following~\cite[Section~2.1]{steel2023interior}, let
+\[
+\cC(D)=\{\emptyset\}\cup\{S\subseteq E: S\neq\emptyset\text{ and }S\cap\Nin_D(v)\neq\emptyset\text{ for all }v\in S\}.
+\]
+Thus a nonempty $S$ lies in $\cC(D)$ exactly when every vertex of the induced subgraph $D|_S$ has in-degree at least one. Equivalently, writing $P(v)=\Nin_D(v)$, $S\in\cC(D)$ if and only if every $e\in S$ has a \emph{predecessor} $u\in S\cap P(e)$; we refer to this as $S$ being \emph{$P$-supported}. The family $\cC(D)$ contains $\emptyset$ and is union-closed~\cite[Proposition~2(i)]{steel2023interior}, so it is the fixed family of an interior operator. It need not be accessible: for a directed $2$-cycle on $\{a,b\}$, $\cC(D)=\{\emptyset,\{a,b\}\}$.
+
+\section{The characterization and the necessity direction}\label{sec:necessity}
+
+We restate the main theorem in the notation just introduced.
+
+\begin{theorem}\label{thm:main}
+Let $E$ be a finite set and $\psi$ an interior operator on $\pw{E}$. The following are equivalent.
+\begin{enumerate}[label=(\alph*)]
+\item $\psi$ has a RAF-realisation (equivalently, $\psi$ is same-ground realizable).
+\item There exist an antimatroid $\cA$ on $E$ and a directed graph $D$ on $E$ with $\Fix(\psi)=\cA\cap\cC(D)$.
+\end{enumerate}
+When (b) holds, the CRS $\cQ_{\cA,D}$ of Construction~\ref{con:marker} and Definition~\ref{def:catalysis} has reaction set $E$ and $\varphi_{\cQ_{\cA,D}}=\psi$.
+\end{theorem}
+
+The proof of (a)$\Rightarrow$(b) occupies the rest of this section; (b)$\Rightarrow$(a) is proved in Sections~\ref{sec:blockers} and~\ref{sec:catalysis}.
+
+\subsection{Food-generated sets form an antimatroid}
+
+\begin{proposition}\label{prop:fg-antimatroid}
+For every CRS $\cQ$, the family $\cA_{\cQ}$ of food-generated subsets of $R$ is an antimatroid on $R$.
+\end{proposition}
+
+\begin{proof}
+The empty set is food-generated, and $\cA_{\cQ}$ is union-closed by Lemma~\ref{lem:provenance}(iv). For accessibility let $S\in\cA_{\cQ}$ be nonempty. For $r\in S$ let $k(r)$ be the least $i$ with $\rho(r)\subseteq W_i(S)$; this exists because $S$ is food-generated. Choose $r^{*}\in S$ with $k(r^{*})$ maximal and put $S'=S\setminus\{r^{*}\}$. We claim that $W_j(S')=W_j(S)$ for all $j\le k(r^{*})$. This holds for $j=0$. If it holds for some $j<k(r^{*})$, then $r^{*}$ is not enabled at stage $j$ for $S$ (by minimality of $k(r^{*})$), so the reactions of $S$ enabled at stage $j$ all lie in $S'$ and are enabled at stage $j$ for $S'$ as well, whence $W_{j+1}(S')=W_{j+1}(S)$. Now every $u\in S'$ has $k(u)\le k(r^{*})$ and therefore $\rho(u)\subseteq W_{k(u)}(S)=W_{k(u)}(S')\subseteq\cl_{S'}(F)$. Thus $S'$ is food-generated.
+\end{proof}
+
+In words: among the reactions of a food-generated set, one whose reactants become available last can be deleted without disturbing the availability of anything the others need. This is the ``last reaction of an admissible ordering'' phenomenon in RAF theory, and Proposition~\ref{prop:fg-antimatroid} says that it is precisely the accessibility axiom of antimatroids.
+
+\subsection{Catalysis is static on food-generated sets}
+
+\begin{definition}[Product catalysis graph]\label{def:DQ}
+For a CRS $\cQ$ let $D(\cQ)$ be the directed graph on $R$ with an arc $(u,e)$ whenever some product of $u$ catalyses $e$, and additionally a loop $(e,e)$ whenever some food molecule catalyses $e$. Equivalently,
+\[
+\Nin_{D(\cQ)}(e)=\{u\in R:\exists x\in\pi(u),\ (x,e)\in C\}\ \cup\ \{e: \exists x\in F,\ (x,e)\in C\}.
+\]
+\end{definition}
+
+For an elementary CRS this is the digraph used by Steel~\cite[Section~3.2]{steel2023interior}; here it is defined for arbitrary CRSs.
+
+\begin{proposition}\label{prop:static}
+Let $\cQ$ be a CRS and let $S\subseteq R$ be food-generated. Then $S$ is reflexively autocatalytic if and only if $S\in\cC(D(\cQ))$.
+\end{proposition}
+
+\begin{proof}
+For $S=\emptyset$ both statements hold. Let $S\neq\emptyset$ and $e\in S$. By Lemma~\ref{lem:provenance}(ii), $\cl_S(F)=F\cup\pi(S)$. Hence $e$ has a catalyst in $\cl_S(F)$ if and only if some food molecule catalyses $e$ (in which case $e\in S\cap\Nin_{D(\cQ)}(e)$) or some product of some $u\in S$ catalyses $e$ (in which case $u\in S\cap\Nin_{D(\cQ)}(e)$), and conversely each of these alternatives yields a catalyst in $\cl_S(F)$. Thus $e$ is catalysed from $\cl_S(F)$ if and only if $S\cap\Nin_{D(\cQ)}(e)\neq\emptyset$.
+\end{proof}
+
+\begin{corollary}[Necessary factorization]\label{cor:factor}
+For every CRS $\cQ$,
+\[
+\Fix(\varphi_{\cQ})=\cA_{\cQ}\cap\cC(D(\cQ)).
+\]
+Consequently, every interior operator with a RAF-realisation satisfies condition \textup{(b)} of Theorem~\ref{thm:main}.
+\end{corollary}
+
+\begin{proof}
+Both sides contain $\emptyset$. A nonempty $S$ lies in $\Fix(\varphi_{\cQ})$ if and only if it is a RAF by \eqref{eq:fixraf}, that is, if and only if it is food-generated and reflexively autocatalytic; by Proposition~\ref{prop:static} this holds if and only if $S\in\cA_{\cQ}$ and $S\in\cC(D(\cQ))$. The second statement follows from Proposition~\ref{prop:fg-antimatroid} after transporting $\cA_{\cQ}$ and $D(\cQ)$ along the bijection of Definition~\ref{def:realisation}.
+\end{proof}
+
+\begin{remark}
+If every subset of $R$ is food-generated (for instance if $\cQ$ is \emph{elementary}, i.e.\ $\rho(r)\subseteq F$ for all $r$), then $\cA_{\cQ}=\pw{R}$ and Corollary~\ref{cor:factor} reads $\Fix(\varphi_{\cQ})=\cC(D(\cQ))$, which is Lemma~2 of~\cite{steel2023interior}.
+\end{remark}
+
+\section{Blockers and the marker construction}\label{sec:blockers}
+
+Throughout this section $\cD\subseteq\pw{E}$ is a union-closed family containing $\emptyset$, with interior operator $\psi_{\cD}$. The results are stated in this generality because they are used both for antimatroids (Theorem~\ref{thm:antimatroid-realization}) and for arbitrary fixed families (Theorem~\ref{thm:pair}).
+
+\subsection{Blockers}
+
+\begin{definition}[Blocker]\label{def:blocker}
+Let $e\in E$. A set $B\subseteq E$ is a \emph{blocker} for $e$ (with respect to $\cD$) if $e\notin B$ and $e\notin\psi_{\cD}(E\setminus B)$. Write $\Bl_{\cD}(e)$ for the set of blockers for $e$.
+\end{definition}
+
+Thus $B$ blocks $e$ when no member of $\cD$ containing $e$ avoids $B$. The family $\Bl_{\cD}(e)$ is an up-set in $\pw{E\setminus\{e\}}$: if $B\subseteq B'$, $e\notin B'$ and $B$ blocks $e$, then $\psi_{\cD}(E\setminus B')\subseteq\psi_{\cD}(E\setminus B)$ by monotonicity, so $B'$ blocks $e$.
+
+\begin{lemma}[Hitting lemma]\label{lem:hitting}
+Let $S\subseteq E$ and $e\in S$. Then $e\in\psi_{\cD}(S)$ if and only if $S\cap B\neq\emptyset$ for every $B\in\Bl_{\cD}(e)$. Consequently
+\[
+S\in\cD\iff\text{for every }e\in S\text{ and every }B\in\Bl_{\cD}(e):\ S\cap B\neq\emptyset.
+\]
+\end{lemma}
+
+\begin{proof}
+Suppose $e\in\psi_{\cD}(S)$ and let $B$ be a blocker for $e$ with $S\cap B=\emptyset$. Then $S\subseteq E\setminus B$, so $e\in\psi_{\cD}(S)\subseteq\psi_{\cD}(E\setminus B)$, contradicting the definition of a blocker. Conversely, suppose $e\notin\psi_{\cD}(S)$ and put $B=E\setminus S$. Then $e\notin B$ because $e\in S$, and $\psi_{\cD}(E\setminus B)=\psi_{\cD}(S)\not\ni e$, so $B$ is a blocker for $e$ disjoint from $S$. The second statement follows because $S\in\cD$ if and only if $\psi_{\cD}(S)=S$ (Lemma~\ref{lem:interior}), i.e.\ if and only if every $e\in S$ lies in $\psi_{\cD}(S)$.
+\end{proof}
+
+\begin{remark}\label{rem:horn}
+Lemma~\ref{lem:hitting} describes every union-closed family containing $\emptyset$ by rules of the form ``if $e\in S$ then $S$ meets $B$''. Under complementation $S\mapsto E\setminus S$ these rules become the implications $B\to e$ of a closure system, so the lemma is the union-closed counterpart of the implicational description of closure systems~\cite{wild2017joy}. For an antimatroid $\cA$, every rooted circuit $(C,e)$ of $\cA$ in the sense of~\cite{korte1991greedoids,dietrich1987circuit} yields the blocker $C\setminus\{e\}$ for $e$, and Lemma~\ref{lem:hitting} is an all-blocker form of the rooted-circuit characterization of feasibility; see also~\cite{yoshikawa2017representation}. We use all blockers rather than minimal ones. This is redundant but harmless: the proofs below use only the up-closure of $\Bl_{\cD}(e)$ and Lemma~\ref{lem:hitting}, and the number of markers is not an issue for the existence question addressed here (see Remark~\ref{rem:minimal}). The digraph families $\cC(D)$ are exactly the families described by one such rule per element, namely $B=\Nin_D(e)$; the difference between $\cC(D)$ and a general union-closed family is that a general family may require several incomparable blockers for the same element.
+\end{remark}
+
+\subsection{The marker CRS of an antimatroid}
+
+\begin{construction}[Marker CRS]\label{con:marker}
+Let $\cA$ be an antimatroid on $E$ and write $\Bl(e)=\Bl_{\cA}(e)$. The CRS $\cQ_{\cA}=(X,E,\rho,\pi,F,\emptyset)$ (with empty catalysis relation for the moment) has reaction set $E$ and molecule set
+\[
+X=\{f\}\ \cup\ \{c_e: e\in E\}\ \cup\ \{m_{t,B}: t\in E,\ B\in\Bl(t)\},
+\]
+consisting of a single food molecule $f$, one \emph{private catalyst} $c_e$ per element, and one \emph{marker} $m_{t,B}$ per pair of a target $t$ and a blocker $B$ of $t$. The food set is $F=\{f\}$. Reaction $e\in E$ has
+\[
+\rho(e)=\{f\}\cup\{m_{e,B}: B\in\Bl(e)\},\qquad
+\pi(e)=\{c_e\}\cup\{m_{t,B}: t\in E,\ B\in\Bl(t),\ e\in B\}.
+\]
+\end{construction}
+
+In words, reaction $e$ consumes food and every marker that certifies that one of its blockers has been hit, produces its private catalyst, and produces the marker $m_{t,B}$ for every blocker $B$ that it belongs to. Note that reaction $e$ never produces a marker $m_{e,B}$ that it requires, because $e\notin B$ for $B\in\Bl(e)$. All reactant and product sets are nonempty, and $|X|=1+|E|+\sum_{e}|\Bl(e)|\le 1+|E|+|E|\,2^{|E|-1}$.
+
+\begin{lemma}[Marker provenance]\label{lem:marker-provenance}
+Let $\cA$ be an antimatroid on $E$, let $\cQ=\cQ_{\cA}$, and let $S\subseteq E$.
+\begin{enumerate}[label=(\roman*)]
+\item If $m_{t,B}\in\cl_S(F)$ then $B\in\Bl(t)$ and $S\cap B\neq\emptyset$.
+\item If $c_e\in\cl_S(F)$ then $e\in S$.
+\item If $S$ is food-generated, $B\in\Bl(t)$ and $S\cap B\neq\emptyset$, then $m_{t,B}\in\cl_S(F)$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) and (ii): markers and catalysts are not food, so by Lemma~\ref{lem:provenance}(i) they occur in $\cl_S(F)$ only as products of reactions in $S$; a marker $m_{t,B}$ is produced only by reactions $e\in B$ with $B\in\Bl(t)$, and $c_e$ only by $e$. (iii): pick $e\in S\cap B$; then $m_{t,B}\in\pi(e)$ and $\pi(e)\subseteq\cl_S(F)$ by Lemma~\ref{lem:provenance}(ii).
+\end{proof}
+
+\begin{theorem}[Antimatroids are food-generation families]\label{thm:antimatroid-realization}
+Let $\cA$ be an antimatroid on $E$. For every $S\subseteq E$,
+\[
+S\text{ is food-generated in }\cQ_{\cA}\iff S\in\cA.
+\]
+That is, $\cA_{\cQ_{\cA}}=\cA$.
+\end{theorem}
+
+\begin{proof}
+Write $\cQ=\cQ_{\cA}$ and $\psi=\psi_{\cA}$. Both directions are proved by strong induction on $|S|$; the case $S=\emptyset$ is trivial in both.
+
+($\Leftarrow$) Let $S\in\cA$ be nonempty. By accessibility choose $e\in S$ with $S'=S\setminus\{e\}\in\cA$; by induction $S'$ is food-generated. We show that every reactant of $e$ lies in $\cl_{S'}(F)$. Certainly $f\in F$. Let $B\in\Bl(e)$. Since $S\in\cA$ we have $\psi(S)=S\ni e$, so by Lemma~\ref{lem:hitting} there is $j\in S\cap B$. As $e\notin B$, $j\neq e$, so $j\in S'\cap B$, and Lemma~\ref{lem:marker-provenance}(iii) applied to the food-generated set $S'$ gives $m_{e,B}\in\cl_{S'}(F)$. Hence $\rho(e)\subseteq\cl_{S'}(F)\subseteq\cl_S(F)$ by Lemma~\ref{lem:provenance}(iii). For $r\in S'$ we have $\rho(r)\subseteq\cl_{S'}(F)\subseteq\cl_S(F)$ as well. Therefore $S$ is food-generated.
+
+($\Rightarrow$) Let $S$ be nonempty and food-generated. By Proposition~\ref{prop:fg-antimatroid} there is $e\in S$ such that $S'=S\setminus\{e\}$ is food-generated; by induction $S'\in\cA$. Let $B\in\Bl(e)$. Since $m_{e,B}\in\rho(e)\subseteq\cl_S(F)$, Lemma~\ref{lem:marker-provenance}(i) gives $S\cap B\neq\emptyset$. By Lemma~\ref{lem:hitting}, $e\in\psi(S)$. For $x\in S'$ we have $x\in S'=\psi(S')\subseteq\psi(S)$ by monotonicity. Hence $\psi(S)=S$, i.e.\ $S\in\cA$.
+\end{proof}
+
+The provenance lemma is the decisive safeguard in the ($\Rightarrow$) direction. A reaction cannot create a marker that it itself requires, and more generally a set of mutually blocked reactions cannot manufacture the markers they need unless some selected reaction genuinely lies in each blocker. Note also that the ($\Rightarrow$) direction does not assume any admissible ordering of $S$ in advance: it uses the accessibility of food generation (Proposition~\ref{prop:fg-antimatroid}) to peel off one reaction at a time.
+
+\begin{remark}[Minimal blockers suffice]\label{rem:minimal}
+Construction~\ref{con:marker} remains correct if $\Bl(e)$ is replaced throughout by the set of inclusion-minimal blockers of $e$. The only place where the full family is used is the ``$\Leftarrow$'' half of Lemma~\ref{lem:hitting}, and there the blocker $E\setminus S$ contains a minimal blocker that is still disjoint from $S$; the ``$\Rightarrow$'' half persists because a set that hits all minimal blockers hits all blockers. With this modification the number of markers equals the number of rooted circuits of $\cA$. We do not use this reduction, and it is not part of the formal development.
+\end{remark}
+
+\section{Adding catalysis and completing the proof}\label{sec:catalysis}
+
+\begin{definition}[Catalysis from a digraph]\label{def:catalysis}
+Let $\cA$ be an antimatroid on $E$ and $D$ a directed graph on $E$. The CRS $\cQ_{\cA,D}$ is $\cQ_{\cA}$ equipped with the catalysis relation
+\[
+C_D=\{(c_u,e): (u,e)\text{ is an arc of }D\}.
+\]
+Food and markers catalyse nothing.
+\end{definition}
+
+\begin{lemma}\label{lem:DQ}
+$D(\cQ_{\cA,D})=D$.
+\end{lemma}
+
+\begin{proof}
+The products of $u$ are $c_u$ and markers, and markers catalyse nothing, so some product of $u$ catalyses $e$ if and only if $(c_u,e)\in C_D$, i.e.\ if and only if $(u,e)$ is an arc of $D$. No food molecule catalyses anything, so no additional loops arise.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+(a)$\Rightarrow$(b) is Corollary~\ref{cor:factor}. For (b)$\Rightarrow$(a), let $\Fix(\psi)=\cA\cap\cC(D)$ and let $\cQ=\cQ_{\cA,D}$, a CRS with reaction set $E$. By Corollary~\ref{cor:factor}, Theorem~\ref{thm:antimatroid-realization} and Lemma~\ref{lem:DQ},
+\[
+\Fix(\varphi_{\cQ})=\cA_{\cQ}\cap\cC(D(\cQ))=\cA\cap\cC(D)=\Fix(\psi).
+\]
+By Lemma~\ref{lem:interior}, $\varphi_{\cQ}=\psi$.
+\end{proof}
+
+\begin{remark}[What the construction uses]
+The realizing CRS $\cQ_{\cA,D}$ has exactly $|E|$ reactions, each with the common food reactant $f$ and at least one product, a finite molecule set, ordinary catalysis, and no inhibition, kinetics or thermodynamic assumptions. Each reaction has a single molecule that catalyses other reactions, namely its private product $c_e$, so catalysis ``by a product of $u$'' and catalysis ``by reaction $u$'' coincide, and the digraph $D$ is recovered verbatim as the product catalysis graph.
+\end{remark}
+
+\begin{example}\label{ex:small}
+Steel observes that the union-closed family $\cD=\{\emptyset,\{a\},\{a,b,c\}\}$ on $E=\{a,b,c\}$ is not of the form $\cC(D')$ for any digraph $D'$, since $\{a\}\subsetneq\{a,b,c\}$ violates the interpolation property of digraph families~\cite[Proposition~2(ii)]{steel2023interior}. It is nevertheless same-ground realizable. Take the chain antimatroid $\cA=\{\emptyset,\{a\},\{a,b\},\{a,b,c\}\}$ and the digraph $D$ with a loop at $a$ and arcs $a\to c$, $c\to b$. Then $\cC(D)$ contains $\{a\}$ and $\{a,b,c\}$ but not $\{a,b\}$ (the vertex $b$ has no in-neighbour in $\{a,b\}$), so $\cA\cap\cC(D)=\cD$. The blockers with respect to $\cA$ are $\Bl(a)=\emptyset$, $\Bl(b)=\{\{a\},\{a,c\}\}$ and $\Bl(c)=\{\{a\},\{b\},\{a,b\}\}$, and Construction~\ref{con:marker} gives
+\begin{align*}
+\rho(a)&=\{f\}, & \pi(a)&=\{c_a,\ m_{b,\{a\}},\ m_{b,\{a,c\}},\ m_{c,\{a\}},\ m_{c,\{a,b\}}\},\\
+\rho(b)&=\{f,\ m_{b,\{a\}},\ m_{b,\{a,c\}}\}, & \pi(b)&=\{c_b,\ m_{c,\{b\}},\ m_{c,\{a,b\}}\},\\
+\rho(c)&=\{f,\ m_{c,\{a\}},\ m_{c,\{b\}},\ m_{c,\{a,b\}}\}, & \pi(c)&=\{c_c,\ m_{b,\{a,c\}}\},
+\end{align*}
+with $c_a$ catalysing $a$ and $c$, and $c_c$ catalysing $b$. The RAFs of this system are $\{a\}$ (food-enabled and self-catalysed) and $\{a,b,c\}$ (reaction $a$ fires first, then $b$, then $c$, and every reaction is catalysed). The set $\{a,b\}$ is food-generated but $b$ lacks its catalyst $c_c$, and $\{a,c\}$ is not food-generated because the marker $m_{c,\{b\}}$ is produced only by $b$.
+\end{example}
+
+\section{Consequences}\label{sec:consequences}
+
+\subsection{Antimatroids are exactly the food-generation families}
+
+\begin{theorem}\label{thm:antimatroid-fg}
+A family $\cA\subseteq\pw{E}$ is the family of food-generated subsets of some finite CRS with reaction set $E$ if and only if $\cA$ is an antimatroid on $E$.
+\end{theorem}
+
+\begin{proof}
+Necessity is Proposition~\ref{prop:fg-antimatroid}; sufficiency is Theorem~\ref{thm:antimatroid-realization}.
+\end{proof}
+
+Food generation is the ``temporal'' half of RAF semantics, and Theorem~\ref{thm:antimatroid-fg} identifies it exactly with the classical notion of feasibility in antimatroids. We are not aware of an earlier statement of this identification, although the union-closure of food-generated sets and the existence of admissible orderings are standard~\cite{hordijk2004detecting,steel2019autocatalytic}.
+
+\subsection{Digraph families are the elementary case}
+
+\begin{proposition}\label{prop:elementary}
+For a union-closed family $\cD\subseteq\pw{E}$ containing $\emptyset$ the following are equivalent.
+\begin{enumerate}[label=(\alph*)]
+\item $\cD=\cC(D)$ for some directed graph $D$ on $E$.
+\item $\cD=\Fix(\varphi_{\cQ})$ for some elementary CRS $\cQ$ with reaction set $E$.
+\item $\cD=\Fix(\varphi_{\cQ})$ for some CRS $\cQ$ with reaction set $E$ in which every subset of $E$ is food-generated.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(a)$\Rightarrow$(b): take $\cA=\pw{E}$. Then $\psi_{\cA}(E\setminus B)=E\setminus B$, so $e\notin B$ and $e\notin\psi_{\cA}(E\setminus B)$ cannot both hold, and no element has a blocker. Hence $\rho(e)=\{f\}\subseteq F$ for all $e$, so $\cQ_{\pw{E},D}$ is elementary, and $\Fix(\varphi_{\cQ_{\pw{E},D}})=\pw{E}\cap\cC(D)=\cC(D)$ by Theorem~\ref{thm:main}. (b)$\Rightarrow$(c) is immediate, and (c)$\Rightarrow$(a) is Corollary~\ref{cor:factor} with $\cA_{\cQ}=\pw{E}$.
+\end{proof}
+
+Thus Steel's first concluding question, the intrinsic characterization of digraph-realizable families, is exactly the question of characterizing the fixed families of elementary CRSs, and Theorem~\ref{thm:main} reduces the general same-ground question to it modulo an antimatroid factor.
+
+\subsection{Steel's obstruction, sharpened}\label{sec:steel-obstruction}
+
+For $k\ge 1$ let $\Cplus{k}=\{\emptyset\}\cup\{S\subseteq E:|S|\ge k\}$; this family is union-closed and contains $\emptyset$. Steel proved that for $k\ge3$ and $|E|\ge k^3-3k^2+4k$ (so $|E|\ge 12$ when $k=3$) the interior operator $\psi_{\Cplus{k}}$ has no RAF-realisation, and gave a four-reaction CRS realizing $\psi_{\Cplus{3}}$ on four reactions~\cite[Proposition~5 and the subsequent remarks]{steel2023interior}. The key ingredient of his proof is the following counting result.
+
+\begin{lemma}[{\cite[Proposition~2(iii)]{steel2023interior}}]\label{lem:steel-count}
+Let $k\ge3$ and let $D$ be a directed graph on a set $Y$ such that $\cC(D)$ contains every $k$-subset of $Y$ and no nonempty subset of size less than $k$. Then $|Y|\le 1+(k-1)(k-2)$.
+\end{lemma}
+
+The next proposition extracts from the main theorem the structure that Steel's argument exploits: the reactions whose reactants are all food.
+
+\begin{proposition}[Seeds]\label{prop:seeds}
+Suppose $\Fix(\psi)=\cA\cap\cC(D)$ with $\cA$ an antimatroid and $D$ a digraph on $E$, and let $E_0=\{e\in E:\{e\}\in\cA\}$ be the set of \emph{seeds}. Then:
+\begin{enumerate}[label=(\roman*)]
+\item every nonempty member of $\cA$, hence every nonempty member of $\Fix(\psi)$, contains a seed;
+\item $\pw{E_0}\subseteq\cA$, and consequently $\Fix(\psi)\cap\pw{E_0}=\cC(D|_{E_0})$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(i) Accessibility applied repeatedly to a nonempty $S\in\cA$ yields a chain of members of $\cA$ ending in a singleton $\{e\}\subseteq S$. (ii) A subset of $E_0$ is a union of singletons in $\cA$. Hence for $T\subseteq E_0$, $T\in\Fix(\psi)$ if and only if $T\in\cC(D)$, and $T\in\cC(D)$ if and only if $T\in\cC(D|_{E_0})$ since in-neighbours inside $T$ are the same in $D$ and in $D|_{E_0}$.
+\end{proof}
+
+\begin{corollary}\label{cor:cplus-bound}
+Let $k\ge3$. If $\psi_{\Cplus{k}}$ has a RAF-realisation on $E$ then $|E|\le k^2-2k+2$.
+\end{corollary}
+
+\begin{proof}
+By Theorem~\ref{thm:main} write $\Cplus{k}=\cA\cap\cC(D)$ and let $E_0$ be the seeds. Every $k$-subset of $E$ is a nonempty member of $\Fix(\psi)$ and so contains a seed by Proposition~\ref{prop:seeds}(i); hence $|E\setminus E_0|\le k-1$. By Proposition~\ref{prop:seeds}(ii), $\cC(D|_{E_0})=\Cplus{k}\cap\pw{E_0}$. If $|E_0|\ge k$ this family contains every $k$-subset of $E_0$ and no nonempty smaller set, so Lemma~\ref{lem:steel-count} gives $|E_0|\le 1+(k-1)(k-2)$; if $|E_0|<k$ the same bound holds because $1+(k-1)(k-2)\ge k$ for $k\ge3$. Altogether $|E|\le (k-1)+1+(k-1)(k-2)=k^2-2k+2$.
+\end{proof}
+
+For $k=3$ the bound is $|E|\le5$. The remaining case $|E|=5$ can be excluded by a direct argument, which yields the exact threshold.
+
+\begin{theorem}\label{thm:cplus3}
+The interior operator $\psi_{\Cplus{3}}$ on $\pw{E}$ has a RAF-realisation if and only if $|E|\le4$.
+\end{theorem}
+
+\begin{proof}
+\emph{Realizations for $|E|\le4$.} If $|E|\le2$ then $\Cplus{3}=\{\emptyset\}=\pw{E}\cap\cC(D)$ for the digraph $D$ with no arcs. If $|E|=3$ then $\Cplus{3}=\{\emptyset,E\}=\pw{E}\cap\cC(D)$ for a directed $3$-cycle $D$. For $E=\{a,b,c,d\}$ let
+\[
+\cA=\bigl\{\emptyset,\{a\},\{b\},\{a,b\},\{a,c\},\{b,c\}\bigr\}\cup\{S:|S|\ge3\}
+\]
+and let $D$ have the arcs $b\to a$, $d\to a$, $c\to b$, $d\to b$, $a\to c$, $d\to c$, $a\to d$, $b\to d$. One checks directly that $\cA$ is union-closed and accessible, that every $3$-subset of $E$ lies in $\cC(D)$ (in $\{a,b,c\}$ the arcs $b\to a$, $c\to b$, $a\to c$ form a cycle; in $\{a,b,d\}$ use $b\to a$, $d\to b$, $a\to d$; in $\{a,c,d\}$ use $d\to a$, $a\to c$, $a\to d$; in $\{b,c,d\}$ use $c\to b$, $d\to c$, $b\to d$), and that none of $\{a\},\{b\},\{a,b\},\{a,c\},\{b,c\}$ lies in $\cC(D)$ ($a$ and $b$ have no loops, and $b$, $a$, $c$ respectively have no in-neighbour in $\{a,b\}$, $\{a,c\}$, $\{b,c\}$). Since $\cC(D)$ is union-closed it contains all sets of size at least three, so $\cA\cap\cC(D)=\Cplus{3}$, and Theorem~\ref{thm:main} applies. (Steel's explicit four-reaction CRS~\cite[Section~3.3]{steel2023interior} is another realization.)
+
+\emph{Non-realizability for $|E|\ge5$.} By Corollary~\ref{cor:cplus-bound} it suffices to treat $|E|=5$. Suppose $\Cplus{3}=\cA\cap\cC(D)$ with $\cA$ an antimatroid and $D$ a digraph on $E$, $|E|=5$, and let $E_0$ be the seeds. As in the proof of Corollary~\ref{cor:cplus-bound}, $|E\setminus E_0|\le2$ and $|E_0|\le3$, so $|E_0|=3$; write $E_0=\{a,b,c\}$ and $E\setminus E_0=\{d,e\}$.
+
+\emph{Step 1: $D|_{E_0}$ is a directed $3$-cycle.} By Proposition~\ref{prop:seeds}(ii), $\cC(D|_{E_0})=\Cplus{3}\cap\pw{E_0}=\{\emptyset,E_0\}$. Hence no seed has a loop (singletons are excluded), no two seeds form a $2$-cycle (pairs are excluded), and every seed has an in-neighbour in $E_0$ (because $E_0\in\cC(D)$). If some seed $y$ had both other seeds as in-neighbours, each of those two would need an in-neighbour in $E_0$ other than itself, and any choice creates a $2$-cycle. So every seed has exactly one in-neighbour in $E_0$.
+
+\emph{Step 2: $d\to y$ and $e\to y$ for every seed $y$.} Let $y$ be a seed and $\{u,u'\}$ any two of the other four vertices. The $3$-set $\{y,u,u'\}$ lies in $\cC(D)$ and $y$ has no loop, so $u$ or $u'$ is an in-neighbour of $y$. Thus at most one of the four other vertices fails to be an in-neighbour of $y$. By Step~1 one of the two other seeds already fails, so both $d$ and $e$ are in-neighbours of $y$.
+
+\emph{Step 3: partners.} For a seed $y$ the set $\{y,d,e\}$ lies in $\Cplus{3}\subseteq\cA$, so by accessibility one of $\{y,d\}$, $\{y,e\}$, $\{d,e\}$ lies in $\cA$. If $\{d,e\}\in\cA$ then by accessibility $\{d\}$ or $\{e\}$ would be in $\cA$, contradicting that $d,e$ are not seeds. Hence each seed $y$ has a \emph{partner} $p(y)\in\{d,e\}$ with $\{y,p(y)\}\in\cA$. Since there are three seeds and two candidates, two distinct seeds $y,z$ share a partner $x$.
+
+\emph{Step 4: contradiction.} The pairs $\{y,x\}$ and $\{z,x\}$ lie in $\cA$ but not in $\Cplus{3}$, hence not in $\cC(D)$. By Step~2, $x\to y$, so $y$ has an in-neighbour in $\{y,x\}$; therefore $x$ has none: $x$ has no loop and $y\not\to x$. Likewise $z\not\to x$. But $\{x,y,z\}\in\cC(D)$ requires $x$ to have an in-neighbour among $x,y,z$, which is impossible. This contradiction completes the proof.
+\end{proof}
+
+\begin{remark}
+Steel notes that within elementary CRSs the threshold for $\Cplus{3}$ is four reactions. In the language of Theorem~\ref{thm:main} the elementary case is $\cA=\pw{E}$, so all elements are seeds and Lemma~\ref{lem:steel-count} gives $|E|\le3$ directly. The general case is different precisely because non-seed reactions, which need products of other reactions, can exist; Theorem~\ref{thm:cplus3} shows that this freedom buys exactly one additional reaction for $k=3$. For $k\ge4$ we do not know whether the bound $k^2-2k+2$ of Corollary~\ref{cor:cplus-bound} is attained.
+\end{remark}
+
+\subsection{Two reactions per element suffice}\label{sec:pair}
+
+Theorem~\ref{thm:main} shows that the same-ground requirement is a genuine restriction. If each element may be represented by two reactions, every interior operator becomes realizable, with the fixed family recovered exactly.
+
+\begin{theorem}[Paired realization]\label{thm:pair}
+Let $\cD\subseteq\pw{E}$ be union-closed with $\emptyset\in\cD$, and let $\psi=\psi_{\cD}$. There is a CRS $\cQ$ with reaction set $E\times\{\mathrm{p},\mathrm{g}\}$ such that
+\[
+\RAF(\cQ)=\bigl\{S\times\{\mathrm{p},\mathrm{g}\}: S\in\cD,\ S\neq\emptyset\bigr\}.
+\]
+In particular $S\in\cD$ if and only if $S\times\{\mathrm{p},\mathrm{g}\}\in\Fix(\varphi_{\cQ})$, and every fixed set of $\varphi_{\cQ}$ is of this form.
+\end{theorem}
+
+\begin{proof}
+Write $\Bl(e)=\Bl_{\cD}(e)$. The molecules are a food molecule $f$, molecules $\alpha_e,\beta_e$ for $e\in E$, and markers $m_{t,B}$ for $t\in E$, $B\in\Bl(t)$; the food set is $\{f\}$. For each $e\in E$ there are a \emph{producer} $(e,\mathrm{p})$ and a \emph{gate} $(e,\mathrm{g})$:
+\begin{align*}
+\rho(e,\mathrm{p})&=\{f\}, & \pi(e,\mathrm{p})&=\{\alpha_e\}\cup\{m_{t,B}: B\in\Bl(t),\ e\in B\},\\
+\rho(e,\mathrm{g})&=\{f\}\cup\{m_{e,B}:B\in\Bl(e)\}, & \pi(e,\mathrm{g})&=\{\beta_e\}.
+\end{align*}
+The catalysis relation consists of the pairs $(\beta_e,(e,\mathrm{p}))$ and $(\alpha_e,(e,\mathrm{g}))$: each reaction is catalysed only by the product of its partner. Let $T$ be a RAF of this system and $S=\{e:(e,\mathrm{p})\in T\}$. Since $\beta_e$ is produced only by $(e,\mathrm{g})$ and $\alpha_e$ only by $(e,\mathrm{p})$, Lemma~\ref{lem:provenance}(i) shows that $(e,\mathrm{p})\in T$ if and only if $(e,\mathrm{g})\in T$, so $T=S\times\{\mathrm{p},\mathrm{g}\}$ with $S\neq\emptyset$. Producers are enabled at stage $0$, so $\cl_T(F)$ contains $\alpha_e$ for $e\in S$ and exactly the markers $m_{t,B}$ with $S\cap B\neq\emptyset$ (Lemma~\ref{lem:provenance}(i) for ``only these'', and enabledness of producers for ``all these''). Hence $T$ is food-generated if and only if for every $e\in S$ and $B\in\Bl(e)$, $S\cap B\neq\emptyset$, which by Lemma~\ref{lem:hitting} holds if and only if $S\in\cD$. Conversely, if $S\in\cD$ is nonempty then $T=S\times\{\mathrm{p},\mathrm{g}\}$ is food-generated by the same computation, and each $(e,\mathrm{p})$ is catalysed by $\beta_e\in\pi(e,\mathrm{g})\subseteq\cl_T(F)$ and each $(e,\mathrm{g})$ by $\alpha_e\in\cl_T(F)$; so $T$ is a RAF.
+\end{proof}
+
+\begin{corollary}[A reaction-fusion dichotomy]
+For every interior operator $\psi$ on $\pw{E}$, either $\psi$ is realized by a CRS with one reaction per element (exactly when $\Fix(\psi)=\cA\cap\cC(D)$ for some antimatroid $\cA$ and digraph $D$), or else two reactions per element are necessary and, by Theorem~\ref{thm:pair}, sufficient.
+\end{corollary}
+
+\begin{remark}[Steel's half-frequency question]
+Steel asked whether every CRS with at least one RAF has a reaction lying in at least half of its RAFs~\cite[Section~4]{steel2023interior}, a RAF analogue of the union-closed sets conjecture~\cite{balla2013union,gilmer2022constant}. Theorem~\ref{thm:pair} shows that this question is at least as hard as the union-closed conjecture in the following form: if $\cD$ is union-closed with $\emptyset\in\cD$ and $|\cD|\ge2$, then the paired CRS of $\cD$ has $|\cD|-1$ RAFs, and the reaction $(i,\mathrm{p})$ (or $(i,\mathrm{g})$) lies in exactly $|\{S\in\cD:i\in S\}|$ of them. A positive answer to Steel's question for all CRSs would therefore give, for every such $\cD$, an element $i$ with $2\,|\{S\in\cD:i\in S\}|\ge|\cD|-1$.
+\end{remark}
+
+\section{Formal verification and computation}\label{sec:verification}
+
+\subsection{Lean formalization}
+
+The definitions and results of Sections~\ref{sec:prelim}--\ref{sec:consequences} have been formalized in Lean~4 (toolchain \lean{v4.30.0}) against a pinned version of Mathlib (tag \lean{v4.30.0}, commit \lean{c5ea003}). The formalization follows the closure semantics of Definitions~\ref{def:closure} and~\ref{def:raf} verbatim: a CRS is a structure with \lean{inputs}, \lean{outputs} and \lean{food}, closure is defined by recursion on the stage, and \lean{FoodGenerated}, \lean{ReflexivelyAutocatalytic} and \lean{IsRAF} are the predicates of Definition~\ref{def:raf}. An interior operator is represented by its fixed family, as a structure \lean{UnionClosedData} carrying $\emptyset\in\cD$ and union-closure, with the operator recovered by Lemma~\ref{lem:interior}(ii). A same-ground realization is a structure \lean{LiteralRealization} consisting of a finite molecule type, a CRS whose reaction type is exactly the ground type $E$, and a catalysis relation. The public statement, rendered in ASCII, is
+
+\begin{quote}\small
+\begin{verbatim}
+theorem RAFInteriorRealizability.rafInteriorOperator_realizable_iff
+    {E : Type u} [Fintype E] [DecidableEq E] (psi : InteriorOperator E) :
+    SameGroundRAFRealizable psi <->
+      exists (A : AntimatroidData E) (P : E -> Finset E),
+        forall S : Finset E,
+          S in psi.family <-> (S in A.family /\ PredSupported P S)
+\end{verbatim}
+\end{quote}
+where \lean{AntimatroidData} is Definition~\ref{def:antimatroid}, $P$ is the in-neighbourhood map of a digraph, and \lean{PredSupported P S} is the condition $S\in\cC(D)$. The correspondence between the sections of this paper and the Lean modules is given in Table~\ref{tab:modules}. The consequences of Section~\ref{sec:consequences} are formalized in a further module \lean{Corollaries.lean} as the following declarations:
+\begin{itemize}
+\item \lean{foodGenerationFamilyRealizable\_iff\_antimatroid}: Theorem~\ref{thm:antimatroid-fg};
+\item \lean{elementary\_fixedFamily\_iff\_predSupported}: Proposition~\ref{prop:elementary}, (c)$\Rightarrow$(a);
+\item \lean{pairGadget\_fixedFamily\_exact} and \lean{reactionFusionDichotomy}: Theorem~\ref{thm:pair} and the reaction-fusion dichotomy;
+\item \lean{rafFixedFrankl\_implies\_unionClosedFrankl} (in \lean{PairGadget.lean}): the implication from Steel's half-frequency question to the union-closed conjecture.
+\end{itemize}
+The bound of Corollary~\ref{cor:cplus-bound} and Theorem~\ref{thm:cplus3} are not formalized.
+
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.47\textwidth}>{\raggedright\arraybackslash}p{0.49\textwidth}@{}}
+\toprule
+Lean module & Content \\
+\midrule
+\lean{RAF/Core/CRS.lean}, \lean{RAF/Core/Closure.lean}, \lean{RAF/Core/RAF.lean}, \lean{RAF/Frankl/Semantics.lean} & CRS, closure, RAFs, fixed family, maxRAF operator (Section~\ref{sec:crs}) \\
+\lean{RAF/Frankl/Antimatroid.lean} & Lemma~\ref{lem:provenance}, Proposition~\ref{prop:fg-antimatroid}, Proposition~\ref{prop:static} \\
+\lean{RAF/Frankl/PairGadget.lean} & Lemma~\ref{lem:interior}, blockers, Lemma~\ref{lem:hitting}, Theorem~\ref{thm:pair} \\
+\lean{Basic.lean}, \lean{Realizable.lean} & interior operators, same-ground realizability \\
+\lean{PredSupport.lean}, \lean{Necessity.lean}, \lean{FoodSupportCertificate.lean} & Definition~\ref{def:DQ}, Corollary~\ref{cor:factor} \\
+\lean{MarkerSource.lean}, \lean{MarkerProvenance.lean} & Construction~\ref{con:marker}, Lemma~\ref{lem:marker-provenance} \\
+\lean{AntimatroidRealization.lean} & Theorem~\ref{thm:antimatroid-realization} \\
+\lean{CatalysisRealization.lean}, \lean{Characterization.lean} & Definition~\ref{def:catalysis}, Lemma~\ref{lem:DQ}, Theorem~\ref{thm:main} \\
+\lean{Corollaries.lean} & Theorem~\ref{thm:antimatroid-fg}, Proposition~\ref{prop:elementary}, Theorem~\ref{thm:pair} \\
+\bottomrule
+\end{tabular}
+\caption{Correspondence between the paper and the Lean development. Modules are in the directory \lean{proofs/RAFInteriorRealizability} unless a path is indicated, in which case they are relative to \lean{proofs/}.}
+\label{tab:modules}
+\end{table}
+
+The aggregate module was compiled with warnings promoted to errors, using the compiler option \lean{-DwarningAsError=true}. The build reports exit code~0, no warnings and no use of \lean{sorry}. The axioms on which the main theorem depends are exactly \lean{propext}, \lean{Classical.choice} and \lean{Quot.sound}, the standard axioms of Lean's classical logic. The verified source of the main module has SHA-256 hash
+\begin{center}\small\texttt{858de7bf29f4f1bcf0422229ac7942c89d89e801638337e6988be3a450f7996b},\end{center}
+and the hash of the elaborated statement (the declaration interface) is
+\begin{center}\small\texttt{effd320f43a7ae418eecce6f063c46cf9c9051265c9fc15e2b5c9ccb819d4c83}.\end{center}
+The three corollary declarations were verified separately in the same way, with the same axiom set.
+
+\subsection{Exhaustive finite checks}
+
+Before the formalization, the marker construction was tested exhaustively by a short program. For $n=0,\dots,4$ the program enumerated all labelled antimatroids on an $n$-set (in the sense of Definition~\ref{def:antimatroid}, allowing elements in no member), obtaining $1$, $2$, $6$, $35$ and $596$ families, built the marker CRS of Construction~\ref{con:marker}, and compared food generation with membership in the antimatroid for every subset; this gave $9\,845$ comparisons with no discrepancy. For $n\le3$ it additionally ranged over all $2^{n^2}$ digraphs, computed the RAFs of $\cQ_{\cA,D}$ and compared the fixed family with $\cA\cap\cC(D)$; this gave $143\,753$ comparisons with no discrepancy. A second program, written after the fact, enumerates for $n\le5$ all pairs $(\cA,D)$ with $\cA\cap\cC(D)=\Cplus{3}$; it finds certificates for $n\le4$ (the one displayed in the proof of Theorem~\ref{thm:cplus3} is among them) and none for $n=5$, in agreement with Theorem~\ref{thm:cplus3}. These computations informed the proofs and are reported for reproducibility; they are not used as evidence in any proof.
+
+\section{Discussion}\label{sec:discussion}
+
+Theorem~\ref{thm:main} gives finite RAF fixed families a two-layer semantics: an antimatroid that records emergence from the food set, and a digraph that records catalysis among the selected reactions. The fixed family of a CRS on $E$ is realizable on the same ground set exactly when it admits such a decomposition, and the marker construction shows that the decomposition is complete rather than merely necessary. The construction is explicit and uses one reaction per element; it may use exponentially many auxiliary molecules, although Remark~\ref{rem:minimal} reduces their number to the number of rooted circuits of the antimatroid, and we have not investigated how many molecules are necessary.
+
+Several questions remain.
+
+\begin{question}
+Is there an intrinsic (digraph-free) set-theoretic characterization of the families $\cC(D)$? By Proposition~\ref{prop:elementary} this is Steel's first concluding question and is equivalent to characterizing the fixed families of elementary CRSs. Together with Theorem~\ref{thm:main} it would yield an intrinsic characterization of same-ground RAF-realizable interior operators.
+\end{question}
+
+\begin{question}
+What is the complexity of deciding whether an interior operator given succinctly (for example by its minimal nonempty fixed sets, or by a CRS on a different ground set) is same-ground realizable? The decomposition $\Fix(\psi)=\cA\cap\cC(D)$ is far from unique, and the search for one is not obviously polynomial.
+\end{question}
+
+\begin{question}
+For $k\ge4$, what is the largest $|E|$ for which $\psi_{\Cplus{k}}$ has a RAF-realisation? Corollary~\ref{cor:cplus-bound} gives $|E|\le k^2-2k+2$; the elementary threshold is $1+(k-1)(k-2)$.
+\end{question}
+
+Finally, the theorem is a representation theorem and does not address kinetic or thermodynamic feasibility of the constructed systems, nor variants of RAF theory with inhibition, with pseudo-RAFs, or with the algebraic semantics of~\cite{loutchko2023algebraic}. Whether the antimatroid factor survives in those settings is a natural direction for further work.
+
+\subsection*{Availability}
+
+The Lean sources, the verification receipts recording the hashes and axioms quoted in Section~\ref{sec:verification}, and the enumeration programs are available in the repository \url{https://github.com/mmislan/Erdos}, in the directories \url{proofs/RAFInteriorRealizability} and \url{problem_workspaces/RAF_interior_operator_realizability}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

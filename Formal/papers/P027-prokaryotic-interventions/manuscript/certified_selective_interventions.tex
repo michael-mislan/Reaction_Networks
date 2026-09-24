@@ -1,0 +1,265 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,amsthm,graphicx,booktabs,tabularx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{microtype}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}\newtheorem{definition}[theorem]{Definition}
+\newcommand{\cl}{\operatorname{cl}}
+\newcommand{\RAF}{\operatorname{RAF}}
+\renewcommand{\Cap}{\operatorname{Cap}}
+\newcommand{\irr}{\operatorname{irr}}
+\newcommand{\cRAF}{\operatorname{cRAF}}
+\newcommand{\mol}[1]{\mathrm{#1}}
+\newcommand{\rxn}[1]{\texttt{#1}}
+\setlength{\emergencystretch}{2em}
+\title{Certified selective interventions and closed-RAF structure\newline in a pooled prokaryotic network}
+\author{}
+\date{14 September 2026}
+\begin{document}
+\maketitle
+\vspace{-1.3em}
+\begin{abstract}
+We give a source-specific, computer-assisted analysis of catalytic food-generated reaction structure in a pooled prokaryotic network with 6,039 reaction actions and 9,231 directed reactions. A three-action intervention prevents structural L-valine production while preserving L-methionine production. Ranked restoration witnesses prove inclusion-minimality. An 18-species siphon makes the obstruction independent of catalyst annotations and robust to food additions outside the siphon; with catalyst weakening, the same witnesses establish robust selective minimality. In a ten-reaction valine subsystem, the irreducible RAFs are two singleton seeds, the sole valine-producing RAF is the full subsystem, and there are exactly two closed RAFs. Adding one food-enabled pooling operation collapses this closed-RAF catalogue to one element and identifies the parent closed extensions of the two closed subsets. We also give a constructive lower-bound/RAF upper-bound criterion for parent closed-RAF uniqueness and reproduce equality of the corresponding reaction sets before and after intervention. Conventional proofs are accompanied by Lean certificates for the stated formalized results and a separate audit against the pinned source. The conclusions concern structural generation under an explicit medium, not reactor depletion or concentration equilibria.
+\end{abstract}
+
+\section{Introduction}
+Autocatalytic-set theory describes how a collection of reactions can be sustained by a food supply while its catalysts are supplied or produced within the collection. Its biochemical applications already include metabolic irrRAF sampling and sensitivity to reaction and catalyst removal \cite{sousa2015}, as well as analysis of prokaryotic networks \cite{xavier2020,steel2020}. More recent work develops algorithms for enumerating irreducible and closed autocatalytic sets \cite{hordijk2026}. The present contribution is a certified finite case study: a selective intervention, its environmental boundary, and an exact separation between minimal catalytic seeds and target-producing support.
+
+Three distinctions are central. Inclusion-minimal deletion is different from globally minimum deletion cost. A minimal standalone RAF is different from a minimal RAF producing a specified molecule. Finally, closedness is relative to an ambient reaction set. We exhibit each distinction on literal reaction data, preserving conjunctive catalyst requirements and the grouping of reversible reactions. Our proofs use short structural certificates: an inaccessible species set, necessary producers, and constructive activation ranks. They do not require completing the parent irrRAF catalogue.
+
+\section{Model, source and intervention semantics}
+Let $X$ be a finite species set, $R$ a finite set of directed reactions, and $F\subseteq X$ the supplied food. Each $r\in R$ has reactants $I(r)$, products $O(r)$, an action identifier $a(r)$, and a positive catalyst formula $\phi_r$. The formula uses atoms in $X$, conjunction and disjunction; $\phi_r(Y)$ denotes evaluation in $Y\subseteq X$. In particular, $Y\subseteq Z$ implies $\phi_r(Y)\Rightarrow\phi_r(Z)$.
+
+For $S\subseteq R$, $\cl_S(F)$ is the least set containing $F$ and satisfying
+\[
+ r\in S,\quad I(r)\subseteq\cl_S(F)
+ \quad\Longrightarrow\quad O(r)\subseteq\cl_S(F).
+\]
+Catalysts are absent from this closure operation. They are tested subsequently in the final closure, as required by RAF semantics \cite{hordijk2023}.
+
+\begin{definition}
+A nonempty $S\subseteq R$ is a RAF if, for every $r\in S$,
+\[
+ I(r)\subseteq\cl_S(F),\qquad \phi_r(\cl_S(F)).
+\]
+It is irreducible if it has no proper RAF subset. It is closed relative to $R$ if it is a RAF and every $r\in R$ satisfying these two support conditions already lies in $S$. The target capability predicate is
+\[
+ \Cap_p(U;F)\;\Longleftrightarrow\;
+ \exists S\subseteq U:\ \RAF(S;F)\ \text{and}\ p\in\cl_S(F).
+\]
+\end{definition}
+
+For a set of action identifiers $D$, write $R_D=\{r\in R:a(r)\notin D\}$. A successful cut has $\neg\Cap_p(R_D;F)$ and is inclusion-minimal if no proper subset of $D$ is successful. This quantification fixes the food and source semantics.
+
+The source is \rxn{prokaryotic-network.crs}, distributed with CatReNet \cite{catrenet,source}, at the commit identified in Supplement S1. We retain all 6,039 source rows and their catalyst formulas. Splitting 3,192 reversible rows yields 9,231 directions. All directions of a source row have the same action identifier. Stoichiometric coefficients remain in the source archive but do not enter the structural presence/absence predicate.
+
+The food set is \emph{exactly} the 68 entries of the pinned file's food declaration, reproduced in Supplement S1. This includes C00003 and the formal \rxn{Pooling} marker, as well as C00019 and C00698. The pooled catalyst symbol \rxn{NADs} itself is not supplied. Formal pooling and spontaneous-reaction conventions are retained. This source pools prokaryotic reactions; it is not an organism-specific reconstruction.
+
+Our target is L-valine, C00183, and our preservation control is L-methionine, C00073. Neither belongs to $F$. The intervention is
+\begin{equation}\label{eq:cut}
+ D=\{\rxn{R01209},\rxn{R01210},\rxn{R04441}\}.
+\end{equation}
+The first and third actions produce the valine precursor C00141. The reverse direction of R01210 also produces it. R01210 is reversible; hence $D$ removes four directed reactions. None of these actions directly produces valine. Full equations and catalyst formulas are supplied in Supplement S2.
+
+\section{A selective inclusion-minimal intervention}
+\begin{lemma}[Food-independent siphon obstruction]\label{lem:barrier}
+Suppose $B\subseteq X$ satisfies
+\begin{equation}\label{eq:siphon}
+ r\in U,\quad O(r)\cap B\ne\varnothing
+ \quad\Longrightarrow\quad I(r)\cap B\ne\varnothing.
+\end{equation}
+For every $F'$ disjoint from $B$, $\cl_U(F')\cap B=\varnothing$.
+\end{lemma}
+\begin{proof}
+Induct on a derivation of food generation. A food molecule is outside $B$. If a generated product belonged to $B$, condition \eqref{eq:siphon} would supply a reactant in $B$. That reactant has an earlier generation derivation, contradicting the induction hypothesis.
+\end{proof}
+
+\begin{theorem}[Selective inclusion-minimal cut]\label{thm:cut}
+For the pinned source and food set, the cut \eqref{eq:cut} eliminates L-valine capability and preserves L-methionine capability. It is inclusion-minimal.
+\end{theorem}
+\begin{proof}
+The certificate lists an 18-species set $B$ containing C00183, disjoint from $F$. A check over all 9,231 source directions proves \eqref{eq:siphon} for $U=R_D$. The complete membership of $B$ and its 58 surviving producing directions are provided in the supplement. Lemma~\ref{lem:barrier} excludes valine even from the catalyst-free reactant closure of $R_D$, and therefore from every RAF contained in it.
+
+For each $a\in D$, a ranked witness in $R_{D\setminus\{a\}}$ is a RAF and generates valine. The three witnesses have 9, 13 and 13 directions (Table~\ref{tab:restoration}). Their reaction membership, reactant ranks, positive catalyst formulas in the final closure, and target production are checked. If a successful proper subcut $E\subsetneq D$ existed, choose $a\in D\setminus E$. Then $E\subseteq D\setminus\{a\}$, so $R_{D\setminus\{a\}}\subseteq R_E$. The corresponding witness survives in $R_E$, a contradiction.
+
+Finally, the forward direction of the reversible source row R09639 is the singleton witness
+\[
+ \mol{C00019}+\mol{C00698}
+ \xrightarrow{\;\mol{C00019}\;}
+ \mol{C00073}+\mol{C19768}.
+\]
+Its reactants and catalyst are food, and its action is not deleted. Thus methionine remains capable.
+\end{proof}
+
+\begin{table}[tb]
+\centering
+\caption{Restoration certificates. The restored action is removed from the deletion set. Witness sizes count directed reactions.}\label{tab:restoration}
+\begin{tabular}{lll}\toprule
+Restored action & Valine witness size & Target verdict\\\midrule
+R01209 & 9 & Present\\
+R01210 & 13 & Present\\
+R04441 & 13 & Present\\
+None & --- & Absent by the siphon certificate\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=.94\linewidth]{figures/intervention_barrier.pdf}
+\caption{Logic of the intervention certificate. The three action deletions block access to a certified 18-species siphon containing the precursor and valine. The internal arrow indicates the precursor relationship, not an assertion that there is only one biochemical route. The full-source producer condition excludes every surviving bypass.}\label{fig:barrier}
+\end{figure}
+
+\begin{corollary}[Robust selective minimality]\label{cor:robust}
+Let $F\subseteq F'$ with $F'\cap B=\varnothing$. Keep reaction reactants, products and action identifiers fixed, and replace each $\phi_r$ by a positive formula $\psi_r$ satisfying
+\[
+ \phi_r(Y)\Longrightarrow\psi_r(Y)\qquad\text{for every }Y\subseteq X.
+\]
+Then the same cut remains inclusion-minimal for valine, and methionine remains capable.
+\end{corollary}
+\begin{proof}
+The negative result uses only \eqref{eq:siphon}, hence remains true for arbitrary catalyst annotations. Food enlargement preserves every old generation derivation. Formula weakening then preserves the three restoration RAFs and the methionine RAF. Apply the proof of Theorem~\ref{thm:cut} with these same witnesses.
+\end{proof}
+
+The negative obstruction also survives further reaction deletions, food additions outside $B$, and additions of reactions satisfying \eqref{eq:siphon}. These statements do not require catalyst weakening. In contrast, the positive restoration conclusion is not asserted for arbitrary catalyst strengthening, since strengthening may invalidate a witness.
+
+The environmental boundary is concrete. With C00141 supplied as additional food, the four directions R00221 reverse, R00589 reverse, R00585 forward and R01215 reverse form a valine-producing RAF after the cut. This rescue is certified. It does not say that adding any member of $B$ suffices.
+
+\section{Seeds, target support and ambient closedness}
+Let $H$ be the ten-direction subsystem in Table~\ref{tab:small}, with the original $F$, and let $L=\{0,1,4,7,8\}$. Indices in this section refer to that table. The source identities, rather than the indices alone, define the subsystem.
+
+\begin{table}[tb]\centering
+\caption{The valine subsystem. Forward and reverse refer to the pinned source equations.}\label{tab:small}
+\begin{tabular}{clcl}\toprule
+Index & Direction & Index & Direction\\\midrule
+0 & R00014 forward & 5 & R01215 reverse\\
+1 & R04672 reverse & 6 & R04441 forward\\
+2 & R10916 reverse & 7 & R00221 reverse\\
+3 & R10985 forward & 8 & R00589 reverse\\
+4 & R00585 forward & 9 & R\_NADs\_2 forward\\\bottomrule
+\end{tabular}\end{table}
+
+\begin{theorem}[Exact subsystem structure]\label{thm:small}
+Relative to the ambient set $H$ and the source food set:
+\begin{enumerate}
+\item the irreducible RAFs are exactly $\{0\}$ and $\{7\}$;
+\item the only RAF producing valine is $H$ itself;
+\item the closed RAFs are exactly $L$ and $H$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+Every nonempty food-generated RAF contains a reaction whose reactants are food. Otherwise induction on generation gives no molecule beyond food, contradicting the reactant condition for every candidate reaction. A source check shows that only 0 and 7 have food-contained reactants in $H$, and each singleton is itself a RAF. Every irreducible RAF must therefore be one of these two singletons.
+
+For target support, a nonfood generated molecule must have a producer in the chosen reaction set. Exhausting the producers within $H$ gives the following necessities. Valine forces 5. The two nonfood reactants of 5 force 4 and 6. Reaction 6 forces 2; the inputs of 2 force 1 and 3; and 1 forces 0. The serine requirement of 3 forces 8, which forces 7. The NAD catalyst formula of 3 forces 9, the only producer of the pooled NAD catalyst in $H$. Each forced species is absent from food. These ten requirements exhaust $H$. Conversely, a ranked witness verifies that $H$ is a valine-producing RAF.
+
+For closedness, the prefix activation order $0,7,1,8,4$ forces every closed RAF to contain $L$: at each step its reactants and catalyst are available from food and earlier products. Direct support and upper-pool checks certify that $L$ is closed. Suppose a closed RAF contains a reaction outside $L$. The possible extra indices are $2,3,5,6,9$. Each forces 3, either directly or through $5\Rightarrow6\Rightarrow2\Rightarrow3$; 9 requires the nonfood product of 3. Once 3 is present, closedness successively forces $9,2,6,5$. Thus all of $H$ is present. The full $H$ is a RAF and is closed relative to itself.
+\end{proof}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=\linewidth]{figures/small_dependencies.pdf}
+\caption{Necessary producer relationships for valine support in $H$. Solid arrows show relevant reactant dependencies; dashed arrows show required NAD catalysis. The two green reactions are the complete irreducible catalogue, but every reaction is required for the target. This is a dependency diagram, not a complete stoichiometric reaction graph.}\label{fig:small}
+\end{figure}
+
+\begin{corollary}[Information lost by the irreducible catalogue]
+The ambient networks $L$ and $H$ have the same food set and the same complete irrRAF catalogue, but only $H$ has valine capability.
+\end{corollary}
+\begin{proof}
+RAF status and irreducibility of a fixed subset use its own reactions and the common food set. Both singleton RAFs lie in $L$. Theorem~\ref{thm:small} therefore gives the same irreducible catalogue in both ambient networks. Its target-support statement excludes valine capability in the proper subset $L$.
+\end{proof}
+
+\begin{theorem}[Pooling changes the closed catalogue]\label{thm:pooling}
+Let $q$ be the omitted source direction
+\[
+ \rxn{R\_NADs\_1}:\quad
+ \mol{C00003}\xrightarrow{\;\text{Pooling}\;}\text{NADs}.
+\]
+The augmented subsystem $H\cup\{q\}$ has exactly one closed RAF, namely all eleven directions. Every parent closed RAF contains $H$. Consequently the least parent closed extensions of $L$ and $H$ coincide.
+\end{theorem}
+\begin{proof}
+Both the reactant C00003 and the catalyst marker Pooling are food. The order
+\begin{equation}\label{eq:activation}
+ q,\ 0,\ 1,\ 7,\ 8,\ 3,\ 9,\ 2,\ 4,\ 6,\ 5
+\end{equation}
+activates all eleven directions with catalysts checked against the prefix pool. In any closed RAF of the augmented or parent network, induction through this order forces each direction: the prefix products are generated, and closedness includes the next supported reaction. The augmented set is itself a RAF, so it is its unique closed RAF. The literal embedding into the parent proves the second assertion. Since every parent closed candidate already contains $H$, the families of parent closed supersets of $L$ and $H$ are identical. Their least elements are therefore identical; existence follows from the parent maximum and the bounds proved in the next section.
+\end{proof}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=.96\linewidth]{figures/pooling_extension.pdf}
+\caption{Closedness depends on the ambient reaction set. The food-enabled formal pooling row $q$ supplies NADs without the bootstrap dependency present in $H$. The two closed subsets of $H$ do not represent two distinct parent closed organizations or two inherited concentration states.}\label{fig:pooling}
+\end{figure}
+
+The added row is a formal operation in the source's representation of catalyst availability. It should not be interpreted as a newly proposed physical conversion of a molecule into an abstract chemical pool.
+
+\section{Constructive activation and parent uniqueness}
+Let $A$ denote the maximal constructively activated set: start from food and repeatedly include any ambient reaction whose reactants and catalyst formula hold in the current pool, adding its products. Finiteness and positivity make the terminal set independent of the activation order. Let $M$ be the maxRAF.
+
+\begin{lemma}[Meeting lower and upper bounds]\label{lem:unique}
+Every closed RAF $C$ satisfies $A\subseteq C\subseteq M$. If $A=M\ne\varnothing$, then $M$ is the unique closed RAF.
+\end{lemma}
+\begin{proof}
+For $A\subseteq C$, induct through constructive activation exactly as in \eqref{eq:activation}. Every prefix product lies in $\cl_C(F)$, and positive catalyst formulas remain true in this larger set, so closedness forces the next reaction. The inclusion $C\subseteq M$ is maxRAF maximality. The maxRAF is closed: adding any omitted reaction supported by its closure would give a larger RAF. Equality of the bounds now forces $C=M$.
+\end{proof}
+
+The pinned instances give Table~\ref{tab:parent}. Equality here is equality of reaction sets, not merely cardinalities. The constructive certificates have 23 synchronous activation layers in both models. The upper certificates successively bound every RAF using food-containing reactant-closed pools and rejection of unsupported reactions. They reproduce the pruning sequences
+\[
+9231\longrightarrow2823\longrightarrow2148\longrightarrow2148,
+\qquad
+9227\longrightarrow2584\longrightarrow2085\longrightarrow2085.
+\]
+The certificates and their formal-verification status are specified in Section~\ref{sec:verification} and the supplement.
+
+\begin{table}[tb]\centering
+\caption{Full-parent set comparisons. $A$ is the constructively activated set and $M$ the maxRAF.}\label{tab:parent}
+\begin{tabular}{lrrl}\toprule
+Ambient model & $|M|$ & $|A|$ & Set comparison\\\midrule
+Parent $R$ & 2,148 & 2,148 & $A=M$\\
+After intervention $R_D$ & 2,085 & 2,085 & $A=M$\\\bottomrule
+\end{tabular}\end{table}
+
+The corresponding parent irrRAF catalogue is a separate problem. We do not claim to have completed that irreducible catalogue. Its incompleteness does not weaken a target-specific intervention certificate or a closed-RAF uniqueness certificate.
+
+\section{Firing and kinetic interpretation}
+Condition \eqref{eq:siphon} is the usual siphon condition on the directed reactant/product network. Its connection with invariant extinction faces is established prior work; in particular, Angeli, De Leenheer and Sontag give the corresponding equivalence in Proposition~5.5 \cite{angeli2006}.
+
+\begin{corollary}[No startup by surviving firings]
+Starting with every species of $B$ absent, any finite sequence of surviving reaction firings leaves every species of $B$ absent, provided external supply introduces no member of $B$.
+\end{corollary}
+\begin{proof}
+Induct on the number of firings. A firing producing a member of $B$ would require a reactant in $B$ by \eqref{eq:siphon}, contradicting its absence immediately before the firing. Consuming molecules cannot invalidate absence.
+\end{proof}
+
+For conventional nonnegative, locally Lipschitz, reactant-respecting kinetics, with no inflow into $B$, the zero face $x_i=0$ for $i\in B$ is forward invariant: every rate producing a barrier species vanishes on that face, and every rate consuming it also vanishes. Uniqueness of the local ODE solution preserves the face throughout its existence. This kinetic interpretation is not an additional Lean ODE theorem. Neither it nor the firing result proves depletion when barrier species are initially present. Likewise, a unique closed RAF neither implies a unique concentration equilibrium nor excludes kinetic multistability.
+
+\section{Verification and reproducibility}\label{sec:verification}
+The formal model uses finite reaction lists extensionally, inductive food generation, and positive-formula satisfaction. The proofs distinguish four kinds of evidence (Table~\ref{tab:evidence}). No unproved biological assumption is disguised as a Lean certificate hypothesis: the theorem refers to literal source data, and the source interpretation is audited separately.
+
+\begin{table}[tb]\centering
+\caption{Evidence boundaries.}\label{tab:evidence}
+\begin{tabularx}{\linewidth}{lX}\toprule
+Evidence & Meaning\\\midrule
+Lean theorems & Propositions about the literal encoded finite model.\\
+Source read-back audit & Agreement of rows, catalyst formulas, food and action mapping with the pinned file.\\
+Exact computation & Finite results outside the kernel where explicitly identified.\\
+Biochemical interpretation & Consequences conditional on the source abstraction and medium.\\\bottomrule
+\end{tabularx}\end{table}
+
+The original selective intervention, small irreducible catalogue, exact target-support and closed-subsystem classifications, pooling extension, robust selective minimality, precursor rescue and firing corollary have explicit Lean declarations. The proof checker uses kernel reduction of certificates, not \texttt{native\_decide}; strict compilation rejects warnings and \texttt{sorry}. The only logical axioms in the reported proofs are propositional extensionality, classical choice where used, and quotient soundness. The text parser and biochemical annotations are not kernel-verified.
+
+\input{parent_verification_status.tex}
+
+The supplement supplies the full food and siphon lists, reaction equations, witness identifiers, ranks and certificate paths, toolchain and source fingerprints, verification declarations, and reproduction commands. Compiler diagnostics, AGC history and experimental route changes remain in the research ledger rather than the mathematical argument.
+
+\section{Discussion}
+The intervention theorem is a statement about structural generation under a fixed source-derived medium. Its main strength is that the negative proof does not depend on catalyst annotations, while the positive witnesses make the precise assumptions for selective minimality visible. The precursor-rescue certificate demonstrates an actual environmental boundary rather than a generic sensitivity warning.
+
+The small subsystem shows why a complete irrRAF catalogue cannot serve as a sufficient statistic for biochemical capability. It also shows how an omitted formal pooling operation changes a closed catalogue. Closedness must therefore be reported together with the ambient reaction set and catalyst-pool convention. Stoichiometric self-amplification, growth and persistence are different properties and are not inferred from RAF minimality.
+
+The contribution is the concrete combination of selective intervention, structural robustness, exact target-support separation and ambient closed-RAF analysis, with a traceable boundary between formal proof and source interpretation. A universal enumeration algorithm and a global intervention optimum remain outside its scope.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

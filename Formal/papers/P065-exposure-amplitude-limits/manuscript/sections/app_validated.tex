@@ -1,0 +1,60 @@
+\section{Validated generating-function calculation}
+\label{app:validated}
+
+This appendix specifies the proof behind \eqref{eq:validated} independently of
+any floating ODE solver. For constant erasure write $\Phi(z)=Jz+d+.1D(z,z)$
+with $J=Q-\diag(d+.1)$. Taylor coefficients at any initial point obey
+\begin{equation}\label{eq:recurrence}
+ c_0=z,\qquad
+ c_{k+1}=\frac1{k+1}\left[Jc_k+\one_{\{k=0\}}d
+              +.1\sum_{j=0}^kD(c_j,c_{k-j})\right].
+\end{equation}
+The unit cube is invariant: at $z_i=0$ every inward term is nonnegative, and at
+$z_i=1$ the switching, death and offspring terms sum to a nonpositive value. On
+the cube the Jacobian is Metzler, with row sums
+$-d_i+.1\bigl(\sum_j\partial_jD_i(z,z)-1\bigr)\le.1-d_i\le.09$. The upper right
+derivative of the sup norm of a difference of solutions is therefore at most
+$.09$ times that norm, by the mean-value Jacobian and the maximal-coordinate
+argument, so the flow is $e^{.09t}$-Lipschitz in that norm. This is a one-sided
+logarithmic-norm bound \citep{soderlind2006}, not a bound on the norm of the
+Jacobian itself.
+
+All interval endpoints in \texttt{scripts/validated\_pgf.py} are integers
+divided by $2^{110}$. Addition and subtraction are exact at that scale.
+Multiplication takes the smallest and largest of the four integer products and
+rounds outwards after division by $2^{110}$; division by a positive integer also
+rounds outwards; rational inputs are enclosed by floor and ceiling. Induction on
+\eqref{eq:recurrence} proves inclusion of each exact coefficient
+\citep{moore2009}.
+
+Use steps $h=1/20$ and a degree-$11$ Taylor polynomial. First evaluate the
+recurrence to $c_{12}$ with $c_0=[0,1]^6$ and let $M$ be the largest absolute
+endpoint; at every point of the exact trajectory
+$\|z^{(12)}\|_\infty/12!\le M$, so Taylor's integral remainder on a step is
+bounded by $Mh^{12}$. The bounds used are approximately $4.828\cdot10^{-6}$ for
+$e=.01$ and $1.806\cdot10^{-4}$ for $e=.3$; the exact fractions are in
+the data file \texttt{validated\_policy.json}.
+
+For each step, compute the polynomial at the dyadic centre using outward
+interval operations, add the remainder, and choose a dyadic midpoint projected
+onto the unit cube. The maximum distance from that centre to the interval, plus
+the remainder, bounds the local error; this local enclosure is defined once and
+its radius enters the error recurrence once. If $E$ bounds the incoming sup-norm
+error, propagate it as
+\[
+ E_{\mathrm{new}}\ \le\ \frac{E}{1-.09h}+E_{\mathrm{local}},
+\]
+rounded upward, which is valid because $e^{.09h}\le(1-.09h)^{-1}$ for
+$.09h<1$. Projection does not invalidate the calculation: the local distance is
+computed after projection and the exact flow remains in the cube. Starting at
+zero, $1200$ low-erasure steps followed by $800$ high-erasure steps give total
+error
+\[
+ E=\frac{3241002892060825847}{1298074214633706907132624082305024}
+ \ <\ 2.497\cdot10^{-15}.
+\]
+The enclosure accounts separately for coefficient rounding, polynomial
+evaluation, local truncation, error propagation and phase composition. It is an
+exact-arithmetic computation together with the preceding conventional enclosure
+proof \citep{nedialkov1999}, not a formalization of the numerical algorithm in a
+proof assistant. No unproved floating tolerance enters the certificate.
