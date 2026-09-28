@@ -304,3 +304,12 @@ Papers may appear under more than one subject.
 | ID | Paper | Sources |
 |---|---|---|
 | P069 | [Certified one-bit chemical computation: finite-fuel correction, productive readout, and inheritance](Applications/Chemical-Computation/P069-one-bit-chemical-computation.pdf) | [Proofs and notes](Formal/papers/P069-one-bit-chemical-computation/README.md) |
+
+## D-Stability
+
+| ID | Paper | Sources |
+|---|---|---|
+| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
+| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
+| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
+| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [PDF release notes](Theory/D-Stability/README.md) |

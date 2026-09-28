@@ -3,6 +3,7 @@
 [All papers](../README.md) · [Topic index](../TAGS.md)
 
 - [Structural](Structural/README.md) — Food closure, catalytic support, core structure and exact relationships.
+- [D-Stability](D-Stability/README.md) — Positive diagonal scaling, coordinate attachments, localization and complexity (PDF only).
 - [Algorithms](Algorithms/README.md) — Detection, enumeration, certification, intervention and computational complexity.
 - [Kinetics](Kinetics/README.md) — Trajectories, stationary states, stability, oscillation and switching.
 - [Thermodynamics](Thermodynamics/README.md) — Affinities, chemical consistency and common-activity compatibility.
