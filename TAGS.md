@@ -49,6 +49,15 @@ Papers may appear under more than one subject.
 | P081 | [Unconstrained detection of productive autocatalytic cores is NP-complete](Theory/Algorithms/P081-unconstrained-pac-complexity.pdf) | [Proofs and notes](Formal/papers/P081-unconstrained-pac-complexity/README.md) |
 | P082 | [Zero-divisor methods for absolute concentration robustness: completeness, positive geometry, and quantitative certificates](Theory/Algorithms/P082-zero-divisor-acr.pdf) | [Proofs and notes](Formal/papers/P082-zero-divisor-acr/README.md) |
 
+## D-Stability
+
+| ID | Paper | Sources |
+|---|---|---|
+| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [Proofs and notes](Formal/papers/P084-first-order-attachments/README.md) |
+| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [Proofs and notes](Formal/papers/P085-localization-star-interconnections/README.md) |
+| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [Proofs and notes](Formal/papers/P086-deciding-d-stability-conp-hard/README.md) |
+| P087 | [Critical points on Johnson’s contact variety: a machine-checked D-stability criterion, an explicit 5×5 critical-point system, and time-scale robustness margins](Theory/D-Stability/P087-d-stability-contact-critical-points.pdf) | [Proofs and notes](Formal/papers/P087-d-stability-contact-critical-points/README.md) |
+
 ## Algorithms
 
 | ID | Paper | Sources |
@@ -104,7 +113,7 @@ Papers may appear under more than one subject.
 | P050 | [Finite-resource amplification can eliminate diagnostic readout windows: certified small-threshold instances and large-threshold regimes](Applications/Assays/P050-finite-resource-readout.pdf) | [Proofs and notes](Formal/papers/P050-finite-resource-readout/README.md) |
 | P051 | [Reliable productive operation of coupled autocatalytic reactors under mechanistic refinement](Theory/Production/P051-coupling-refinement.pdf) | [Proofs and notes](Formal/papers/P051-coupling-refinement/README.md) |
 | P052 | [Chemical Memory under Load: Productive Inheritance and Hidden Operating States](Theory/Memory/P052-chemical-memory-under-load.pdf) | [Proofs and notes](Formal/papers/P052-chemical-memory-under-load/README.md) |
-| P055 | [Quantitative emergence and finite-time startup of productive polymer reactors: stochastic operating guarantees and certified static availability bounds](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
+| P055 | [Reliable finite-time output from stochastic autocatalytic reactors: retained rewards, uncertain background catalysis, and quantitative startup](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
 | P057 | [Trustworthy decisions in stochastic amplification assays: timing limits, measurement design, and effective capacity](Applications/Assays/P057-amplification-decisions.pdf) | [Proofs and notes](Formal/papers/P057-amplification-decisions/README.md) |
 | P058 | [From enzyme activity to functional recovery: kinetic guarantees, sharp population bounds and measurement requirements](Applications/Assays/P058-enzyme-functional-recovery.pdf) | [Proofs and notes](Formal/papers/P058-enzyme-functional-recovery/README.md) |
 | P059 | [Two consecutive productive windows in random polymer reactors: startup, resource bounds, and selection by successful operation](Theory/Emergence/P059-two-productive-windows.pdf) | [Proofs and notes](Formal/papers/P059-two-productive-windows/README.md) |
@@ -131,7 +140,7 @@ Papers may appear under more than one subject.
 | P022 | [Global production optima and the sharp positive-response capacity of autocatalytic networks](Theory/Production/P022-global-production-optima.pdf) | [Proofs and notes](Formal/papers/P022-global-production-optima/README.md) |
 | P033 | [Exact common-activity compatibility for autocatalytic junction–path assemblies: boundary reduction, a rational decision algorithm, and operating certificates](Theory/Thermodynamics/P033-junction-path-compatibility.pdf) | [Proofs and notes](Formal/papers/P033-junction-path-compatibility/README.md) |
 | P041 | [Thermochemically consistent realization of a stochastic autocatalytic exporter: chemical completion, inherited operating certificates, cycle affinities and a necessary initiation scale](Theory/Thermodynamics/P041-thermochemical-exporter.pdf) | [Proofs and notes](Formal/papers/P041-thermochemical-exporter/README.md) |
-| P055 | [Quantitative emergence and finite-time startup of productive polymer reactors: stochastic operating guarantees and certified static availability bounds](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
+| P055 | [Reliable finite-time output from stochastic autocatalytic reactors: retained rewards, uncertain background catalysis, and quantitative startup](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
 | P064 | [Attracting oscillations in sequential distributive multisite phosphorylation: dynamic enzyme sequestration and what static elimination cannot see](Applications/Phosphorylation/P064-phosphorylation-oscillations.pdf) | [Proofs and notes](Formal/papers/P064-phosphorylation-oscillations/README.md) |
 | P072 | [Cycle structure, capacity, and resource costs of phosphorylation memory](Applications/Phosphorylation/P072-phosphorylation-memory-capacity-costs.pdf) | [Proofs and notes](Formal/papers/P072-phosphorylation-memory-capacity-costs/README.md) |
 | P073 | [Exact common-activity compatibility of autocatalytic cores: finite cycle acceleration, monotone elimination, and fixed-parameter tractability in the longest path](Theory/Algorithms/P073-common-activity-algorithms.pdf) | [Proofs and notes](Formal/papers/P073-common-activity-algorithms/README.md) |
@@ -156,7 +165,7 @@ Papers may appear under more than one subject.
 | P049 | [Shared NADPH regeneration sets sharp limits on joint glutathione and thioredoxin service](Applications/Metabolic-and-Redox-Function/P049-shared-nadph-service.pdf) | [Proofs and notes](Formal/papers/P049-shared-nadph-service/README.md) |
 | P051 | [Reliable productive operation of coupled autocatalytic reactors under mechanistic refinement](Theory/Production/P051-coupling-refinement.pdf) | [Proofs and notes](Formal/papers/P051-coupling-refinement/README.md) |
 | P052 | [Chemical Memory under Load: Productive Inheritance and Hidden Operating States](Theory/Memory/P052-chemical-memory-under-load.pdf) | [Proofs and notes](Formal/papers/P052-chemical-memory-under-load/README.md) |
-| P055 | [Quantitative emergence and finite-time startup of productive polymer reactors: stochastic operating guarantees and certified static availability bounds](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
+| P055 | [Reliable finite-time output from stochastic autocatalytic reactors: retained rewards, uncertain background catalysis, and quantitative startup](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
 | P059 | [Two consecutive productive windows in random polymer reactors: startup, resource bounds, and selection by successful operation](Theory/Emergence/P059-two-productive-windows.pdf) | [Proofs and notes](Formal/papers/P059-two-productive-windows/README.md) |
 | P061 | [Biochemical readouts that preserve native function: reporter storage, finite-time inference and certified recovery in a shared cofactor pool](Applications/Assays/P061-native-function-readouts.pdf) | [Proofs and notes](Formal/papers/P061-native-function-readouts/README.md) |
 | P062 | [Certifying fresh microbial conversion from finite challenge records: a sharp two-pool material bound](Applications/Assays/P062-fresh-microbial-conversion.pdf) | [Proofs and notes](Formal/papers/P062-fresh-microbial-conversion/README.md) |
@@ -246,7 +255,7 @@ Papers may appear under more than one subject.
 | P030 | [Diffuse RAFs and productive operation: asymptotic singleton dominance in a random polymer model](Theory/Emergence/P030-diffuse-raf-operation.pdf) | [Proofs and notes](Formal/papers/P030-diffuse-raf-operation/README.md) |
 | P036 | [Critical-window emergence of autocatalytic sets under reaction-channel quotienting](Theory/Emergence/P036-channel-quotient-emergence.pdf) | [Proofs and notes](Formal/papers/P036-channel-quotient-emergence/README.md) |
 | P046 | [Effective approximation, low-intensity bounds, and finite-size effects for autocatalytic emergence in reversible polymer networks](Theory/Emergence/P046-critical-window-approximation.pdf) | [Proofs and notes](Formal/papers/P046-critical-window-approximation/README.md) |
-| P055 | [Quantitative emergence and finite-time startup of productive polymer reactors: stochastic operating guarantees and certified static availability bounds](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
+| P055 | [Reliable finite-time output from stochastic autocatalytic reactors: retained rewards, uncertain background catalysis, and quantitative startup](Theory/Production/P055-quantitative-polymer-startup.pdf) | [Proofs and notes](Formal/papers/P055-quantitative-polymer-startup/README.md) |
 | P059 | [Two consecutive productive windows in random polymer reactors: startup, resource bounds, and selection by successful operation](Theory/Emergence/P059-two-productive-windows.pdf) | [Proofs and notes](Formal/papers/P059-two-productive-windows/README.md) |
 
 ## Phosphorylation
@@ -304,12 +313,3 @@ Papers may appear under more than one subject.
 | ID | Paper | Sources |
 |---|---|---|
 | P069 | [Certified one-bit chemical computation: finite-fuel correction, productive readout, and inheritance](Applications/Chemical-Computation/P069-one-bit-chemical-computation.pdf) | [Proofs and notes](Formal/papers/P069-one-bit-chemical-computation/README.md) |
-
-## D-Stability
-
-| ID | Paper | Sources |
-|---|---|---|
-| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [Proofs and notes](Formal/papers/P083-granularity-coordinate-interfaces/README.md) |
-| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [Proofs and notes](Formal/papers/P084-first-order-attachments/README.md) |
-| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [Proofs and notes](Formal/papers/P085-localization-star-interconnections/README.md) |
-| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [Proofs and notes](Formal/papers/P086-deciding-d-stability-conp-hard/README.md) |

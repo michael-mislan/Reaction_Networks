@@ -87,6 +87,12 @@ def validate_closure_receipts(root,row,record,graph,toolchain,manifest):
     assert covered|partial==set(row['closure'])
 
 def validate(root, row):
+    for path in row.get('additional_historical_verification', []):
+        supplement=json.loads((root/path).read_text(encoding='utf8'))
+        sources={name.replace('.','/')+'.lean' for group in supplement['receipt_closures']
+                 for name in group['source_hashes']}
+        assert sources <= set(row['closure'])
+        validate(root, {'id':row['id'], 'closure':sorted(sources), 'historical_verification':path})
     path=row.get('historical_verification')
     if not path:return
     record=json.loads((root/path).read_text(encoding='utf8'))

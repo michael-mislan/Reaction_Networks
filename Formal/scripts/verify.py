@@ -121,7 +121,7 @@ def run(command,log,timeout,env,reserve,resident_mb=None):
  return status or ('PASS' if p.returncode==0 else 'FAIL'),p.returncode,round(time.monotonic()-start,3)
 def main():
  parser=argparse.ArgumentParser(description=__doc__)
- parser.add_argument('--paper',action='append',help='Paper ID from migration/papers.json (P001..P086); repeatable')
+ parser.add_argument('--paper',action='append',help='Paper ID from migration/papers.json; repeatable')
  parser.add_argument('--module',action='append',help='Exact module name; repeatable')
  parser.add_argument('--max-modules',type=int,default=40)
  parser.add_argument('--max-seconds',type=int,default=3600)

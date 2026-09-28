@@ -22,6 +22,7 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{caption}
+\usepackage{placeins}
 \captionsetup{font=small}
 \captionsetup[table]{justification=raggedright,singlelinecheck=false}
 \usepackage{xcolor}
@@ -79,15 +80,16 @@ rank-one interfaces $u_cv_c^\T$, grouped into $k$ channels, with nonzero feedbac
 either sign. Assigning each attachment to be fast (quasi-steady), slow (frozen), or a member
 of a single synchronized group of its channel defines a \emph{boundary system}: a star of
 dimension $n+k$ with at most one dynamic lump per channel. We prove that every eigenvalue in
-the closed right half-plane of every positive scaling of the star is the same eigenvalue of a
-positive scaling of one of its boundary systems. No hypothesis on the core is needed.
+the closed right half-plane of every positive scaling of the star is also an eigenvalue of
+some positive scaling of one of its boundary systems, in general with different time
+constants of the core. No hypothesis on the core is needed.
 Conversely, strict instability of a boundary system lifts to the star. Hence the star is
 D-semistable exactly when all its boundary systems are, and it is D-stable if all its
 boundary systems are; an explicit example shows that the last implication cannot be
-reversed. Both features of the boundary systems are necessary. For every $k\ge2$ a cyclic
+reversed. Neither feature of the boundary systems can be dropped: for every $k\ge2$ a cyclic
 star built on the secant condition is not D-stable, while every boundary system with fewer
-than $k$ synchronized groups is; and already for one channel, two pieces may have to be
-lumped into one synchronized group. The proof combines a compact parametrization of each
+than $k$ synchronized groups is; and already for one channel, any number of pieces may have
+to be lumped into one synchronized group. The proof combines a compact parametrization of each
 attachment's frequency response at a fixed eigenvalue, an exact identity showing that two
 attachments of one channel have independent tangents unless their time constants agree, and
 an exit argument phrased as a maximum over a compact cube. The theorems, propositions and
@@ -97,7 +99,7 @@ lemmas are formally verified in Lean~4 with Mathlib.
 \noindent\textbf{Keywords:} D-stability; diagonal scaling; time scales;
 quasi-steady-state approximation; lumping; model reduction; secant condition; formal
 verification.\\[2pt]
-\textbf{MSC 2020:} 15A18, 93D09 (primary); 34D20, 93C15 (secondary).
+\textbf{MSC 2020:} 15A18, 93D09 (primary); 34D20, 93C15, 93C70 (secondary).
 
 \tableofcontents
 
@@ -148,19 +150,20 @@ interfaces and nonzero loads of either sign.
 \begin{enumerate}[label=(\Alph*)]
   \item \emph{Spectral localization} (Theorem~\ref{thm:localization}). If some positive
     scaling of the star has an eigenvalue $z$ with $\Real z\ge0$, then some positive
-    scaling of some boundary system has the same eigenvalue $z$. No stability hypothesis
-    on the core is used.
+    scaling of some boundary system has the same eigenvalue $z$, although in general not
+    with the same core time constants. No stability hypothesis on the core is used.
   \item \emph{Lifting} (Theorem~\ref{thm:lifting}). If some scaling of a boundary system
-    has an eigenvalue with positive real part, so does some scaling of the star.
+    has an eigenvalue with positive real part, so does some scaling of the star (in
+    general at a different eigenvalue).
   \item \emph{Criterion} (Corollary~\ref{cor:criterion}). The star is D-semistable if and
     only if all its boundary systems are. It is D-stable if all its boundary systems are,
     and Proposition~\ref{prop:gap} shows that this implication is not an equivalence.
   \item \emph{Sharpness} (Theorem~\ref{thm:sharpness} and Proposition~\ref{prop:lumping}).
     For every $k\ge2$ there is a $k$-channel star that is not D-stable although every
-    boundary system with fewer than $k$ synchronized groups is D-stable. For $k=1$ there is
-    a star with two pieces that is not D-stable although every boundary system in which at
-    most one piece is dynamic is D-stable. So neither the number of groups nor their size
-    can be reduced in general.
+    boundary system with fewer than $k$ synchronized groups is D-stable. For $k=1$ and every
+    $m\ge2$ there is a star with $m$ pieces that is not D-stable although every boundary
+    system in which fewer than $m$ pieces are synchronized is D-stable. So neither the number
+    of groups nor their size can be bounded in general.
 \end{enumerate}
 In modelling terms: for star interconnections, screening stability under all time scales
 by reduced models is exact for D-semistability, provided one checks every combination of
@@ -177,7 +180,7 @@ $z$, the value $r_p/(1+zt_p)$ of one piece runs over an arc as its time constant
 over $(0,\infty)$. We parametrize this arc by $s\in[0,1]$, with $s=0$ the quasi-steady end
 and $s=1$ the frozen end, so that the configuration space becomes the compact cube
 $[0,1]^P$. An exact identity (Lemma~\ref{lem:sync}) shows that two pieces of one channel move
-the channel value in independent directions unless their parameters agree. We then dilate
+the channel value in independent directions unless their interior parameters agree. We then dilate
 the core time constants, which pushes the contact out to a maximal dilation over the compact
 set of contacts; at the maximum, openness forbids two unequal interior parameters in the
 channel, so the channel is of boundary type (Lemma~\ref{lem:exit}). Treating the channels
@@ -192,20 +195,23 @@ matrix by the nonsingularity of $A\pm iD$, and Kushel~\cite{kushel2026} expands
 $\det(A+iD)$ recursively, eliminating one scaling variable at a time; this is exact at the
 first step and a hierarchy of sufficient tests beyond. Our elimination removes whole
 attachment modules instead, and the reduced dimension $n+k$ does not grow with the number
-of pieces. Hartfiel~\cite{hartfiel1980} and Cain~\cite{cain1984} characterized the
-interior of the set of D-stable matrices (robust D-stability) by D-stability of matrices
-built from principal submatrices of $A$ and of their inverses; see the
-survey~\cite{kushel2019}. In time-scale language these are limits in which coordinates of
-$A$ become frozen or quasi-static. Boundary systems take such limits only on the
+of pieces. Hartfiel~\cite{hartfiel1980} showed that the set of D-stable matrices is not open
+and gave a necessary condition for a matrix to lie in its interior (robust D-stability), in
+terms of principal submatrices of $A$ and their inverses; Cain~\cite{cain1984} showed that,
+for a D-stable $A$, conditions of this kind characterize robust D-stability; see the
+survey~\cite{kushel2019}. In time-scale language, principal submatrices and their inverses
+arise in limits in which coordinates of $A$ become frozen or quasi-static. Boundary systems take such limits only on the
 attachments, and they keep dynamic lumped pools, which Theorem~\ref{thm:sharpness} and
 Proposition~\ref{prop:lumping} show to be indispensable. The link between D-stability and
 many small time constants goes back to Khalil and Kokotovi\'c~\cite{khalil1979},
-Abed~\cite{abed1986tac,abed1986}, and Abed and Tits~\cite{abedtits1986}: there
-D-stability of a fast block is a sufficient condition for stability under asymptotically
-small parasitic time constants, whereas here all time scales in $(0,\infty)$ are free and
-the localization is exact. Berman and Hershkowitz~\cite{berman1984} characterized acyclic
-D-stable matrices, and Simpson-Porco and Monshizadeh~\cite{simpsonporco2022} characterized
-diagonal stability of systems with rank-one interconnections. For a single negative
+Abed~\cite{abed1986tac,abed1986}, and Abed and Tits~\cite{abedtits1986}, who gave
+conditions of D-stability type on the fast subsystem (block D-stability, and strong
+D-stability, the robust form of D-stability) that ensure stability of multiparameter
+singularly perturbed systems when the parasitic time constants are small; here, in contrast,
+all time scales in $(0,\infty)$ are free and the localization is exact. Berman and
+Hershkowitz~\cite{berman1984} characterized acyclic D-stable matrices, and Simpson-Porco and
+Monshizadeh~\cite{simpsonporco2022} gave a necessary and sufficient condition for diagonal
+stability of a class of matrices with a rank-one interconnection structure. For a single negative
 feedback cycle, the secant condition~\cite{tyson1978,thron1991,sontag2006,arcak2006} gives
 stability for all time constants below the threshold $\sec^N(\pi/N)$ and instability at
 equal time constants above it; Blanchini, Cuba Samaniego, Franco and
@@ -219,15 +225,26 @@ while the core time constants remain free. Inheritance results for reaction
 networks~\cite{banaji2018,vassena2024} transfer instability upward, as in
 Theorem~\ref{thm:lifting}; to our knowledge the downward direction,
 Theorem~\ref{thm:localization}, has no counterpart there. For one coordinate channel with
-positive loads and a D-stable core, a companion paper~\cite{companionI2026} gives an exact
-test by the boundary systems with at most one dynamic piece, in which the purely static
-system enters only through the sign of its determinant; the present results hold for any
-core, any interfaces, any signs and any number of channels.
+positive loads, a D-stable core and $n\ge2$, a companion paper~\cite{companionI2026} gives an
+exact test for D-stability by the boundary systems with at most one dynamic piece, in which
+the purely static system enters only through the sign of its determinant. The present
+results hold for any core, any interfaces, any signs and any number of channels; in this
+generality the criterion is exact for D-semistability, while for D-stability it is only
+sufficient (Proposition~\ref{prop:gap}), and single dynamic pieces no longer suffice
+(Proposition~\ref{prop:lumping}). To summarize the relation to the
+literature: the secant inequality and Hurwitz's theorem, which we use for sharpness and
+lifting, are classical, and so is the observation that a quasi-steady reduction can lose an
+oscillation. What is new here, to our knowledge, is the downward direction
+(Theorem~\ref{thm:localization}), with no hypothesis on the core, together with the proof that
+neither the number nor the size of the synchronized groups it needs can be reduced.
 
 \paragraph{Formal verification.} Every theorem, proposition, corollary and lemma of this
 paper is formally verified in Lean~4~\cite{demoura2021} with Mathlib~\cite{mathlib2020}, as
 stated; Section~\ref{sec:lean} lists the declarations. The proofs below follow the formal
-ones.
+ones. What the formalization certifies is the Lean statements; Section~\ref{sec:lean}
+explains how they match the definitions and statements printed here, and which parts of the
+text (remarks, the modelling reading, the observations in the Discussion and the complexity
+statements quoted from~\cite{companionHard2026}) are not formalized.
 
 \paragraph{Organization.} Section~\ref{sec:setting} fixes notation and states the results.
 Section~\ref{sec:elimination} eliminates the pieces. Section~\ref{sec:channel} studies one
@@ -348,7 +365,8 @@ Let $A$ be a star with all loads nonzero.
 \end{corollary}
 
 \begin{proposition}[The criterion is not an equivalence]\label{prop:gap}
-Let $n=2$, one channel with $u=v=\be_1$, and one piece of load $1$, so that
+Take the core $B$ below, one channel with $u=v=\be_1$, and one piece of load $1$, so that
+the star is $A$:
 \[
   B=\begin{pmatrix}-1&-1\\1&0\end{pmatrix},\qquad
   A=\begin{pmatrix}-1&-1&1\\1&0&0\\1&0&-1\end{pmatrix}.
@@ -382,23 +400,25 @@ form an open interval. In terms of the loop gain, \eqref{eq:window} reads
 $\sec^{2k}(\pi/2k)<g<\sec^{2k-1}(\pi/(2k-1))$; for $k=2$ this is $4<g<8$
 (Example~\ref{ex:cyc2}, Figure~\ref{fig:secant}). In $\Cyc_k$ every channel carries one
 piece, so Theorem~\ref{thm:sharpness} concerns the number of dynamic channels. The second
-example shows that lumping several pieces is also necessary.
+example shows that lumping several pieces is also necessary, and that no bound on the size
+of a synchronized group is possible.
 
-\begin{proposition}[Synchronization is needed]\label{prop:lumping}
-Let $n=2$, one channel with $v=\be_2$ and $u=-\be_1$, and two pieces of load $125/16$
-each, on the core
+\begin{proposition}[Synchronized groups of every size are needed]\label{prop:lumping}
+Let $m\ge2$ and $c>2$ with $(m-1)c^3<8m$; for instance $c=2+1/(2m)$. Take the core
 \[
-  B=\begin{pmatrix}-1&0\\1&-1\end{pmatrix}.
+  B=\begin{pmatrix}-1&0\\1&-1\end{pmatrix},
 \]
-At unit time constants the star has the
-eigenvalue $-1+\tfrac52e^{i\pi/3}=\tfrac14+\tfrac{5\sqrt3}{4}i$; in particular it is
-D-unstable. Every boundary system in which at most one piece is synchronized is D-stable.
+one channel with $v=\be_2$ and $u=-\be_1$, and $m$ pieces of load $c^3/m$ each. At unit time
+constants the star has the eigenvalue $-1+c\,e^{i\pi/3}$, whose real part $c/2-1$ is
+positive; in particular it is D-unstable. Every boundary system in which fewer than $m$
+pieces are synchronized is D-stable. For $m=2$ one may take $c=5/2$: two loads $125/16$ and
+the eigenvalue $\tfrac14+\tfrac{5\sqrt3}{4}i$.
 \end{proposition}
 
 The star of Proposition~\ref{prop:lumping} is a negative feedback loop
-$x_1\to x_2\to\{w_1,w_2\}\dashv x_1$ of total gain $125/8$. Each pool alone carries half the
-gain, below the three-stage threshold $\sec^3(\pi/3)=8$, and a quasi-steady pool only adds
-static feedback; only the two pools lumped together destabilize.
+$x_1\to x_2\to\{w_1,\dots,w_m\}\dashv x_1$ of total gain $c^3>8$. Any $m-1$ pools together
+carry at most $(m-1)c^3/m<8$, below the three-stage threshold $\sec^3(\pi/3)=8$, and
+quasi-steady pools only add static feedback; only all $m$ pools lumped together destabilize.
 
 \begin{remark}[Scope of the statements]\label{rem:scope}
 We record three features of the statements.
@@ -406,7 +426,8 @@ We record three features of the statements.
   \item Theorem~\ref{thm:localization} holds for $z=0$ with $\sigma\equiv\rF$, and for
     real $z>0$ with a boundary choice that has no fast pieces
     (Lemmas~\ref{lem:zero} and~\ref{lem:real}); in both cases the same core time constants
-    can be kept.
+    can be kept. For non-real $z$ the proof of Proposition~\ref{prop:induction} multiplies all
+    core time constants by a common factor $\kappa\ge1$.
   \item Corollary~\ref{cor:criterion}(a) asks for D-stability of every boundary system,
     including the purely static ones, $\Bd_{\sigma\equiv\rF}$ and $\Bd_{\sigma\equiv\rS}$
     (whose core is $B$). Proposition~\ref{prop:gap} shows that a boundary system can be
@@ -456,18 +477,23 @@ In particular, for fixed $z$ and $q$, $\det M_q(\ell)$ is affine in each channel
 $\ell_c$ separately. No invertibility of $zQ-B$ is needed.
 
 \begin{lemma}[Diagonal dominance]\label{lem:dilation}
-Let $q\in(0,\infty)^n$, $K\ge0$ and
-$h_i=\sum_j\bigl(|B_{ij}|+K\sum_c|u_{c,i}||v_{c,j}|\bigr)$. If $z\in\C$ satisfies
-$|z|q_i>h_i$ for every $i$, then $M_q(\ell)$ is nonsingular whenever $|\ell_c|\le K$ for all
-$c$. In particular, for $z\ne0$ and $\kappa\ge\kappa_0=1+\sum_ih_i/(|z|q_i)$, the matrix
-$M_{\kappa q}(\ell)$ is nonsingular whenever $|\ell_c|\le K$ for all $c$.
+Let $q\in(0,\infty)^n$ and $K\ge0$, and consider channel values $\ell\in\C^C$ with
+$|\ell_c|\le K$ for all $c$.
+\begin{enumerate}[label=(\alph*)]
+  \item If $z\ne0$, there is $\kappa_0\ge1$ such that $M_{\kappa q}(\ell)$ is nonsingular for
+    all $\kappa\ge\kappa_0$ and all such $\ell$.
+  \item There is $R_0>0$ such that $M_q(\ell)$ is nonsingular for all $z$ with $|z|\ge R_0$
+    and all such $\ell$.
+\end{enumerate}
 \end{lemma}
 
 \begin{proof}
-Put $E=B+\sum_c\ell_cu_cv_c^\T$, so that $\sum_j|E_{ij}|\le h_i$ and $M_q(\ell)=zQ-E$.
-If $|z|q_i>h_i$ for every $i$, the matrix $zQ-E$ is strictly diagonally dominant by rows,
-hence nonsingular by the Lévy--Desplanques theorem~\cite{taussky1949}. For the dilation,
-$|z|\kappa q_i\ge|z|\kappa_0q_i>h_i$.
+Put $h_i=\sum_j\bigl(|B_{ij}|+K\sum_c|u_{c,i}||v_{c,j}|\bigr)$ and
+$E=B+\sum_c\ell_cu_cv_c^\T$, so that $\sum_j|E_{ij}|\le h_i$ and $M_q(\ell)=zQ-E$. If
+$|z|q_i>h_i$ for every $i$, the matrix $zQ-E$ is strictly diagonally dominant by rows, hence
+nonsingular by the Lévy--Desplanques theorem~\cite{taussky1949}. For (a) take
+$\kappa_0=1+\sum_ih_i/(|z|q_i)$, so that $|z|\kappa q_i\ge|z|\kappa_0q_i>h_i$ for
+$\kappa\ge\kappa_0$; for (b) take $R_0=1+\sum_ih_i/q_i$.
 \end{proof}
 
 % =========================================================================
@@ -491,7 +517,7 @@ The function $\val_z$ has the following properties.
   \item For $t>0$, $1/(1+zt)=\val_z\bigl(t/(1+t)\bigr)$; for $s\in(0,1)$,
     $\val_z(s)=1/(1+z\,\tfrac{s}{1-s})$.
   \item $|\val_z(s)|\le1$ for $s\in[0,1]$.
-  \item $\val_z$ is smooth, with $\val_z'(s)=-z/\alpha(s)^2$.
+  \item $\val_z$ is differentiable on $\R$, with $\val_z'(s)=-z/\alpha(s)^2$.
 \end{enumerate}
 \end{lemma}
 
@@ -531,8 +557,8 @@ $\Imag(\overline{w_1}w_2)\ne0$.
 \end{proof}
 
 \begin{lemma}[Openness]\label{lem:open}
-Let $r_p,r_{p'}\ne0$, let $s_p\ne s_{p'}$ lie in $(0,1)$ and let $c_0\in\C$. For the map
-$F(x,y)=c_0+r_p\val_z(x)+r_{p'}\val_z(y)$ from $\R^2$ to $\C$, the image of every
+Let $r_p,r_{p'}\ne0$, let $s_p\ne s_{p'}$ lie in $(0,1)$ and let $\gamma\in\C$. For the map
+$F(x,y)=\gamma+r_p\val_z(x)+r_{p'}\val_z(y)$ from $\R^2$ to $\C$, the image of every
 neighbourhood of $(s_p,s_{p'})$ is a neighbourhood of $F(s_p,s_{p'})$.
 \end{lemma}
 
@@ -574,16 +600,16 @@ that $(\kappa q,s')$ is a generalized contact.
 \end{lemma}
 
 \begin{proof}
-Let $\ell^0$ be $\Phi(s)$ with its $c$-th entry replaced by $0$. For configurations
+Let $\hat\ell$ be $\Phi(s)$ with its $c$-th entry replaced by $0$. For configurations
 $\tilde s$ that agree with $s$ outside channel $c$, Lemma~\ref{lem:affine} gives
 \[
   \det M_{\kappa q}\bigl(\Phi(\tilde s)\bigr)=a(\kappa)+\Phi_c(\tilde s)\,b(\kappa),\qquad
-  a(\kappa)=\det M_{\kappa q}(\ell^0),\quad
-  b(\kappa)=\beta\bigl(M_{\kappa q}(\ell^0),u_c,v_c\bigr),
+  a(\kappa)=\det M_{\kappa q}(\hat\ell),\quad
+  b(\kappa)=\beta\bigl(M_{\kappa q}(\hat\ell),u_c,v_c\bigr),
 \]
 and $a,b$ are polynomials in $\kappa$. Let $K=\sum_p|r_p|$; by Lemma~\ref{lem:arc}(c)
 every channel value of every configuration has modulus at most $K$, so
-Lemma~\ref{lem:dilation} provides $\kappa_0$ such that no generalized contact of this form
+Lemma~\ref{lem:dilation}(a) provides $\kappa_0\ge1$ such that no generalized contact of this form
 exists at dilations $\kappa\ge\kappa_0$. The function $\val_z$ is continuous, so the set
 \[
   \mathcal S=\bigl\{(\kappa,\tilde s)\in[1,\kappa_0]\times[0,1]^P:\ \tilde s=s\text{ outside }c,\
@@ -597,12 +623,12 @@ and to $1$ on channel $c$ has $\Phi_c(s')=0$ by Lemma~\ref{lem:arc}(a), so
 $(\kappa_*q,s')$ is a generalized contact, and $s'$ is of boundary type in $c$.
 
 If $b(\kappa_*)\ne0$, then $b\ne0$ on a neighbourhood of $\kappa_*$, where
-$h(\kappa)=-a(\kappa)/b(\kappa)$ is continuous with $h(\kappa_*)=\Phi_c(s_*)$. Suppose that
+$\psi(\kappa)=-a(\kappa)/b(\kappa)$ is continuous with $\psi(\kappa_*)=\Phi_c(s_*)$. Suppose that
 $s_*$ is not of boundary type in $c$: some pieces $p\ne p'$ of channel $c$ have parameters
 $s_{*p}\ne s_{*p'}$ in $(0,1)$. By Lemma~\ref{lem:open}, the values $\Phi_c(\tilde s)$, where
 $\tilde s$ arises from $s_*$ by moving $s_{*p}$ and $s_{*p'}$ inside $(0,1)$, fill a
 neighbourhood of $\Phi_c(s_*)$. Hence for some $\kappa_1>\kappa_*$ close to $\kappa_*$ there
-is such an $\tilde s$ with $\Phi_c(\tilde s)=h(\kappa_1)$, that is,
+is such an $\tilde s$ with $\Phi_c(\tilde s)=\psi(\kappa_1)$, that is,
 $a(\kappa_1)+\Phi_c(\tilde s)b(\kappa_1)=0$. By the choice of $\kappa_0$ we have
 $\kappa_1<\kappa_0$, and $\kappa_1>\kappa_*\ge1$, so $(\kappa_1,\tilde s)\in\mathcal S$,
 contradicting the maximality of $\kappa_*$. Therefore $s'=s_*$ is of boundary type in $c$,
@@ -704,7 +730,7 @@ $\varepsilon=0$ it is the reduced determinant of $\Bd_\sigma$ at $(q,\tau)$, so
 $\Delta_0(z_0)=0$ by Lemma~\ref{lem:elimination}. All denominators have positive real part,
 so $(\varepsilon,z)\mapsto\Delta_\varepsilon(z)$ is continuous on
 $[0,1]\times\{\Real z>0\}$ and holomorphic in $z$. Each $|\ell^0_c(z)|\le\sum_p|r_p|$, so by
-Lemma~\ref{lem:dilation} $\Delta_0(z)\ne0$ for all large real $z$. Hence the zeros of
+Lemma~\ref{lem:dilation}(b) $\Delta_0(z)\ne0$ for all large real $z$. Hence the zeros of
 $\Delta_0$ in the right half-plane are isolated, and there is $\varrho\in(0,\Real z_0/2)$ such
 that $\Delta_0$ has no zero on the circle $|z-z_0|=\varrho$. Let $\delta>0$ be the minimum
 of $|\Delta_0|$ on this circle. By uniform continuity on the compact set
@@ -803,7 +829,7 @@ $-x_0=-1=\zeta^k=\zeta x_{k-1}$. So $\mu-1$ is an eigenvalue, and
 $\Real(\mu-1)=\sqrt\rho\cos(\pi/2k)-1>0$ by~\eqref{eq:window}.
 
 \emph{Boundary systems with fewer than $k$ groups.} Let $\sigma$ be such a choice, so some
-channel $c_0$ has $\sigma(c_0)\ne\rD$. Suppose that $z$, with $\Real z\ge0$, is an eigenvalue
+channel $c_*$ has $\sigma(c_*)\ne\rD$. Suppose that $z$, with $\Real z\ge0$, is an eigenvalue
 of $\Bd_\sigma\diag(q,\tau)^{-1}$. By Lemma~\ref{lem:elimination} there is $x\ne0$ with
 $(1+zq_c)x_c=\varsigma_cL_cx_{c+1}$ for all $c$, where $L_c=\rho$ if $\sigma(c)=\rF$,
 $L_c=0$ if $\sigma(c)=\rS$, and $L_c=\rho/(1+z\tau_c)$ if $\sigma(c)=\rD$. Since
@@ -838,14 +864,15 @@ $0=-8a_3^2x^3-8a_2a_3x^2-2a_1a_3x-2a_2^2x+(a_0a_3-a_1a_2)<0$.
 \end{proof}
 
 \begin{proof}[Proof of Proposition~\ref{prop:lumping}]
-\emph{Instability.} At unit time constants let $\mu=\tfrac54+\tfrac{5\sqrt3}{4}i
-=\tfrac52e^{i\pi/3}$, so that $\mu^3=-125/8$. The vector with $x=(\mu^2,\mu)$ and
-$w_1=w_2=1$ is an eigenvector for $\mu-1$: the rows read
-$-\mu^2-\tfrac{125}{16}(w_1+w_2)=(\mu-1)\mu^2$, $\mu^2-\mu=(\mu-1)\mu$ and
-$\mu-1=(\mu-1)w_p$. The real part of $\mu-1$ is $\tfrac14$.
+\emph{Instability.} At unit time constants let $\mu=c\,e^{i\pi/3}=\tfrac c2+\tfrac{c\sqrt3}{2}i$,
+so that $\mu^3=-c^3$. The vector with $x=(\mu^2,\mu)$ and $w_p=1$ for every $p$ is an
+eigenvector for $\mu-1$: the rows read
+$-\mu^2-\tfrac{c^3}{m}\sum_pw_p=-\mu^2+\mu^3=(\mu-1)\mu^2$, $\mu^2-\mu=(\mu-1)\mu$ and
+$\mu-1=(\mu-1)w_p$. The real part of $\mu-1$ is $c/2-1>0$.
 
-\emph{Boundary systems.} Let $\sigma$ synchronize at most one piece, and let $X$ and $R$ be its
-fast and synchronized load sums, so that $X\ge0$ and $0\le R\le125/16<8$. At time constants
+\emph{Boundary systems.} Let $\sigma$ synchronize fewer than $m$ pieces, and let $X$ and $R$
+be its fast and synchronized load sums, so that $X\ge0$ and $0\le R\le(m-1)c^3/m<8$. At time
+constants
 $(q,\tau)$ the reduced pencil of $\Bd_\sigma$ is
 $\bigl(\begin{smallmatrix}1+zq_1&X+R/(1+z\tau)\\-1&1+zq_2\end{smallmatrix}\bigr)$. If it is
 singular for some $z$ with $\Real z\ge0$, multiplying its determinant by $1+z\tau\ne0$ gives
@@ -917,27 +944,41 @@ time constants, the eliminated pieces are fast enough and the frozen pieces slow
 Theorem~\ref{thm:sharpness} and Proposition~\ref{prop:lumping} show that the lumped pools
 cannot be dropped: in $\Cyc_k$ every reduced model with a quasi-steady or frozen channel is
 D-stable, and the instability appears only with all $k$ channels dynamic; and in the example
-of Proposition~\ref{prop:lumping} it appears only when two pieces are lumped.
+of Proposition~\ref{prop:lumping} it appears only when all $m$ pieces are lumped.
 
 \paragraph{The marginal case.} Corollary~\ref{cor:criterion} decides D-semistability exactly,
 but D-stability only in one direction. When all boundary systems are D-semistable and some
 are marginal, the star is D-semistable, and it is D-stable exactly when no positive scaling
 of it has an eigenvalue on the imaginary axis. Theorem~\ref{thm:localization} transfers such
 eigenvalues to boundary systems but not back, and Proposition~\ref{prop:gap} shows that the
-transfer back can fail. For one coordinate channel with positive loads, a D-stable core and
+transfer back can fail. For two boundary systems it always works. If
+$\det B_{\sigma\equiv\rF}=0$, then $M_q(\ell(0))=-B_{\sigma\equiv\rF}$ is singular for all
+$q$, so by Lemma~\ref{lem:elimination} every positive scaling of $A$ has the eigenvalue~$0$.
+And if $z$, with $\Real z\ge0$, is an eigenvalue of $\Bd_{\sigma\equiv\rD}\diag(q,\tau)^{-1}$,
+then giving every piece of channel $c$ the time constant $\tau_c$ makes the reduced pencil of
+$A$ equal to that of $\Bd_{\sigma\equiv\rD}$, so $z$ is an eigenvalue of that scaling of $A$ by
+Lemma~\ref{lem:elimination}. Hence a D-stable star has $\det B_{\sigma\equiv\rF}\ne0$ and a
+D-stable fully synchronized boundary system, and the gap concerns the other boundary systems.
+For one coordinate channel with positive loads, a D-stable core and
 $n\ge2$, the companion paper~\cite[Lemma~6.1]{companionI2026} closes this gap: the star is
 D-stable if and only if $\det(-B_{\sigma\equiv\rF})>0$ and every boundary system with at most
 one dynamic piece, other than the purely static $\Bd_{\sigma\equiv\rF}$, is D-stable.
 Proposition~\ref{prop:gap} is an instance, in which the purely static system is the only
 marginal one.
 
-\paragraph{Size of the reduction.} The number of boundary choices is $3^m$; by
+\paragraph{Size of the reduction.} The number of boundary choices is $3^m$, but by
 Remark~\ref{rem:scope}(iii) only the per-channel pairs of fast and synchronized load sums
-matter, which reduces the count substantially when loads repeat. For binary-encoded loads,
-deciding D-stability of stars is coNP-hard, and deciding D-instability NP-hard, already for
-one coordinate channel and a $4\times4$ core with instance-dependent entries of polynomial
-bit length~\cite{companionHard2026}. So, unless $\mathrm{P}=\mathrm{NP}$, no procedure
-examines boundary systems in time polynomial in the binary input.
+matter. If the loads are $r_p=\delta n_p$ with $\delta\in\R$ and integers $n_p\ge0$, these
+pairs take at most $(N_c+1)^2$ values in channel $c$, where $N_c=\sum_{\ch(p)=c}n_p$, so the
+star has at most $\prod_c(N_c+1)^2$ distinct boundary systems (Section~\ref{sec:lean}). For a
+fixed number of channels this is polynomial in the loads written in unary; for instance,
+twenty equal loads in one channel give $3^{20}\approx3.5\cdot10^{9}$ boundary choices but at
+most $441$ distinct boundary systems. For binary-encoded loads, deciding D-stability of stars
+is coNP-hard, and deciding D-instability NP-hard, already for one coordinate channel and a
+$4\times4$ core with instance-dependent entries of polynomial bit
+length~\cite{companionHard2026}. So, unless $\mathrm{P}=\mathrm{NP}$, D-stability of stars
+cannot be decided in time polynomial in the binary input, even though every boundary system
+of those instances has order five.
 
 \paragraph{Open problems.}
 \begin{enumerate}[label=(\arabic*)]
@@ -945,7 +986,9 @@ examines boundary systems in time polynomial in the binary input.
     another. For coordinate channels, $u_c=v_c=\be_{i_c}$, with positive loads, it is open
     whether two channels can require two synchronized groups.
   \item \emph{The marginal case} for general interfaces: which additional reduced
-    information decides D-stability when some boundary systems are marginal?
+    information decides D-stability when all boundary systems are D-semistable,
+    $\det B_{\sigma\equiv\rF}\ne0$ and $\Bd_{\sigma\equiv\rD}$ is D-stable, but some other
+    boundary system is marginal?
   \item \emph{Higher-order attachments.} For attachments of higher order the value of a
     module at a fixed eigenvalue ranges over a two-dimensional region rather than an arc,
     and the boundary structure of Minkowski sums of such regions replaces
@@ -958,37 +1001,57 @@ examines boundary systems in time polynomial in the binary input.
 \section{Formal verification}\label{sec:lean}
 
 The results are formally verified in Lean~4 (v4.30.0) with Mathlib at revision
-\lean{c5ea00351c28} (the full hash is in the ancillary Lake manifest). The development consists of the modules
-\lean{proofs/DStabilityLocalization/*.lean} and the definition file
-\lean{proofs/DUnstableCores/DScaling.lean}, which defines positive scalings
+\lean{c5ea00351c28} (the full hash is in the ancillary Lake manifest). The development consists
+of the definition file \lean{proofs/DUnstableCores/DScaling.lean} and sixteen modules in
+\lean{proofs/DStabilityLocalization/}: thirteen for the main development, \lean{GroupSize}
+(Proposition~\ref{prop:lumping} for every $m$), \lean{Counting} (Remark~\ref{rem:scope}(iii)
+and the counting bound of Section~\ref{sec:discussion}), and the root file \lean{Paper.lean},
+which imports all of them. The definition file defines positive scalings
 (\lean{rightScale}), eigenpairs (\lean{HasEigenpair}) and the predicates \lean{DStable},
 \lean{DNonUnstable} (D-semistable) and \lean{DUnstable} exactly as in
 Section~\ref{sec:setting}; an eigenpair is a nonzero complex vector $y$ with $(AD)y=zy$.
 
-The root declaration \lean{DStabilityLocalization.localization_and_sharpness} states, for all
-finite index types in the universe \lean{Type}: Theorem~\ref{thm:lifting} for arbitrary
-loads; Theorem~\ref{thm:localization} and Corollary~\ref{cor:criterion} for nonzero loads;
-Theorem~\ref{thm:sharpness} as printed, for every $k=m+2$ (explicit eigenvalue, instability,
-D-stability of the boundary systems with fewer than $k$ groups for every $\rho$
-satisfying~\eqref{eq:window}, and existence of such $\rho$); Propositions~\ref{prop:gap}
-and~\ref{prop:lumping} as printed; and the verdicts of Example~\ref{ex:cyc2}. The lemmas are
-declarations on which the root depends, with the statements printed here; in particular
+The strict compilation receipt of \lean{Paper.lean} (warnings treated as errors) exports the
+following declarations.
+\begin{itemize}
+  \item \lean{localization_and_sharpness} states, for all finite index types in the universe
+    \lean{Type}: Theorem~\ref{thm:lifting} for arbitrary loads;
+    Theorem~\ref{thm:localization} and Corollary~\ref{cor:criterion} for nonzero loads;
+    Theorem~\ref{thm:sharpness} as printed, for every $k=j+2$ with $j\in\mathbb{N}$ (explicit
+    eigenvalue, instability, D-stability of the boundary systems with fewer than $k$ groups
+    for every $\rho$ satisfying~\eqref{eq:window}, and existence of such $\rho$);
+    Proposition~\ref{prop:gap} as printed; Proposition~\ref{prop:lumping} for $m=2$ and
+    $c=5/2$; and the verdicts of Example~\ref{ex:cyc2}.
+  \item \lean{group_size_sharpness} states Proposition~\ref{prop:lumping} as printed, for every
+    $m=j+2$ with $j\in\mathbb{N}$: nonzero loads, the explicit eigenvalue and its real part
+    $c/2-1>0$, D-instability, D-stability of every boundary system in which fewer than $m$
+    pieces are synchronized, and the existence of an admissible $c$.
+  \item \lean{bdSystem_eq_of_loads} and \lean{card_bdSystems_le} state
+    Remark~\ref{rem:scope}(iii) and the bound $\prod_c(N_c+1)^2$ of
+    Section~\ref{sec:discussion}.
+\end{itemize}
+All of them depend only on the axioms \lean{propext}, \lean{Classical.choice} and
+\lean{Quot.sound}; no \lean{sorry}, custom axiom or native computation is used. The lemmas are
+declarations on which these depend, with the statements printed here; in particular
 Lemma~\ref{lem:boundary} exhibits the scaling $\diag(q,\tau)^{-1}$, and
 Lemmas~\ref{lem:zero} and~\ref{lem:real} keep the core time constants, as in
-Remark~\ref{rem:scope}(i). The root depends only on the axioms \lean{propext},
-\lean{Classical.choice} and \lean{Quot.sound}; no \lean{sorry}, custom axiom or native
-computation is used. Table~\ref{tab:lean} lists the declarations. Remarks and the modelling
-reading are not formalized, except Remark~\ref{rem:scope}(iii), which is
-\lean{bdSystem_eq_of_loads} in a separate module outside the root. The characteristic
+Remark~\ref{rem:scope}(i). Table~\ref{tab:lean} lists the declarations.
+
+The other remarks, the modelling reading of Table~\ref{tab:dictionary} and the observations of
+Section~\ref{sec:discussion} are not formalized; the complexity statements of
+Section~\ref{sec:discussion} are quoted from~\cite{companionHard2026}. The characteristic
 polynomial, roots and Routh array of Example~\ref{ex:cyc2}, the Hurwitz data behind
-Table~\ref{tab:cyc2}, the values plotted in the figures, and the source hashes of the
-compilation receipt are replayed exactly by the script \lean{check_paper.py}. The Lean
-sources, the strict compilation receipt (warnings treated as errors), the replay script and
-the two companion manuscripts form the ancillary material.
+Table~\ref{tab:cyc2} and Proposition~\ref{prop:lumping}, the values plotted in the figures,
+brute-force checks of the counting bound and of the two observations on the marginal case in
+small examples, and the source hashes of the compilation receipt are replayed exactly by the
+script \lean{check_paper.py}. The ancillary material consists of the Lean sources with a Lake
+configuration pinned to the Mathlib revision above, a path-free summary of the receipt, the
+replay script and the two companion manuscripts.
 
 \begin{table}[tb]
 \centering\small
-\caption{Lean declarations (namespace \texttt{DStabilityLocalization}).}\label{tab:lean}
+\caption{Lean declarations (namespace \texttt{DStabilityLocalization}); all are imported by
+\texttt{Paper.lean}.}\label{tab:lean}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.30\linewidth}>{\raggedright\arraybackslash}p{0.64\linewidth}@{}}
 \toprule
 Result & Declarations\\
@@ -996,8 +1059,8 @@ Result & Declarations\\
 Definitions~\ref{def:star}, \ref{def:boundary} & \lean{star}, \lean{pencil}, \lean{lagValue}, \lean{Role}, \lean{bdCore}, \lean{bdLoad}, \lean{bdSystem}, \lean{groups}\\
 Lemma~\ref{lem:elimination} & \lean{pencil_kernel_of_eigenpair}, \lean{eigenpair_of_pencil_kernel}\\
 Lemma~\ref{lem:affine} & \lean{det_sub_smul_vecMulVec}\\
-Lemma~\ref{lem:dilation} & \lean{pencil_det_ne_of_large}, \lean{pencil_det_ne_of_norm}\\
-Lemma~\ref{lem:arc} & \lean{val}, \lean{val_zero}, \lean{val_one}, \lean{lag_eq_val}, \lean{val_eq_lag}, \lean{norm_val_le_one}, \lean{hasStrictDerivAt_val}\\
+Lemma~\ref{lem:dilation} & (a) \lean{pencil_det_ne_of_large}, (b) \lean{pencil_det_ne_of_norm}\\
+Lemma~\ref{lem:arc} & \lean{val}, \lean{val_zero}, \lean{val_one}, \lean{lag_eq_val}, \lean{val_eq_lag}, \lean{norm_val_le_one}, \lean{hasStrictDerivAt_val}, \lean{dval_eq}\\
 Lemma~\ref{lem:sync} & \lean{sync_det}, \lean{sync_det_ne}\\
 Lemma~\ref{lem:open} & \lean{open_two_pieces}\\
 Lemma~\ref{lem:exit} & \lean{exit_channel}\\
@@ -1012,13 +1075,15 @@ Proposition~\ref{prop:gap} & \lean{gap_star_dStable}, \lean{gap_static_eigenpair
 Lemmas~\ref{lem:secant}, \ref{lem:mono} & \lean{secant_inequality}, \lean{cos_pow_strictMono}\\
 Theorem~\ref{thm:sharpness} & \lean{cycStar}, \lean{cycEig}, \lean{cyc_star_eigenpair}, \lean{cycEig_re_pos}, \lean{cyc_star_dUnstable}, \lean{cyc_lower_dStable}, \lean{cyc_window}, \lean{sharpness_full}\\
 Lemma~\ref{lem:cubic} & \lean{cubic_ne_zero}\\
-Proposition~\ref{prop:lumping} & \lean{lump_star_eigenpair}, \lean{lump_lower_dStable}, \lean{lumping_needed}\\
+Proposition~\ref{prop:lumping} & \lean{grp_star_eigenpair}, \lean{grp_lower_dStable}, \lean{grp_window}, \lean{group_size_sharpness}; for $m=2$: \lean{lump_star_eigenpair}, \lean{lump_lower_dStable}, \lean{lumping_needed}\\
 Example~\ref{ex:cyc2}, Table~\ref{tab:cyc2} & \lean{cyc2_example}\\
-Root & \lean{localization_and_sharpness}\\
+Remark~\ref{rem:scope}(iii), Section~\ref{sec:discussion} & \lean{bdSystem_eq_of_loads}, \lean{card_bdSystems_le}\\
+Main results & \lean{localization_and_sharpness}, \lean{group_size_sharpness}\\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \bibliographystyle{plainurl}
 \bibliography{refs}
 

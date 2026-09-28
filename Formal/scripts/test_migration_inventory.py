@@ -141,6 +141,18 @@ class HistoricalClosureTests(unittest.TestCase):
     def test_root_closure_receipt_passes(self):
         self.use_root_closure_record();validate_history(self.root,self.row)
 
+    def test_supplemental_closure_passes(self):
+        self.use_root_closure_record()
+        row={'id':self.row['id'],'closure':self.row['closure'],
+             'additional_historical_verification':['history.json']}
+        validate_history(self.root,row)
+
+    def test_supplemental_closure_cannot_escape_paper(self):
+        self.use_root_closure_record()
+        row={'id':self.row['id'],'closure':['proofs/Root.lean'],
+             'additional_historical_verification':['history.json']}
+        with self.assertRaises(AssertionError):validate_history(self.root,row)
+
     def test_root_closure_rejects_changed_dependency(self):
         self.use_root_closure_record();self.write('proofs/Base.lean','changed')
         with self.assertRaises(AssertionError):validate_history(self.root,self.row)

@@ -1,21 +1,15 @@
-# Quantitative emergence and finite-time startup of productive polymer reactors: stochastic operating guarantees and certified static availability bounds
+# Reliable finite-time output from stochastic autocatalytic reactors: retained rewards, uncertain background catalysis, and quantitative startup
 
-[Read the paper](../../../Theory/Production/P055-quantitative-polymer-startup.pdf) · [Claim map](claims.json) · [Build instructions](../../BUILD.md) · [All papers](../../../README.md)
+[Read the paper](../../../Theory/Production/P055-quantitative-polymer-startup.pdf) · [Manuscript](manuscript/main.tex) · [Claim map](claims.json) · [Build instructions](../../BUILD.md)
 
-A reflexively autocatalytic and food-generated (RAF) set certifies that a reaction network could regenerate its catalysts from food.
+Retained rewards convert autocatalytic availability into finite-time stock and output guarantees under uncertain background catalysis. The paper gives joint mission and all-window output bounds, food budgets, and quantitative startup scales.
 
-The full abstract, hypotheses and numbered results are in the manuscript.
+**Formalization:** The background-robust stochastic mission theorem and its all-window extension are conventional proofs. The food-silent mission and selected rounding, drift, variance, and error-budget components are formalized.
 
-**Formal sources:** 491 selected modules, including shared dependencies. 13 declaration records are linked in the claim map. The preserved manuscript tables provide the detailed correspondence and identify conventional arguments and numerical illustrations.
+Selected Lean sources:
 
-Selected entry points:
+- [Resolution.lean](../../proofs/StartupMarked/Resolution.lean)
+- [ParameterizedFloor.lean](../../proofs/StartupCount/ParameterizedFloor.lean)
+- [RobustSharpening.lean](../../proofs/StartupCount/RobustSharpening.lean)
 
-- [CollectiveMassCorridor.lean](../../proofs/RandomViability/CollectiveMassCorridor.lean)
-- [CompensatedScalarComparison.lean](../../proofs/RandomViability/CompensatedScalarComparison.lean)
-- [MassNoiseProbability.lean](../../proofs/RandomViability/MassNoiseProbability.lean)
-- [PhysicalFoodStartup.lean](../../proofs/RandomViability/PhysicalFoodStartup.lean)
-- [PhysicalMassComparison.lean](../../proofs/RandomViability/PhysicalMassComparison.lean)
-
-## Verification
-
-The [verification notes](../../VERIFICATION.md) explain the saved compilation and axiom-audit records. See the [build guide](../../BUILD.md) to reproduce a selected paper.
+[Verification scope](../../VERIFICATION.md) · [All papers](../../../README.md)

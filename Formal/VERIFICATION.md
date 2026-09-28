@@ -8,7 +8,7 @@ it does not establish every statement in the associated paper.
 
 The saved [compilation and axiom-audit records](migration/clean-verification.json)
 cover 3,566 modules and 855 per-paper declaration entries, with complete recorded
-checks for 58 papers. The collection contains 5,786 production modules across
+checks for 58 papers. The collection contains 5,811 production modules across
 86 papers. Other results have source-era verification reports with their own
 coverage and environment qualifications. These records were produced before the
 present directory reorganization; no new full compilation is claimed here.
@@ -41,4 +41,7 @@ P064 now also includes the all-site attracting Hopf theorem for every n ≥ 3. I
 
 Machine-account names in archived command paths are redacted in the distributed receipts. Source, dependency and compiled-artifact hashes retain their original values.
 
-P083–P086 include 38 newly added modules and unchanged shared dependencies. Their complete selected source closures and pinned environment match the saved strict receipts, including 20 per-paper declaration probes (the threshold probe is shared by P083 and P084). See the [D-Stability notes](../Theory/D-Stability/README.md) for the individual proof scopes and the distinction between the earlier granularity draft and its expanded paper. No new Lean compilation or axiom probing was performed for these additions.
+
+The D-Stability papers use the pinned environment above. Their saved receipts cover the selected source closures and declaration interfaces; mathematical coverage is stated in each [paper’s proof notes](../Theory/D-Stability/README.md). The [5×5 receipt review](papers/P087-d-stability-contact-critical-points/evidence/historical-verification.json) covers 47 modules and 25 declaration interfaces. These are source-matched historical checks, not fresh compilation.
+
+Additional source-matched evidence covers the [sharp RAF-realizability threshold](papers/P005-raf-realizability/evidence/additional-historical-verification.json) and [finite-time output components](papers/P055-quantitative-polymer-startup/evidence/additional-historical-verification.json). The stronger background-robust stochastic mission theorem remains conventional.

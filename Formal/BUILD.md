@@ -55,4 +55,4 @@ explicit adaptations supplied here.
 
 ## D-Stability papers
 
-P083–P086 use the same pinned environment and module paths. Select any one with `--paper P083`, `--paper P084`, `--paper P085`, or `--paper P086` in the commands above. Their saved receipts were checked against the exact copied sources and complete local import closures; the migration did not rerun Lean. P083 and P084 share the threshold development.
+Select `--paper P084`, `--paper P085`, `--paper P086`, or `--paper P087` in the commands above. All use the shared pinned environment.

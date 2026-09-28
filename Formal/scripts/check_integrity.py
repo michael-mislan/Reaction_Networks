@@ -102,15 +102,6 @@ def main():
   assignment=taxonomy['papers'][entry['id']]
   expected_folder='../'+taxonomy['categories'][assignment['primary']]['folder']
   if pdf.parent.resolve()!=(ROOT/expected_folder).resolve() or entry['tags']!=assignment['tags']:errors.append('Reading taxonomy mismatch: '+entry['id'])
- pdf_only_path=ROOT.parent/'pdf-only-papers.json'
- if pdf_only_path.exists():
-  pdf_only=json.loads(pdf_only_path.read_text(encoding='utf8'))
-  additions=pdf_only['papers']+pdf_only.get('earlier_versions',[])
-  for entry in additions:
-   relative='../'+entry['pdf'];pdf=ROOT/relative
-   if relative in expected_pdfs:errors.append('Duplicate reading-library PDF: '+relative)
-   expected_pdfs.add(relative)
-   if not pdf.is_file() or sha(pdf)!=entry['sha256']:errors.append('PDF-only byte mismatch: '+entry['pdf'])
  if expected_pdfs!={'../'+p.relative_to(ROOT.parent).as_posix() for branch in ['Theory','Applications'] for p in (ROOT.parent/branch).rglob('*.pdf')}:errors.append('Unexpected or missing reading-library PDF')
  pages += [ROOT.parent/'README.md',ROOT.parent/'TAGS.md',ROOT.parent/'RIGHTS.md',ROOT.parent/'CITATION.md',ROOT.parent/'ERRATA.md',ROOT.parent/'RESEARCH_NOTES.md'] + [p for branch in ['Theory','Applications'] for p in (ROOT.parent/branch).rglob('*.md')]
  for page in pages:

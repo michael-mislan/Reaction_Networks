@@ -1,23 +1,14 @@
 # Interior operators realizable by autocatalytic networks: an antimatroid characterization
 
-[Read the paper](../../../Theory/Structural/P005-raf-realizability.pdf) · [Claim map](claims.json) · [Build instructions](../../BUILD.md) · [All papers](../../../README.md)
+[Read the paper](../../../Theory/Structural/P005-raf-realizability.pdf) · [Manuscript](manuscript/main.tex) · [Claim map](claims.json) · [Build instructions](../../BUILD.md)
 
-A catalytic reaction system with a food set determines an interior operator on the subsets of its reaction set: each set of reactions is sent to the largest reflexively autocatalytic and food-generated (RAF) subset it contains.
+A finite reaction system realizes an interior operator exactly when its fixed family is an intersection of an antimatroid with a digraph support family. The k = 3 family is realizable precisely on ground sets of size at most four.
 
-**Formalization:** The main characterization theorem and selected corollaries are formalized. Corollary 6.5 (sharp size bound) and Theorem 6.6 (threshold theorem) are conventional, as Section 7.1 specifies. The original abstract and overview overstate that scope; read the [editorial correction](../../../ERRATA.md#p005--scope-of-formalization).
+**Formalization:** The main characterization, selected corollaries, and the sharp k = 3 threshold are formalized. The general counting bound in Corollary 6.5 is conventional.
 
-The full abstract, hypotheses and numbered results are in the manuscript.
+Selected Lean sources:
 
-**Formal sources:** 20 selected modules, including shared dependencies. 4 declaration records are linked in the claim map. The preserved manuscript tables provide the detailed correspondence and identify conventional arguments and numerical illustrations.
-
-Selected entry points:
-
-- [Corollaries.lean](../../proofs/RAFInteriorRealizability/Corollaries.lean)
 - [Main.lean](../../proofs/RAFInteriorRealizability/Main.lean)
-- [AntimatroidRealization.lean](../../proofs/RAFInteriorRealizability/AntimatroidRealization.lean)
-- [Basic.lean](../../proofs/RAFInteriorRealizability/Basic.lean)
-- [CatalysisRealization.lean](../../proofs/RAFInteriorRealizability/CatalysisRealization.lean)
+- [CPlusThreeFiveGraph.lean](../../proofs/RAFInteriorRealizability/CPlusThreeFiveGraph.lean)
 
-## Verification
-
-The [verification notes](../../VERIFICATION.md) explain the saved compilation and axiom-audit records. See the [build guide](../../BUILD.md) to reproduce a selected paper.
+[Verification scope](../../VERIFICATION.md) · [All papers](../../../README.md)
