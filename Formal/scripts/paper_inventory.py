@@ -3,11 +3,11 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_IDS = [f'P{i:03d}' for i in range(1, 83)]
+EXPECTED_IDS = [f'P{i:03d}' for i in range(1, 87)]
 
 def validate(manifest, rows):
     if manifest.get('expected_ids') != EXPECTED_IDS:
-        raise ValueError('Expected inventory must retain P001 through P082 in order')
+        raise ValueError('Expected inventory must retain P001 through P086 in order')
     entries = manifest.get('papers', [])
     ids = [entry['id'] for entry in entries]
     if len(ids) != len(set(ids)) or set(ids) != set(EXPECTED_IDS):

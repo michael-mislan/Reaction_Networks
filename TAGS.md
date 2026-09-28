@@ -309,7 +309,7 @@ Papers may appear under more than one subject.
 
 | ID | Paper | Sources |
 |---|---|---|
-| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
+| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [Proofs and notes](Formal/papers/P083-granularity-coordinate-interfaces/README.md) |
+| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [Proofs and notes](Formal/papers/P084-first-order-attachments/README.md) |
+| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [Proofs and notes](Formal/papers/P085-localization-star-interconnections/README.md) |
+| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [Proofs and notes](Formal/papers/P086-deciding-d-stability-conp-hard/README.md) |

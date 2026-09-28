@@ -58,8 +58,8 @@ class InventoryTests(unittest.TestCase):
         self.rows=[{'id':p,'mapping_status':'VERIFIED','copy_status':'COPIED','hash_status':'PASS','dependency_status':'COMPLETE'} for p in EXPECTED_IDS[:60]]
         self.manifest={'expected_ids':EXPECTED_IDS,'papers':[{'id':p,'status':'ACCEPTED' if i<60 else 'PENDING_SOURCE_REVIEW'} for i,p in enumerate(EXPECTED_IDS)]}
 
-    def test_partial_collection_keeps_twenty_two_pending(self):
-        self.assertEqual(len(validate(self.manifest,self.rows)),22)
+    def test_partial_collection_keeps_all_remaining_papers_pending(self):
+        self.assertEqual(len(validate(self.manifest,self.rows)),len(EXPECTED_IDS)-60)
 
     def test_missing_expected_paper_is_error(self):
         self.manifest['papers'].pop()

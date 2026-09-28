@@ -8,8 +8,8 @@ it does not establish every statement in the associated paper.
 
 The saved [compilation and axiom-audit records](migration/clean-verification.json)
 cover 3,566 modules and 855 per-paper declaration entries, with complete recorded
-checks for 58 papers. The collection contains 5,748 production modules across
-82 papers. Other results have source-era verification reports with their own
+checks for 58 papers. The collection contains 5,786 production modules across
+86 papers. Other results have source-era verification reports with their own
 coverage and environment qualifications. These records were produced before the
 present directory reorganization; no new full compilation is claimed here.
 
@@ -40,3 +40,5 @@ verification records. No other Lean modules were recompiled for this change.
 P064 now also includes the all-site attracting Hopf theorem for every n ≥ 3. Its saved strict receipt and all 142 source hashes match the included sources and pinned environment; no new Lean compilation was needed. See the [P064 notes](papers/P064-phosphorylation-oscillations/README.md) for the exact scope.
 
 Machine-account names in archived command paths are redacted in the distributed receipts. Source, dependency and compiled-artifact hashes retain their original values.
+
+P083–P086 include 38 newly added modules and unchanged shared dependencies. Their complete selected source closures and pinned environment match the saved strict receipts, including 20 per-paper declaration probes (the threshold probe is shared by P083 and P084). See the [D-Stability notes](../Theory/D-Stability/README.md) for the individual proof scopes and the distinction between the earlier granularity draft and its expanded paper. No new Lean compilation or axiom probing was performed for these additions.

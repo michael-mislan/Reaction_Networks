@@ -2,12 +2,12 @@
 
 Mathematical papers and formal proofs on autocatalytic networks, reaction dynamics, chemical inheritance, and biochemical observation.
 
-Browse by subject below, or use the [topic index](TAGS.md) to find papers spanning several areas. Each paper is available as a PDF. Manuscript sources and formal proofs are linked where included; the new D-Stability papers are currently a PDF-only release.
+Browse by subject below, or use the [topic index](TAGS.md) to find papers spanning several areas. Each paper is available as a PDF. Each paper’s notes link its manuscript sources, formal proofs, and verification scope.
 
 ## Theory
 
 - [Structural](Theory/Structural/README.md) — 5 papers
-- [D-Stability](Theory/D-Stability/README.md) — 4 papers (PDF only)
+- [D-Stability](Theory/D-Stability/README.md) — 4 papers
 - [Algorithms](Theory/Algorithms/README.md) — 8 papers
 - [Kinetics](Theory/Kinetics/README.md) — 10 papers
 - [Thermodynamics](Theory/Thermodynamics/README.md) — 5 papers
@@ -143,10 +143,10 @@ The papers address the following conjectures and questions from the literature. 
 | P080 | [The 2n − 1 steady-state bound is sharp for sequential distributive phosphorylation](Applications/Phosphorylation/P080-phosphorylation-sharp-steady-state-bound.pdf) | [Proofs and notes](Formal/papers/P080-phosphorylation-sharp-steady-state-bound/README.md) |
 | P081 | [Unconstrained detection of productive autocatalytic cores is NP-complete](Theory/Algorithms/P081-unconstrained-pac-complexity.pdf) | [Proofs and notes](Formal/papers/P081-unconstrained-pac-complexity/README.md) |
 | P082 | [Zero-divisor methods for absolute concentration robustness: completeness, positive geometry, and quantitative certificates](Theory/Algorithms/P082-zero-divisor-acr.pdf) | [Proofs and notes](Formal/papers/P082-zero-divisor-acr/README.md) |
-| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
-| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [PDF release notes](Theory/D-Stability/README.md) |
+| P083 | [Granularity and stability at coordinate interfaces: Static thresholds, planar response sets, and finite-rate instability](Theory/D-Stability/P083-granularity-coordinate-interfaces.pdf) | [Proofs and notes](Formal/papers/P083-granularity-coordinate-interfaces/README.md) |
+| P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [Proofs and notes](Formal/papers/P084-first-order-attachments/README.md) |
+| P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [Proofs and notes](Formal/papers/P085-localization-star-interconnections/README.md) |
+| P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [Proofs and notes](Formal/papers/P086-deciding-d-stability-conp-hard/README.md) |
 
 ## Proofs and supporting material
 
