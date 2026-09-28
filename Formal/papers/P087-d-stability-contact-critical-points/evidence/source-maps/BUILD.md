@@ -1,7 +1,7 @@
-# Build notes: Critical points on Johnson's contact variety
+# Build notes: A critical-point criterion for D-stability in every dimension
 
-Title: *Critical points on Johnson's contact variety: a machine-checked D-stability criterion, an explicit 5×5
-critical-point system, and time-scale robustness margins*.
+Title: *A critical-point criterion for D-stability in every dimension* (shortened on 2026-09-28 from "Critical points on Johnson's contact variety: a
+machine-checked D-stability criterion, an explicit 5×5 critical-point system, and time-scale robustness margins").
 
 This is the arXiv-ready source (September 2026, referee-revised) for phase 2 of the T-5×5 campaign
 (`problem_workspaces/D_stability_5x5_characterization/`). The PDF is copied to

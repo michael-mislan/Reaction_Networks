@@ -1,4 +1,4 @@
-# Critical points on Johnson’s contact variety: a machine-checked D-stability criterion, an explicit 5×5 critical-point system, and time-scale robustness margins
+# A critical-point criterion for D-stability in every dimension
 
 [Read the paper](../../../Theory/D-Stability/P087-d-stability-contact-critical-points.pdf) · [Manuscript](manuscript/main.tex) · [Claim map](claims.json) · [Build instructions](../../BUILD.md)
 
