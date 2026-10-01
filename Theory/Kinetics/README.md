@@ -2,7 +2,7 @@
 
 Trajectories, stationary states, stability, oscillation and switching.
 
-[All papers](../../README.md) · [Topic index](../../TAGS.md)
+[All papers](../../CATALOGUE.md) · [Topic index](../../TAGS.md)
 
 | ID | Paper | Sources |
 |---|---|---|

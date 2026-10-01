@@ -2,7 +2,7 @@
 
 Transmission of chemical states through growth, division and transfer.
 
-[All papers](../../README.md) · [Topic index](../../TAGS.md)
+[All papers](../../CATALOGUE.md) · [Topic index](../../TAGS.md)
 
 | ID | Paper | Sources |
 |---|---|---|

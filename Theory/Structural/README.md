@@ -1,8 +1,10 @@
-# Structural
+# Structure
+
+<a id="structural"></a>
 
 Food closure, catalytic support, core structure and exact relationships.
 
-[All papers](../../README.md) · [Topic index](../../TAGS.md)
+[All papers](../../CATALOGUE.md) · [Topic index](../../TAGS.md)
 
 | ID | Paper | Sources |
 |---|---|---|

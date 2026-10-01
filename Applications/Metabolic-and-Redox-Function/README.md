@@ -2,7 +2,7 @@
 
 Metabolic service, redox resources and source-specific biochemical networks.
 
-[All papers](../../README.md) · [Topic index](../../TAGS.md)
+[All papers](../../CATALOGUE.md) · [Topic index](../../TAGS.md)
 
 | ID | Paper | Sources |
 |---|---|---|
