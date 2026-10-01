@@ -2,9 +2,11 @@
 
 Papers may appear under more than one subject.
 
-[All papers](README.md)
+[Full catalogue](CATALOGUE.md) · [Research overview](README.md)
 
-## Structural
+## Structure
+
+<a id="structural"></a>
 
 | ID | Paper | Sources |
 |---|---|---|
@@ -53,6 +55,10 @@ Papers may appear under more than one subject.
 
 | ID | Paper | Sources |
 |---|---|---|
+| P003 | [An Exact Counterexample to the D-Unstable-Core Conjecture for Parameter-Rich Reaction Networks](Theory/Kinetics/P003-parameter-rich-d-cores.pdf) | [Proofs and notes](Formal/papers/P003-parameter-rich-d-cores/README.md) |
+| P008 | [Kinetic order is invisible to D-cores: a support-preserving mass-action lift and an exact counterexample](Theory/Kinetics/P008-kinetic-order-d-cores.pdf) | [Proofs and notes](Formal/papers/P008-kinetic-order-d-cores/README.md) |
+| P023 | [Reactant-bimolecular mass-action instability without D-unstable cores](Theory/Kinetics/P023-bimolecular-d-core-instability.pdf) | [Proofs and notes](Formal/papers/P023-bimolecular-d-core-instability/README.md) |
+| P037 | [A reaction-deletion-minimal mass-action oscillator without D-unstable child selections](Theory/Kinetics/P037-reaction-minimal-oscillator.pdf) | [Proofs and notes](Formal/papers/P037-reaction-minimal-oscillator/README.md) |
 | P084 | [D-stability under first-order attachments at a single coordinate: an exact static threshold and a subset-sum criterion](Theory/D-Stability/P084-first-order-attachments.pdf) | [Proofs and notes](Formal/papers/P084-first-order-attachments/README.md) |
 | P085 | [Localization of D-instability in star interconnections and a sharp bound on synchronized groups](Theory/D-Stability/P085-localization-star-interconnections.pdf) | [Proofs and notes](Formal/papers/P085-localization-star-interconnections/README.md) |
 | P086 | [Deciding D-stability is coNP-hard](Theory/D-Stability/P086-deciding-d-stability-conp-hard.pdf) | [Proofs and notes](Formal/papers/P086-deciding-d-stability-conp-hard/README.md) |
@@ -313,3 +319,20 @@ Papers may appear under more than one subject.
 | ID | Paper | Sources |
 |---|---|---|
 | P069 | [Certified one-bit chemical computation: finite-fuel correction, productive readout, and inheritance](Applications/Chemical-Computation/P069-one-bit-chemical-computation.pdf) | [Proofs and notes](Formal/papers/P069-one-bit-chemical-computation/README.md) |
+
+## Origin of Life
+
+[Domain guide](Applications/Origin-of-Life/README.md). Cross-links to chemical emergence, inheritance, selection and resource requirements in explicit models.
+
+| ID | Paper | Sources |
+|---|---|---|
+| P002 | [A nontrivial critical window for RAF emergence in the binary polymer model](Theory/Emergence/P002-critical-window.pdf) | [Proofs and notes](Formal/papers/P002-critical-window/README.md) |
+| P016 | [Structural autocatalysis can be common while productive operation is rare: an exact separation theorem in a capped-Zipf binary polymer model](Theory/Emergence/P016-structure-operation-separation.pdf) | [Proofs and notes](Formal/papers/P016-structure-operation-separation/README.md) |
+| P017 | [Reliable copying of chemical states: finite-molecule guarantees and molecular redundancy](Theory/Inheritance/P017-reliable-chemical-copying.pdf) | [Proofs and notes](Formal/papers/P017-reliable-chemical-copying/README.md) |
+| P032 | [Finite-count chemical inheritance with reversible interactions and bounded food supplies](Theory/Inheritance/P032-bounded-food-inheritance.pdf) | [Proofs and notes](Formal/papers/P032-bounded-food-inheritance/README.md) |
+| P036 | [Critical-window emergence of autocatalytic sets under reaction-channel quotienting](Theory/Emergence/P036-channel-quotient-emergence.pdf) | [Proofs and notes](Formal/papers/P036-channel-quotient-emergence/README.md) |
+| P041 | [Thermochemically consistent realization of a stochastic autocatalytic exporter: chemical completion, inherited operating certificates, cycle affinities and a necessary initiation scale](Theory/Thermodynamics/P041-thermochemical-exporter.pdf) | [Proofs and notes](Formal/papers/P041-thermochemical-exporter/README.md) |
+| P044 | [Inherited chemical-state selection across serial transfers: a finite stochastic construction with a machine-checked proof](Theory/Evolution/P044-serial-transfer-selection.pdf) | [Proofs and notes](Formal/papers/P044-serial-transfer-selection/README.md) |
+| P052 | [Chemical Memory under Load: Productive Inheritance and Hidden Operating States](Theory/Memory/P052-chemical-memory-under-load.pdf) | [Proofs and notes](Formal/papers/P052-chemical-memory-under-load/README.md) |
+| P074 | [The material and kinetic cost of productive chemical memory: exact frontiers for support and proportion encodings](Theory/Memory/P074-productive-memory-material-cost.pdf) | [Proofs and notes](Formal/papers/P074-productive-memory-material-cost/README.md) |
+| P077 | [Repeated selection of inherited chemical states: finite-population guarantees and a logarithmic horizon law](Theory/Evolution/P077-repeated-chemical-state-selection.pdf) | [Proofs and notes](Formal/papers/P077-repeated-chemical-state-selection/README.md) |

@@ -2,7 +2,7 @@
 
 Occurrence probabilities, critical windows and startup.
 
-[All papers](../../README.md) · [Topic index](../../TAGS.md)
+[All papers](../../CATALOGUE.md) · [Topic index](../../TAGS.md)
 
 | ID | Paper | Sources |
 |---|---|---|
