@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Scientific checks for the introductory public-paper examples."""
 from fractions import Fraction as Q
+import json
+from pathlib import Path
+import subprocess
+import sys
 import unittest
 
-from fresh_conversion import load_calculator
+from fresh_conversion import calculate, load_calculator
 from phosphorylation_equilibria import construct
 
 
@@ -33,6 +37,47 @@ class FreshConversionTests(unittest.TestCase):
     def test_retention_hypotheses_are_required(self):
         with self.assertRaises(ValueError):
             self.calculator.calculate({**self.cases["positive"], "e": ".95", "s": ".9"})
+
+    def test_wrapper_exact_threshold_equality_and_nearby_cases(self):
+        for threshold, expected in (
+            ("1.5", "certified-at-or-above"),
+            ("1.69", "certified-at-or-above"),
+            ("1.690001", "unresolved"),
+        ):
+            with self.subTest(threshold=threshold):
+                result = calculate({**self.cases["positive"], "threshold": threshold})
+                self.assertEqual(result["lower"], "169/100")
+                self.assertEqual(result["threshold"], str(Q(threshold)))
+                self.assertEqual(result["outcome"], expected)
+
+    def test_wrapper_upper_boundary_and_incompatible_regressions(self):
+        boundary = calculate({**self.cases["boundary"], "fresh_upper": "1.69"})
+        self.assertEqual(boundary["lower"], boundary["threshold"])
+        self.assertEqual(boundary["upper"], boundary["threshold"])
+        self.assertEqual(boundary["outcome"], "certified-at-or-above")
+        for upper, expected in (("1.5", "unresolved"), ("1.499999", "certified-below")):
+            with self.subTest(upper=upper):
+                result = calculate({**self.cases["unresolved"], "fresh_upper": upper})
+                self.assertEqual(result["outcome"], expected)
+                self.assertEqual(result["threshold"], "3/2")
+        for name in ("incompatible", "negative_interval"):
+            with self.subTest(name=name):
+                result = calculate(self.cases[name])
+                self.assertEqual(result["outcome"], "incompatible")
+                self.assertEqual(result["threshold"], "3/2")
+
+    def test_cli_json_distinguishes_equality_from_positive_case(self):
+        script = Path(__file__).with_name("fresh_conversion.py")
+        output = subprocess.check_output([sys.executable, "-B", str(script)], text=True)
+        cases = json.loads(output)
+        self.assertEqual(cases["positive"]["threshold"], "3/2")
+        self.assertEqual(cases["boundary"]["threshold"], "169/100")
+        self.assertEqual(cases["boundary"]["lower"], cases["boundary"]["threshold"])
+        self.assertGreater(Q(cases["positive"]["lower"]), Q(cases["positive"]["threshold"]))
+        for name in ("positive", "boundary"):
+            self.assertEqual(cases[name]["outcome"], "certified-at-or-above")
+        self.assertEqual(cases["unresolved"]["outcome"], "unresolved")
+        self.assertEqual(cases["incompatible"]["outcome"], "incompatible")
 
 
 class PhosphorylationTests(unittest.TestCase):

@@ -8,6 +8,8 @@ Mathematical papers, scientific code and formal proofs on autocatalytic networks
 
 These entry points address explicit literature questions or connect reaction structure to dynamics and useful operation. Links lead to the papers and their evidence scope.
 
+A chemical reaction system (CRS) specifies molecules, reactions, catalysis and a designated food set. A reflexively autocatalytic and food-generated set (RAF) is a nonempty set of reactions whose reactants can be built from food using those reactions, each catalysed by a food molecule or a product of the set.
+
 | Question | Result and scope | Read |
 |---|---|---|
 | How small can an autocatalytic network be? | No constant-factor polynomial-time approximation of the minimum RAF exists for the stated finite-CRS encoding unless P = NP. | [P001: minimum RAF](Formal/papers/P001-min-raf-inapproximability/README.md) |
@@ -40,7 +42,7 @@ The [literature guide](LITERATURE.md) records conjectures, questions, resolution
 
 ## All papers
 
-The [full catalogue](CATALOGUE.md#all-papers) lists every public paper by stable ID. The [topic index](TAGS.md) cross-links subjects; [catalogue.json](catalogue.json) provides the same discovery information for scripts and agents.
+The [full catalogue](CATALOGUE.md#all-papers) lists every public paper by stable ID. The [topic index](TAGS.md) cross-links subjects; [catalogue.json](catalogue.json) provides the same discovery information for software.
 
 ## Proofs and supporting material
 

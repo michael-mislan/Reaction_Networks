@@ -7,6 +7,7 @@ This wrapper changes no source formula and writes no files.
 """
 import importlib.util
 import json
+from fractions import Fraction
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,10 +21,21 @@ def load_calculator():
     return module
 
 
+def calculate(data):
+    """Report the certificate threshold and its inclusive lower-bound decision."""
+    result = load_calculator().calculate(data)
+    return {
+        **result,
+        "threshold": str(Fraction(str(data["threshold"]))),
+        "outcome": ("certified-at-or-above"
+                    if result["outcome"] == "certified-above"
+                    else result["outcome"]),
+    }
+
+
 def demo():
-    calculator = load_calculator()
-    cases = calculator.examples()
-    return {name: calculator.calculate(cases[name])
+    cases = load_calculator().examples()
+    return {name: calculate(cases[name])
             for name in ("positive", "unresolved", "boundary", "incompatible")}
 
 
